@@ -2,7 +2,7 @@
 layout: about
 title: about
 permalink: /
-subtitle: <a href='#'>Affiliations</a>. Address. Contacts. Moto. Etc.
+subtitle: <a href='https://montreal.ubisoft.com/en/our-engagements/research-and-development/'>Ubisoft La Forge</a>.
 
 profile:
   align: right
