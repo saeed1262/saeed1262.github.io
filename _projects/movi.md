@@ -28,12 +28,14 @@ The code containing the model and tutorial is hosted on GitHub which can be foun
 
 ### Referencing the MoVi Dataset
 ```bibtex
-@misc{ghorbani2020movi,
-    title={MoVi: A Large Multipurpose Motion and Video Dataset},
-    author={Saeed Ghorbani and Kimia Mahdaviani and Anne Thaler and Konrad Kording and Douglas James Cook and Gunnar Blohm and Nikolaus F. Troje},
-    year={2020},
-    eprint={2003.01888},
-    archivePrefix={arXiv},
-    primaryClass={cs.CV}
+@article{ghorbani2021movi,
+  title={MoVi: A large multi-purpose human motion and video dataset},
+  author={Ghorbani, Saeed and Mahdaviani, Kimia and Thaler, Anne and Kording, Konrad and Cook, Douglas James and Blohm, Gunnar and Troje, Nikolaus F},
+  journal={Plos one},
+  volume={16},
+  number={6},
+  pages={e0253157},
+  year={2021},
+  publisher={Public Library of Science San Francisco, CA USA}
 }
 ```
