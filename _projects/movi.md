@@ -4,6 +4,7 @@ title: MoVi
 description: MoVi A Large Multipurpose Motion and Video Dataset
 img: /assets/img/movi.png
 importance: 1
+category: work
 ---
 
 [MoVi](https://www.biomotionlab.ca/movi/) is the first human motion dataset to contain synchronized pose, body meshes and video recordings. The MoVi database can be applied in human pose estimation and tracking, human motion prediction and synthesis, action recognition and gait analysis. For more information visit the [main website](https://www.biomotionlab.ca/movi/)
