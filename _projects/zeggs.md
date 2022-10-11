@@ -11,7 +11,7 @@ We present ZeroEGGS, a neural network framework for speech-driven gesture genera
 
 
 <div class="row justify-content-sm-center">
-    <iframe width="560" height="315" src="https://www.youtube.com/watch?v=YFg7QKWkjwQ" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    <iframe width="560" height="315" src="https://www.youtube.com/embed/YFg7QKWkjwQ" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 </div>
 
 ---
