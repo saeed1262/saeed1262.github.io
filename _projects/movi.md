@@ -17,7 +17,7 @@ category: work
 ---
 
 ## Publication
-Here is a link to the preprint [manuscript](https://arxiv.org/abs/2003.01888).
+Here is a link to the PLOS ONE [manuscript](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0253157).
 
 ---
 
