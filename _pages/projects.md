@@ -1,9 +1,9 @@
 ---
 layout: page
-title: projects
+title: Projects
 permalink: /projects/
 description: Some of my projects
-nav: false
+nav: true
 nav_order: 2
 display_categories: [work, fun]
 horizontal: true
