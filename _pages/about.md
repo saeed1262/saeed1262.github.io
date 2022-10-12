@@ -1,6 +1,6 @@
 ---
 layout: about
-title: about
+title: About
 permalink: /
 # subtitle: <a href='https://montreal.ubisoft.com/en/our-engagements/research-and-development/'>Ubisoft La Forge</a>.
 
