@@ -26,7 +26,7 @@ The code, pre-trained models, and our dataset are hosted on GitHub which can be 
 
 ---
 
-### Referencing the ZEGGA
+### Referencing ZEGGS
 ```bibtex
 @article{ghorbani2022zeroeggs,
   title={ZeroEGGS: Zero-shot Example-based Gesture Generation from Speech},
