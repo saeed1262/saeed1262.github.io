@@ -4,15 +4,7 @@
 <!-- _layouts/bib.html -->
 <div class="row">
     <div class="col-sm-2 abbr">
-        {%- if entry.abbr -%}
-        <img
-            class="img-fluid z-depth-2 rounded"
-            style="object-fit: contain"
-            src="{{ entry.img }}"
-            width="150"
-            height="200"
-        />
-        {%- if site.data.venues[entry.abbr] -%}
+        {%- if entry.abbr -%} {%- if site.data.venues[entry.abbr] -%}
         <abbr class="badge"
             ><a href="{{site.data.venues[entry.abbr].url}}"
                 >{{entry.abbr}}</a
