@@ -1,17 +1,23 @@
 "Brubaker":
-    - url: https://mbrubake.github.io/
+    - firstname: ["Marcus"]
+    url: https://mbrubake.github.io/
 
 "Wloka":
-    - url: http://www.cse.yorku.ca/~calden/
+    - firstname: ["Calden"]
+    url: http://www.cse.yorku.ca/~calden/
 
 "Troje":
-    - url: https://www.biomotionlab.ca/niko-troje/
+    - firstname: ["Nikolaus"]
+    url: https://www.biomotionlab.ca/niko-troje/
 
 "Etemad":
-    - url: http://alietemad.com/
+    - firstname: ["Ali"]
+    url: http://alietemad.com/
 
 "Blohm":
-    - url: http://www.compneurosci.com/people.html
+    - firstname: ["Gunnar"]
+    url: http://www.compneurosci.com/people.html
 
 "Kording":
-    - url: http://koerding.com/
+    - firstname: ["Konrad"]
+    url: http://koerding.com/
