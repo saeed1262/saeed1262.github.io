@@ -1,5 +1,5 @@
 "Brubaker":
-    - firstname: ["Marcus"]
+    - firstname: ["Marcus", "Marcus A."]
       url: https://mbrubake.github.io/
 
 "Wloka":
@@ -7,7 +7,7 @@
       url: http://www.cse.yorku.ca/~calden/
 
 "Troje":
-    - firstname: ["Nikolaus"]
+    - firstname: ["Nikolaus", "Nikolaus F."]
       url: https://www.biomotionlab.ca/niko-troje/
 
 "Etemad":
@@ -21,3 +21,11 @@
 "Kording":
     - firstname: ["Konrad"]
       url: http://koerding.com/
+
+"Holden":
+    - firstname: ["Daniel"]
+      url: https://theorangeduck.com/
+
+"Carbonneau":
+    - firstname: ["Marc-Andre"]
+      url: https://sites.google.com/site/marcandrecarbonneau/
