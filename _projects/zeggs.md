@@ -17,7 +17,7 @@ We present ZeroEGGS, a neural network framework for speech-driven gesture genera
 ---
 
 ## Publication
-Here is a link to the preprint [manuscript](https://arxiv.org/abs/2209.07556).
+Here is a link to the preprint [manuscript](https://onlinelibrary.wiley.com/doi/full/10.1111/cgf.14734).
 
 ---
 
