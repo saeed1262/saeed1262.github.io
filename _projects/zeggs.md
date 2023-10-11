@@ -17,7 +17,7 @@ We present ZeroEGGS, a neural network framework for speech-driven gesture genera
 ---
 
 ## Publication
-Here is a link to the preprint [manuscript](https://onlinelibrary.wiley.com/doi/full/10.1111/cgf.14734).
+Here is a link to the [manuscript](https://onlinelibrary.wiley.com/doi/full/10.1111/cgf.14734).
 
 ---
 
@@ -29,9 +29,16 @@ The code, pre-trained models, and our dataset are hosted on GitHub which can be 
 ### Referencing ZEGGS
 ```bibtex
 @article{ghorbani2022zeroeggs,
-  title={ZeroEGGS: Zero-shot Example-based Gesture Generation from Speech},
-  author={Ghorbani, Saeed and Ferstl, Ylva and Holden, Daniel and Troje, Nikolaus F and Carbonneau, Marc-Andr{\'e}},
-  journal={arXiv preprint arXiv:2209.07556},
-  year={2022}
+  author = {Ghorbani, Saeed and Ferstl, Ylva and Holden, Daniel and Troje, Nikolaus F. and Carbonneau, Marc-André},
+  title = {ZeroEGGS: Zero-shot Example-based Gesture Generation from Speech},
+  journal = {Computer Graphics Forum},
+  volume = {42},
+  number = {1},
+  pages = {206-216},
+  keywords = {animation, gestures, character control, motion capture},
+  doi = {https://doi.org/10.1111/cgf.14734},
+  url = {https://onlinelibrary.wiley.com/doi/abs/10.1111/cgf.14734},
+  eprint = {https://onlinelibrary.wiley.com/doi/pdf/10.1111/cgf.14734},
+  year = {2023}
 }
 ```
