@@ -3,18 +3,19 @@
   contents:
       - name: Full Name
         value: Saeed Ghorbani
+      - 
       - name: Languages
         value: Persian, English, German
 
 - title: Education
   type: time_table
   contents:
-      - title: PhD
+      - title: PhD in Computer Science and Electrical Engineering
         institution: York University, Toronto, Canada
         year: 2022
-      - title: MSc
+      - title: MSc in Electrical Engineering
         institution: Sharif University of Tech, Tehran, Iran
         year: 2009
-      - title: BSc
+      - title: BSc in Electrical Engineering
         institution: Isfahan University of Tech, Isfahan, Iran
         year: 2007
