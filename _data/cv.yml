@@ -25,30 +25,30 @@
       - title: Research & Development Scientist
         institution: Ubisoft La Forge, Toronto/Montreal, Canada
         Year: 2022
-      - title: R&D Programmer Intern
-        institution: Ubisoft La Forge, Toronto/Montreal, Canada
-        Year: 2021 - 2022
-      - title: Research Assistant
-        institution: York University, BioMotion Lab, Toronto, Canada
-        Year: 2019 - 2022
-      - title: Teaching Assistant
-        institution: York University, Toronto, Canada
-        Year: 2019 - 2022
-      - title: Research Assistant
-        institution: Queen’s University, BioMotion Lab, Kingston, Canada
-        Year: 2018 - 2018
-      - title: Teaching Assistant
-        institution: Queen’s University, Kingston, Canada
-        Year: 2018 - 2018
-      - title: Research Assistant
-        institution: University of Wollongong, Australia
-        Year: 2016 - 2017
-      - title: Lab Demonstrator
-        institution: University of Wollongong, Australia
-        Year: 2017 - 2017
-      - title: Lecturer and Researcher
-        institution: Isfahan University of Medical Sciences, Iran
-        Year: 2009 - 2016
+      # - title: R&D Programmer Intern
+      #   institution: Ubisoft La Forge, Toronto/Montreal, Canada
+      #   Year: 2021 - 2022
+      # - title: Research Assistant
+      #   institution: York University, BioMotion Lab, Toronto, Canada
+      #   Year: 2019 - 2022
+      # - title: Teaching Assistant
+      #   institution: York University, Toronto, Canada
+      #   Year: 2019 - 2022
+      # - title: Research Assistant
+      #   institution: Queen’s University, BioMotion Lab, Kingston, Canada
+      #   Year: 2018 - 2018
+      # - title: Teaching Assistant
+      #   institution: Queen’s University, Kingston, Canada
+      #   Year: 2018 - 2018
+      # - title: Research Assistant
+      #   institution: University of Wollongong, Australia
+      #   Year: 2016 - 2017
+      # - title: Lab Demonstrator
+      #   institution: University of Wollongong, Australia
+      #   Year: 2017 - 2017
+      # - title: Lecturer and Researcher
+      #   institution: Isfahan University of Medical Sciences, Iran
+      #   Year: 2009 - 2016
 # - title: Awards & Achievements
 #   type: time_table
 #     contents:
