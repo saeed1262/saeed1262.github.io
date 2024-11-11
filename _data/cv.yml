@@ -24,7 +24,7 @@
   contents:
       - title: Research & Development Scientist
         institution: Ubisoft La Forge, Toronto/Montreal, Canada
-        year: 2022
+        year: 2022 - Present
       - title: R&D Programmer Intern
         institution: Ubisoft La Forge, Toronto/Montreal, Canada
         year: 2021 - 2022
@@ -49,33 +49,34 @@
       - title: Lecturer and Researcher
         institution: Isfahan University of Medical Sciences, Iran
         year: 2009 - 2016
-# - title: Awards & Achievements
-#   type: time_table
-#     contents:
-#     - title: Top-Cited Author, Computer Graphics Forum
-#       year: 2023
-#     - title: Top 10 Cited Paper for ZeroEGGS in Computer Graphics Forum
-#       year: 2023
-#     - title: Mitacs Globalink Research Award
-#       institution: York University, Toronto, Canada
-#       year: 2021-22
-#     - title: Brain in Action NSERC CREATE / IRTG Doctoral Scholarship
-#       institution: York University, Toronto, Canada
-#       year: 2018-21
-#     - title: Best Full Paper Award, Computer Graphics International Conference (CGI)
-#       year: 2019
-#     - title: Best Computer Vision Poster Award, CVR-VISTA International Conference for Predictive Vision
-# institution: York University, Toronto, Canada
-#       year: 2019
-#     - title: Discovery Early Career Researcher Award (DECRA)
-#       institution: University of Wollongong
-#       year: 2016-17
-#     - title: Outstanding Student in National University Entrance Exam for MSc (top 0.05%)
-#       institution: Sharif University of Technology
-#       year: 2007
-#     - title: Outstanding Student in National University Entrance Exam for BSc (top 0.25%)
-#       institution: Isfahan University of Technology
-#       year: 2002
+        
+- title: Awards & Achievements
+  type: time_table
+    contents:
+    - title: Top-Cited Author, Computer Graphics Forum
+      year: 2023
+    - title: Top 10 Cited Paper for ZeroEGGS in Computer Graphics Forum
+      year: 2023
+    - title: Mitacs Globalink Research Award
+      institution: York University, Toronto, Canada
+      year: 2021-22
+    - title: Brain in Action NSERC CREATE / IRTG Doctoral Scholarship
+      institution: York University, Toronto, Canada
+      year: 2018-21
+    - title: Best Full Paper Award, Computer Graphics International Conference (CGI)
+      year: 2019
+    - title: Best Computer Vision Poster Award, CVR-VISTA International Conference for Predictive Vision
+institution: York University, Toronto, Canada
+      year: 2019
+    - title: Discovery Early Career Researcher Award (DECRA)
+      institution: University of Wollongong
+      year: 2016-17
+    - title: Outstanding Student in National University Entrance Exam for MSc (top 0.05%)
+      institution: Sharif University of Technology
+      year: 2007
+    - title: Outstanding Student in National University Entrance Exam for BSc (top 0.25%)
+      institution: Isfahan University of Technology
+      year: 2002
 
 # - title: Talks & Featured Works
 #   type: time_table
