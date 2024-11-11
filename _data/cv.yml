@@ -19,3 +19,85 @@
       - title: BSc in Electrical Engineering
         institution: Isfahan University of Tech, Isfahan, Iran
         year: 2007
+- title: Work Experience
+  type: time_table
+  contents:
+    - title: Research & Development Scientist
+    institution: Ubisoft La Forge, Toronto/Montreal, Canada
+    period: Mar 2022 - Present
+    - title: R&D Programmer Intern
+    institution: Ubisoft La Forge, Toronto/Montreal, Canada
+    period: May 2021 - Mar 2022
+    - title: Research Assistant
+    institution: York University, BioMotion Lab, Toronto, Canada
+    period: Jan 2019 - Apr 2022
+    - title: Teaching Assistant
+    institution: York University, Toronto, Canada
+    period: Jan 2019 - Apr 2022
+    - title: Research Assistant
+    institution: Queen’s University, BioMotion Lab, Kingston, Canada
+    period: Jan 2018 - Dec 2018
+    - title: Teaching Assistant
+    institution: Queen’s University, Kingston, Canada
+    period: Jan 2018 - Dec 2018
+    - title: Research Assistant
+    institution: University of Wollongong, Australia
+    period: Sep 2016 - Dec 2017
+    - title: Lab Demonstrator
+    institution: University of Wollongong, Australia
+    period: Feb 2017 - May 2017
+    - title: Lecturer and Researcher
+    institution: Isfahan University of Medical Sciences, Iran
+    period: Oct 2009 - May 2016
+
+- title: Awards & Achievements
+  type: list
+    contents:
+    - title: Top-Cited Author, Computer Graphics Forum
+      year: 2023
+    - title: Top 10 Cited Paper for ZeroEGGS in Computer Graphics Forum
+      year: 2023
+    - title: Mitacs Globalink Research Award
+      institution: York University, Toronto, Canada
+      year: 2021-22
+    - title: Brain in Action NSERC CREATE / IRTG Doctoral Scholarship
+      institution: York University, Toronto, Canada
+      year: 2018-21
+    - title: Best Full Paper Award, Computer Graphics International Conference (CGI)
+      year: 2019
+    - title: Best Computer Vision Poster Award, CVR-VISTA International Conference for Predictive Vision
+      year: 2019
+    - title: Discovery Early Career Researcher Award (DECRA)
+      institution: University of Wollongong
+      year: 2016-17
+    - title: Outstanding Student in National University Entrance Exam for MSc (top 0.05%)
+      institution: Sharif University of Technology
+      year: 2007
+    - title: Outstanding Student in National University Entrance Exam for BSc (top 0.25%)
+      institution: Isfahan University of Technology
+      year: 2002
+
+- title: Talks & Featured Works
+  type: list
+  contents:
+    - title: ZeroEGGS: Zero-shot Example-based Gesture Generation from Speech
+      event: SIGGRAPH ASIA, Daegu, Korea
+      year: 2022
+    - title: Generating Animation from Speech
+      event: UDC, Montreal, Canada
+      year: 2022
+    - title: Using Machine Learning in Character Animation
+      event: CVR-VISTA Conference, Toronto, Canada
+      year: 2022
+    - title: Simultaneous Localization and Mapping Using Active Vision
+      event: York University, Canada
+      year: 2018
+    - title: Probabilistic Vision-based Localization
+      event: University of Wollongong, Australia
+      year: 2017
+    - title: Ubisoft’s New AI: Breathing Life Into Games!
+    featured_in: Two Minute Papers
+    - title: Auto-labelling of Markers in Motion Capture
+    featured_in: Vista News
+    - title: MoVi: A Large Multi-Purpose Motion and Video Dataset
+    featured_in: Vista News
