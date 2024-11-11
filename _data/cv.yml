@@ -49,9 +49,9 @@
       - title: Lecturer and Researcher
         institution: Isfahan University of Medical Sciences, Iran
         year: 2009 - 2016
-        
-- title: Awards & Achievements
-  type: time_table
+
+- title: Awards and Achievements
+  type: list
     contents:
     - title: Top-Cited Author, Computer Graphics Forum
       year: 2023
@@ -66,7 +66,7 @@
     - title: Best Full Paper Award, Computer Graphics International Conference (CGI)
       year: 2019
     - title: Best Computer Vision Poster Award, CVR-VISTA International Conference for Predictive Vision
-institution: York University, Toronto, Canada
+      institution: York University, Toronto, Canada
       year: 2019
     - title: Discovery Early Career Researcher Award (DECRA)
       institution: University of Wollongong
