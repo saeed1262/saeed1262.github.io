@@ -27,6 +27,10 @@ jobs:
         key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
         restore-keys: |
           ${{ runner.os }}-gems-
+    - name: Install Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
     - name: Install deps
       run: |
         gem install bundler
