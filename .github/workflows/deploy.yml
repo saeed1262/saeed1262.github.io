@@ -33,6 +33,8 @@ jobs:
         bundle config path vendor/bundle
         bundle install --jobs 4 --retry 3 || echo "Bundle install failed with exit code $?; please check the Gemfile and gems"
         npm install -g mermaid.cli
+    - name: Check Jekyll version
+      run: bundle exec jekyll -v
     - name: Setup deploy options
       id: setup
       run: |
