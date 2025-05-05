@@ -1,7 +1,8 @@
 source 'https://rubygems.org'
 
-# Root group, make sure jekyll is accessible globally
-gem 'jekyll'
+gem 'jekyll', '~> 4.4.0'
+gem 'jekyll-sass-converter', '< 3.0'
+
 
 group :jekyll_plugins do
     gem 'jekyll-archives'
