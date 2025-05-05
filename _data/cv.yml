@@ -22,9 +22,12 @@
 - title: Work Experience
   type: time_table
   contents:
+      - title: Research Scientist
+        institution: Amazon Games, Toronto, Canada
+        year: 2025 - Present
       - title: Research & Development Scientist
         institution: Ubisoft La Forge, Toronto/Montreal, Canada
-        year: 2022 - Present
+        year: 2022 - 2025
       - title: R&D Programmer Intern
         institution: Ubisoft La Forge, Toronto/Montreal, Canada
         year: 2021 - 2022
