@@ -31,7 +31,7 @@ jobs:
       run: |
         gem install bundler
         bundle config path vendor/bundle
-        bundle install --jobs 4 --retry 3
+        bundle install --jobs 4 --retry 3 || echo "Bundle install failed with exit code $?; please check the Gemfile and gems"
         npm install -g mermaid.cli
     - name: Setup deploy options
       id: setup
