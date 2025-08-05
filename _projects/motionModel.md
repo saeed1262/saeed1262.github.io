@@ -34,8 +34,5 @@ ISSN = {1467-8659},
 DOI = {10.1111/cgf.14116}
 }
 ```
-## Code
-
-Will be available soon!
 
 ---
