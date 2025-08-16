@@ -1,20 +1,53 @@
 /*******************************************************************************
- * Themes
+ * Themes - Modern Design System
  ******************************************************************************/
  
+// Light Theme (Default)
 :root {
-  --global-bg-color: #{$white-color};
+  // Background colors
+  --global-bg-color: #FFFFFF;
+  --global-bg-color-secondary: #F8F9FA;
+  --global-bg-color-tertiary: #F1F3F5;
+  
+  // Text colors
+  --global-text-color: #1A1E2E;
+  --global-text-color-light: #6C757D;
+  --global-text-color-muted: #ADB5BD;
+  --global-heading-color: #0F1419;
+  
+  // Theme colors
+  --global-theme-color: #{$primary-color};
+  --global-theme-color-dark: #{$primary-dark};
+  --global-theme-color-light: #{$primary-light};
+  --global-accent-color: #{$accent-color};
+  --global-secondary-color: #{$secondary-color};
+  --global-hover-color: #{$primary-dark};
+  
+  // UI colors
+  --global-divider-color: rgba(0, 0, 0, 0.08);
+  --global-border-color: #E9ECEF;
+  --global-card-bg-color: #FFFFFF;
+  --global-card-hover-bg: #FAFBFC;
+  
+  // Code colors
   --global-code-bg-color: #{$code-bg-color-light};
-  --global-text-color: #{$black-color};
-  --global-text-color-light: #{$grey-color};
-  --global-theme-color: #{$orange-color};
-  --global-hover-color: #{$orange-color};
-  --global-footer-bg-color: #{$grey-color-dark};
-  --global-footer-text-color: #{$grey-color-light};
-  --global-footer-link-color: #{$white-color};
+  
+  // Footer colors
+  --global-footer-bg-color: linear-gradient(135deg, #{$grey-color-dark} 0%, #{$grey-900} 100%);
+  --global-footer-text-color: #CED4DA;
+  --global-footer-link-color: #FFFFFF;
+  
+  // Misc
   --global-distill-app-color: #{$grey-color};
-  --global-divider-color: rgba(0,0,0,.1);
-  --global-card-bg-color: #{$white-color};
+  
+  // Shadows
+  --global-box-shadow-sm: #{$box-shadow-sm};
+  --global-box-shadow-md: #{$box-shadow-md};
+  --global-box-shadow-lg: #{$box-shadow-lg};
+  
+  // Gradients
+  --global-gradient-primary: #{$gradient-primary};
+  --global-gradient-accent: #{$gradient-accent};
 
   .fa-sun {
     display : none;
@@ -26,19 +59,48 @@
   }
 }
 
+// Dark Theme
 html[data-theme='dark'] {
-  --global-bg-color: #{$grey-color-dark};
+  // Background colors
+  --global-bg-color: #0F1419;
+  --global-bg-color-secondary: #1A1E2E;
+  --global-bg-color-tertiary: #232837;
+  
+  // Text colors
+  --global-text-color: #E9ECEF;
+  --global-text-color-light: #ADB5BD;
+  --global-text-color-muted: #6C757D;
+  --global-heading-color: #F8F9FA;
+  
+  // Theme colors
+  --global-theme-color: #{$primary-light};
+  --global-theme-color-dark: #{$primary-color};
+  --global-theme-color-light: #B5AFFF;
+  --global-accent-color: #{$accent-color};
+  --global-secondary-color: #{$secondary-color};
+  --global-hover-color: #{$primary-light};
+  
+  // UI colors
+  --global-divider-color: rgba(255, 255, 255, 0.08);
+  --global-border-color: #2C3441;
+  --global-card-bg-color: #1A1E2E;
+  --global-card-hover-bg: #232837;
+  
+  // Code colors
   --global-code-bg-color: #{$code-bg-color-dark};
-  --global-text-color: #{$grey-color-light};
-  --global-text-color-light: #{$grey-color-light};
-  --global-theme-color: #{$orange-color};
-  --global-hover-color: #{$orange-color};
-  --global-footer-bg-color: #{$grey-color-light};
-  --global-footer-text-color: #{$grey-color-dark};
-  --global-footer-link-color: #{$black-color};
+  
+  // Footer colors
+  --global-footer-bg-color: linear-gradient(135deg, #0A0C10 0%, #1A1E2E 100%);
+  --global-footer-text-color: #6C757D;
+  --global-footer-link-color: #ADB5BD;
+  
+  // Misc
   --global-distill-app-color: #{$grey-color-light};
-  --global-divider-color: #424246;
-  --global-card-bg-color: #{$grey-900};
+  
+  // Shadows (stronger in dark mode)
+  --global-box-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);
+  --global-box-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
+  --global-box-shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.4);
 
   .fa-sun {
     padding-left: 10px;

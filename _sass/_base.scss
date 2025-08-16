@@ -2,14 +2,61 @@
  * Styles for the base elements of the theme.
  ******************************************************************************/
 
-// Typography
+// Import Google Fonts
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 
-p, h1, h2, h3, h4, h5, h6, em, div, li, span, strong {
+// Typography
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  letter-spacing: -0.011em;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--global-heading-color);
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+}
+
+h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  background: var(--global-gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+h2 {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+p, div, li, span {
+  color: var(--global-text-color);
+}
+
+strong, em {
   color: var(--global-text-color);
 }
 
 hr {
-  border-top: 1px solid var(--global-divider-color);
+  border: none;
+  height: 1px;
+  background: var(--global-gradient-primary);
+  opacity: 0.2;
+  margin: 2rem 0;
 }
 
 table {
@@ -23,12 +70,27 @@ table {
 
 a, table.table a {
   color: var(--global-theme-color);
-  &:hover {
-    color: var(--global-theme-color);
-    text-decoration: underline;
+  text-decoration: none;
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--global-gradient-primary);
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
-  &:hover:after :not(.nav-item.dropdown) {
-    width: 100%;
+  
+  &:hover {
+    color: var(--global-hover-color);
+    
+    &::after {
+      width: 100%;
+    }
   }
 }
 
@@ -37,11 +99,25 @@ figure, img {
 }
 
 blockquote {
-  background: var(--global-bg-color);
-  border-left: 2px solid var(--global-theme-color);
-  margin: 1.5em 10px;
-  padding: 0.5em 10px;
-  font-size: 1.2rem;
+  background: linear-gradient(135deg, var(--global-bg-color-secondary), var(--global-bg-color));
+  border-left: 3px solid var(--global-theme-color);
+  margin: 1.5em 0;
+  padding: 1rem 1.5rem;
+  font-size: 1.1rem;
+  border-radius: 0 8px 8px 0;
+  box-shadow: var(--global-box-shadow-sm);
+  font-style: italic;
+  position: relative;
+  
+  &::before {
+    content: '"';
+    position: absolute;
+    top: -10px;
+    left: 10px;
+    font-size: 3rem;
+    color: var(--global-theme-color);
+    opacity: 0.3;
+  }
 }
 
 // Math
@@ -61,16 +137,32 @@ blockquote {
 }
 
 // Card
-
 .card {
   background-color: var(--global-card-bg-color);
+  border: 1px solid var(--global-border-color);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--global-box-shadow-sm);
+  
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--global-box-shadow-lg);
+    background-color: var(--global-card-hover-bg);
+  }
 
   img {
     width: 100%;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  &:hover img {
+    transform: scale(1.05);
   }
 
   .card-title {
-    color: var(--global-text-color);
+    color: var(--global-heading-color);
+    font-weight: 600;
   }
 
   .card-item {
@@ -91,18 +183,33 @@ blockquote {
 }
 
 // Profile
-
 .profile {
   margin-left: 1rem;
   width: 100%;
+  
+  img {
+    border-radius: 12px;
+    box-shadow: var(--global-box-shadow-md);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    &:hover {
+      transform: scale(1.02);
+      box-shadow: var(--global-box-shadow-lg);
+    }
+  }
 
   .address {
-    margin-bottom: 5px;
-    margin-top: 5px;
-    font-family: monospace;
+    margin-top: 1rem;
+    padding: 1rem;
+    background: var(--global-bg-color-secondary);
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    
     p {
       display: inline-block;
       margin: 0;
+      color: var(--global-text-color-light);
     }
   }
 }
@@ -130,12 +237,17 @@ blockquote {
 
 
 // Navbar customization
-
 .navbar {
-  box-shadow: none;
+  box-shadow: var(--global-box-shadow-sm);
   border-bottom: 1px solid var(--global-divider-color);
-  background-color: var(--global-bg-color);
-  opacity: 0.95;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  html[data-theme='dark'] & {
+    background: rgba(15, 20, 25, 0.8);
+  }
 }
 .navbar .dropdown-menu {
   background-color: var(--global-bg-color);
@@ -162,34 +274,66 @@ blockquote {
     &:hover {
       text-decoration: none;
     }
-  }
-  .navbar-brand {
-    color: var(--global-text-color);
-  }
-  .navbar-nav .nav-item .nav-link {
-    color: var(--global-text-color);
-    &:hover {
-      color: var(--global-hover-color);
+    
+    &::after {
+      display: none;
     }
   }
-  .navbar-nav .nav-item.active>.nav-link {
-      background-color: inherit;
-      font-weight: bolder;
-      color: var(--global-theme-color);
-      &:hover {
-        color: var(--global-hover-color);
-      }
+  
+  .navbar-brand {
+    color: var(--global-text-color);
+    font-weight: 700;
+    font-size: 1.3rem;
+    letter-spacing: -0.02em;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    &:hover {
+      transform: scale(1.05);
+    }
+  }
+  
+  .navbar-nav .nav-item .nav-link {
+    color: var(--global-text-color);
+    font-weight: 500;
+    position: relative;
+    padding: 0.5rem 1rem;
+    margin: 0 0.25rem;
+    border-radius: 8px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    &:hover {
+      color: var(--global-hover-color);
+      background: var(--global-bg-color-secondary);
+    }
+  }
+  
+  .navbar-nav .nav-item.active > .nav-link {
+    background: var(--global-gradient-primary);
+    color: white;
+    font-weight: 600;
+    
+    &:hover {
+      color: white;
+      transform: scale(1.05);
+    }
   }
   .navbar-brand.social {
     padding-bottom: 0;
     padding-top: 0;
-    font-size: 1.7rem;
+    font-size: 1.5rem;
+    
     a {
+      margin: 0 0.5rem;
+      position: relative;
+      
       i::before {
         color: var(--global-text-color);
-        transition-property: all 0.2s ease-in-out;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       }
+      
       &:hover {
+        transform: translateY(-3px);
+        
         i::before {
           color: var(--global-theme-color);
         }
@@ -233,13 +377,47 @@ blockquote {
   }
 }
 
+// Dark mode toggle button
+.toggle-container {
+  display: flex;
+  align-items: center;
+  margin-left: 1rem;
+}
+
 #light-toggle {
-  padding: 0;
-  border: 0;
-  background-color: inherit;
+  padding: 0.5rem;
+  border: 2px solid var(--global-border-color);
+  background-color: var(--global-bg-color-secondary);
   color: var(--global-text-color);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  
   &:hover {
     color: var(--global-hover-color);
+    background: var(--global-gradient-primary);
+    border-color: transparent;
+    transform: scale(1.05);
+    
+    i {
+      color: white !important;
+    }
+  }
+  
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.25);
+  }
+  
+  i {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 1.1rem;
   }
 }
 
@@ -247,37 +425,71 @@ blockquote {
 
 .social {
   text-align: center;
+  padding: 2rem 0;
+  
   .contact-icons {
-    font-size: 4rem;
+    font-size: 2.5rem;
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    
     a {
+      position: relative;
+      display: inline-block;
+      padding: 0.75rem;
+      background: var(--global-bg-color-secondary);
+      border-radius: 12px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      
       i::before {
         color: var(--global-text-color);
-        transition-property: all 0.2s ease-in-out;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       }
+      
       &:hover {
+        transform: translateY(-5px) scale(1.1);
+        background: var(--global-gradient-primary);
+        box-shadow: var(--global-box-shadow-lg);
+        
         i::before {
-          color: var(--global-theme-color);
+          color: white;
         }
+      }
+      
+      &::after {
+        display: none;
       }
     }
   }
+  
   .contact-note {
-    font-size: 0.8rem;
+    font-size: 0.9rem;
+    margin-top: 1.5rem;
+    color: var(--global-text-color-light);
   }
 }
 
 
 // Footer
 footer.fixed-bottom {
-  background-color: var(--global-footer-bg-color);
-  font-size: 0.75rem;
+  background: var(--global-footer-bg-color);
+  font-size: 0.85rem;
+  border-top: 1px solid var(--global-divider-color);
+  
   .container {
     color: var(--global-footer-text-color);
-    padding-top: 9px;
-    padding-bottom: 8px;
+    padding-top: 12px;
+    padding-bottom: 12px;
   }
+  
   a {
     color: var(--global-footer-link-color);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    &::after {
+      display: none;
+    }
+    
     &:hover {
       color: var(--global-theme-color);
       text-decoration: none;
@@ -389,23 +601,41 @@ footer.sticky-bottom {
 .projects {
   a {
     text-decoration: none;
+    
+    &::after {
+      display: none;
+    }
 
     &:hover {
       .card-title {
-        color: var(--global-theme-color);
+        background: var(--global-gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
       }
     }
   }
 
   .card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    
     img {
       width: 100%;
+      height: 200px;
+      object-fit: cover;
+    }
+    
+    .card-body {
+      flex: 1;
+      padding: 1.5rem;
     }
   }
 
   .card-item {
     width: auto;
-    margin-bottom: 10px;
+    margin-bottom: 2rem;
 
     .row {
       display: flex;
@@ -433,12 +663,16 @@ footer.sticky-bottom {
 
 .publications {
   margin-top: 2rem;
+  
   h1 {
-    color: var(--global-theme-color);
-    font-size: 2rem;
+    font-size: 2.5rem;
     text-align: center;
     margin-top: 1em;
     margin-bottom: 1em;
+    background: var(--global-gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
   h2 {
     margin-bottom: 1rem;
@@ -460,17 +694,36 @@ footer.sticky-bottom {
     margin-top: 0;
 
     li {
-      margin-bottom: 1rem;
+      margin-bottom: 2rem;
+      padding: 1.5rem;
+      background: var(--global-bg-color-secondary);
+      border-radius: 12px;
+      border: 1px solid var(--global-border-color);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      
+      &:hover {
+        box-shadow: var(--global-box-shadow-md);
+        transform: translateX(5px);
+      }
+      
       .abbr {
         height: 2rem;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.75rem;
+        
         abbr {
           display: inline-block;
-          background-color: var(--global-theme-color);
-          padding-left: 1rem;
-          padding-right: 1rem;
+          background: var(--global-gradient-primary);
+          padding: 0.25rem 1rem;
+          border-radius: 20px;
+          font-weight: 600;
+          
           a {
             color: white;
+            
+            &::after {
+              display: none;
+            }
+            
             &:hover {
               text-decoration: none;
             }
@@ -500,14 +753,24 @@ footer.sticky-bottom {
       .links {
         a.btn {
           color: var(--global-text-color);
-          border: 1px solid var(--global-text-color);
-          padding-left: 1rem;
-          padding-right: 1rem;
-          padding-top: 0.25rem;
-          padding-bottom: 0.25rem;
+          border: 2px solid var(--global-border-color);
+          background: var(--global-bg-color);
+          padding: 0.5rem 1rem;
+          border-radius: 8px;
+          font-weight: 500;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          margin-right: 0.5rem;
+          
+          &::after {
+            display: none;
+          }
+          
           &:hover {
-            color: var(--global-theme-color);
-            border-color: var(--global-theme-color);
+            color: white;
+            background: var(--global-gradient-primary);
+            border-color: transparent;
+            transform: translateY(-2px);
+            box-shadow: var(--global-box-shadow-md);
           }
         }
       }
@@ -558,8 +821,13 @@ figure.highlight {
 pre {
   color: var(--global-theme-color);
   background-color: var(--global-code-bg-color);
-  border-radius: 6px;
-  padding: 6px 12px;
+  border-radius: 8px;
+  padding: 1rem;
+  border: 1px solid var(--global-border-color);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  
   pre, code {
     background-color: transparent;
     border-radius: 0;
@@ -570,18 +838,72 @@ pre {
 code {
   color: var(--global-theme-color);
   background-color: var(--global-code-bg-color);
-  border-radius: 3px;
-  padding: 3px 3px;
+  border-radius: 4px;
+  padding: 0.2rem 0.4rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.875em;
+  font-weight: 500;
 }
 
 
-// Transitioning Themes
+// Transitioning Themes with smooth animation
 html.transition,
 html.transition *,
 html.transition *:before,
 html.transition *:after {
-  transition: all 750ms !important;
+  transition: all 500ms cubic-bezier(0.4, 0, 0.2, 1) !important;
   transition-delay: 0 !important;
+}
+
+// Animation keyframes
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+// Apply animations
+.profile, .news, .publications, .projects {
+  animation: fadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.navbar {
+  animation: slideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+// Improved scrollbar
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--global-bg-color-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--global-theme-color);
+  border-radius: 5px;
+  
+  &:hover {
+    background: var(--global-theme-color-dark);
+  }
 }
 
 // Extra Markdown style (post Customization)

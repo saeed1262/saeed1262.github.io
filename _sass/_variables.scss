@@ -4,35 +4,57 @@
  ******************************************************************************/
 
 
-// Colors
-$red-color:           #FF3636 !default;
-$red-color-dark:      #B71C1C !default;
-$orange-color:        #F29105 !default;
-$blue-color:          #0076df !default;
-$blue-color-dark:     #00369f !default;
-$cyan-color:          #2698BA !default;
+// Modern Color Palette
+$primary-color:       #6C63FF !default;  // Modern purple
+$primary-dark:        #5147E5 !default;
+$primary-light:       #9D96FF !default;
+$accent-color:        #FF6B6B !default;  // Coral red
+$accent-dark:         #EE5A5A !default;
+$secondary-color:     #4ECDC4 !default;  // Teal
+$secondary-dark:      #3DB8AF !default;
+$tertiary-color:      #FFE66D !default;  // Warm yellow
+$success-color:       #06FFA5 !default;  // Bright green
+$warning-color:       #FFB347 !default;  // Orange
+$info-color:          #54C6EB !default;  // Sky blue
+
+// Legacy colors (kept for compatibility)
+$red-color:           $accent-color !default;
+$red-color-dark:      $accent-dark !default;
+$orange-color:        $warning-color !default;
+$blue-color:          $info-color !default;
+$blue-color-dark:     #2A9FCA !default;
+$cyan-color:          $secondary-color !default;
 $light-cyan-color:    lighten($cyan-color, 25%);
-$green-color:         #00ab37 !default;
+$green-color:         $success-color !default;
 $green-color-lime:    #B7D12A !default;
-$green-color-dark:    #009f06 !default;
-$green-color-light:   #ddffdd !default;
-$green-color-bright:  #11D68B !default;
-$purple-color:        #B509AC !default;
-$light-purple-color:  lighten($purple-color, 25%);
-$pink-color:          #f92080 !default;
-$pink-color-light:    #ffdddd !default;
-$yellow-color:        #efcc00 !default;
+$green-color-dark:    #04E090 !default;
+$green-color-light:   #E8FFF5 !default;
+$green-color-bright:  $success-color !default;
+$purple-color:        $primary-color !default;
+$light-purple-color:  $primary-light !default;
+$pink-color:          #FF69B4 !default;
+$pink-color-light:    #FFE4F1 !default;
+$yellow-color:        $tertiary-color !default;
 
-$grey-color:          #828282 !default;
-$grey-color-light:    lighten($grey-color, 40%);
-$grey-color-dark:     #1C1C1D;
-$grey-900:            #212529;
+// Neutral colors
+$grey-color:          #6C757D !default;
+$grey-color-light:    #F8F9FA !default;
+$grey-color-medium:   #E9ECEF !default;
+$grey-color-dark:     #1A1E2E !default;
+$grey-900:            #0F1419 !default;
 
-$white-color: #ffffff !default;
+$white-color: #FFFFFF !default;
 $black-color: #000000 !default;
 
 
 // Theme colors
+$code-bg-color-light:     rgba($primary-color, 0.08);
+$code-bg-color-dark:      #2A2E3A !default;
 
-$code-bg-color-light:     rgba($orange-color, 0.05);
-$code-bg-color-dark:      #2c3237 !default;
+// Additional theme variables
+$gradient-primary: linear-gradient(135deg, $primary-color 0%, $secondary-color 100%);
+$gradient-accent: linear-gradient(135deg, $accent-color 0%, $warning-color 100%);
+$box-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.06);
+$box-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+$box-shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
+$border-radius: 0.5rem;
