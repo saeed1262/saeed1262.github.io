@@ -193,7 +193,8 @@ h1 {
 }
 
 // Animated underline with gradient - simplified
-a {
+// Exclude navbar social icons from this effect
+a:not(.navbar-brand.social a) {
   position: relative;
   
   &::after {
@@ -209,6 +210,14 @@ a {
   
   &:hover::after {
     width: 100%;
+  }
+}
+
+// Ensure navbar social links are not affected by general link styles
+.navbar-brand.social a {
+  // Reset any inherited styles that might interfere
+  &::after {
+    display: none !important;
   }
 }
 
