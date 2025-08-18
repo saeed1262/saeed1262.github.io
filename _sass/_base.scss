@@ -321,27 +321,25 @@ blockquote {
     padding-bottom: 0;
     padding-top: 0;
     font-size: 1.5rem;
-    
+
     a {
       margin: 0 0.5rem !important;
       position: relative !important;
-      
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+
       // Override any general link styles
       &::after {
         display: none !important;
       }
-      
-      i::before {
+
+      i {
         color: var(--global-text-color) !important;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
       }
-      
-      &:hover {
+
+      &:hover i {
+        color: var(--global-theme-color) !important;
         transform: translateY(-3px) !important;
-        
-        i::before {
-          color: var(--global-theme-color) !important;
-        }
       }
     }
   }
