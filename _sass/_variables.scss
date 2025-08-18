@@ -5,30 +5,30 @@
 
 
 // Modern Color Palette
-$primary-color:       #6C63FF !default;  // Modern purple
-$primary-dark:        #5147E5 !default;
-$primary-light:       #9D96FF !default;
-$accent-color:        #FF6B6B !default;  // Coral red
-$accent-dark:         #EE5A5A !default;
-$secondary-color:     #4ECDC4 !default;  // Teal
-$secondary-dark:      #3DB8AF !default;
-$tertiary-color:      #FFE66D !default;  // Warm yellow
-$success-color:       #06FFA5 !default;  // Bright green
-$warning-color:       #FFB347 !default;  // Orange
-$info-color:          #54C6EB !default;  // Sky blue
+$primary-color:       #1E3A8A !default;  // Deep navy
+$primary-dark:        #172554 !default;
+$primary-light:       #3B82F6 !default;
+$accent-color:        #F97316 !default;  // Vibrant orange
+$accent-dark:         #B45309 !default;
+$secondary-color:     #14B8A6 !default;  // Teal
+$secondary-dark:      #0F766E !default;
+$tertiary-color:      #FDE047 !default;  // Soft yellow
+$success-color:       #22C55E !default;  // Emerald green
+$warning-color:       #FACC15 !default;  // Golden yellow
+$info-color:          #0EA5E9 !default;  // Sky blue
 
 // Legacy colors (kept for compatibility)
 $red-color:           $accent-color !default;
 $red-color-dark:      $accent-dark !default;
 $orange-color:        $warning-color !default;
 $blue-color:          $info-color !default;
-$blue-color-dark:     #2A9FCA !default;
+$blue-color-dark:     #1D4ED8 !default;
 $cyan-color:          $secondary-color !default;
 $light-cyan-color:    lighten($cyan-color, 25%);
 $green-color:         $success-color !default;
-$green-color-lime:    #B7D12A !default;
-$green-color-dark:    #04E090 !default;
-$green-color-light:   #E8FFF5 !default;
+$green-color-lime:    #A3E635 !default;
+$green-color-dark:    #15803D !default;
+$green-color-light:   #DCFCE7 !default;
 $green-color-bright:  $success-color !default;
 $purple-color:        $primary-color !default;
 $light-purple-color:  $primary-light !default;
