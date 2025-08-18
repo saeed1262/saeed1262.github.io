@@ -33,6 +33,24 @@ body.sticky-bottom-footer {
   }
 }
 
+// Hero section for about page
+.about-hero {
+  background: $gradient-primary;
+  color: $white-color;
+  padding: 4rem 1rem;
+  text-align: center;
+
+  .hero-title {
+    margin: 0;
+    font-size: 2.5rem;
+  }
+
+  .hero-subtitle {
+    margin-top: 0.5rem;
+    font-size: 1.25rem;
+  }
+}
+
 // TODO: redefine content layout.
 
 
