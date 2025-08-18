@@ -10,37 +10,39 @@
   overflow: hidden;
   z-index: -1;
   pointer-events: none;
-  
+
   .shape {
     position: absolute;
-    background: var(--global-theme-color);
-    opacity: 0.02;
-    animation: float 25s infinite ease-in-out;
+    opacity: 0.05;
+    animation: float 30s infinite ease-in-out;
     will-change: transform;
-    
-    &:nth-child(1) {
-      width: 80px;
-      height: 80px;
-      left: 10%;
-      animation-delay: 0s;
-      border-radius: 50%;
-    }
-    
-    &:nth-child(2) {
-      width: 60px;
-      height: 60px;
-      left: 70%;
-      animation-delay: 2s;
-      transform: rotate(45deg);
-    }
-    
-    &:nth-child(3) {
-      width: 100px;
-      height: 100px;
-      left: 40%;
-      animation-delay: 4s;
-      clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
-    }
+  }
+
+  .circle {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--global-theme-color);
+  }
+
+  .square {
+    width: 60px;
+    height: 60px;
+    background: var(--global-secondary-color);
+  }
+
+  .triangle {
+    width: 80px;
+    height: 80px;
+    background: var(--global-theme-color);
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+  }
+
+  .hexagon {
+    width: 90px;
+    height: 50px;
+    background: var(--global-secondary-color);
+    clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
   }
 }
 
@@ -176,8 +178,8 @@ h1 {
   position: fixed;
   top: 0;
   left: 0;
-  height: 3px;
-  background: var(--global-theme-color);
+  height: 5px;
+  background: linear-gradient(90deg, var(--global-theme-color), var(--global-secondary-color));
   z-index: 9999;
   will-change: width;
 }
@@ -378,7 +380,7 @@ a:not(.navbar-brand.social a) {
   &.active {
     opacity: 1;
     transform: translateY(0);
-    transition: opacity 0.4s ease, transform 0.4s ease;
+    transition: opacity 0.6s ease, transform 0.6s ease;
   }
 }
 
