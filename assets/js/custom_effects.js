@@ -11,12 +11,19 @@ function initializeEffects() {
     // Add animated background elements
     const body = document.body;
     
-    // Create floating shapes
+    // Create floating shapes with varied types and speeds
     const shapesContainer = document.createElement('div');
+    const shapeTypes = ['circle', 'square', 'triangle', 'hexagon'];
     shapesContainer.className = 'floating-shapes';
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 6; i++) {
         const shape = document.createElement('div');
-        shape.className = 'shape';
+        const type = shapeTypes[i % shapeTypes.length];
+        shape.className = `shape ${type}`;
+        // randomize position and animation timing for subtle variety
+        shape.style.left = Math.random() * 100 + '%';
+        shape.style.top = Math.random() * 100 + '%';
+        shape.style.animationDuration = 20 + Math.random() * 10 + 's';
+        shape.style.animationDelay = Math.random() * 5 + 's';
         shapesContainer.appendChild(shape);
     }
     body.appendChild(shapesContainer);
@@ -48,7 +55,7 @@ function initializeEffects() {
             const scrolled = (window.scrollY / windowHeight) * 100;
             progressBar.style.width = scrolled + '%';
             scrollTimeout = null;
-        }, 10);
+        }, 5);
     }, { passive: true });
     
     // Optimized parallax effect with throttling
@@ -69,7 +76,7 @@ function initializeEffects() {
     }, { passive: true });
     
     // Add reveal animations on scroll
-    const revealElements = document.querySelectorAll('.publications li, .projects .card, .news li');
+    const revealElements = document.querySelectorAll('.publications li, .projects .card, .news li, .timeline li');
     
     const revealOnScroll = () => {
         revealElements.forEach(el => {
