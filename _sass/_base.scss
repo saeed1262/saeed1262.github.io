@@ -328,12 +328,18 @@ blockquote {
       color: var(--global-text-color) !important;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 
+
       // Override any general link styles
       &::after {
         display: none !important;
       }
 
-      &:hover {
+      i {
+        color: var(--global-text-color) !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      }
+
+      &:hover i {
         color: var(--global-theme-color) !important;
         transform: translateY(-3px) !important;
       }
