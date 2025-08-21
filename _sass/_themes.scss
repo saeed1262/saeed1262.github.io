@@ -111,3 +111,60 @@ html[data-theme='dark'] {
     display : none;
   }
 }
+
+// Additional Color Palettes
+
+// Purple Palette
+html.palette-purple {
+  --global-theme-color: #6D28D9;
+  --global-theme-color-dark: #4C1D95;
+  --global-theme-color-light: #A78BFA;
+  --global-accent-color: #F472B6;
+  --global-secondary-color: #10B981;
+  --global-hover-color: #4C1D95;
+}
+html.palette-purple[data-theme='dark'] {
+  --global-theme-color: #A78BFA;
+  --global-theme-color-dark: #6D28D9;
+  --global-theme-color-light: #C4B5FD;
+  --global-accent-color: #F472B6;
+  --global-secondary-color: #10B981;
+  --global-hover-color: #A78BFA;
+}
+
+// Green Palette
+html.palette-green {
+  --global-theme-color: #065F46;
+  --global-theme-color-dark: #064E3B;
+  --global-theme-color-light: #34D399;
+  --global-accent-color: #FBBF24;
+  --global-secondary-color: #3B82F6;
+  --global-hover-color: #064E3B;
+}
+html.palette-green[data-theme='dark'] {
+  --global-theme-color: #34D399;
+  --global-theme-color-dark: #065F46;
+  --global-theme-color-light: #6EE7B7;
+  --global-accent-color: #FBBF24;
+  --global-secondary-color: #3B82F6;
+  --global-hover-color: #34D399;
+}
+
+// Red Palette
+html.palette-red {
+  --global-theme-color: #991B1B;
+  --global-theme-color-dark: #7F1D1D;
+  --global-theme-color-light: #F87171;
+  --global-accent-color: #14B8A6;
+  --global-secondary-color: #FBBF24;
+  --global-hover-color: #7F1D1D;
+}
+html.palette-red[data-theme='dark'] {
+  --global-theme-color: #F87171;
+  --global-theme-color-dark: #991B1B;
+  --global-theme-color-light: #FCA5A5;
+  --global-accent-color: #14B8A6;
+  --global-secondary-color: #FBBF24;
+  --global-hover-color: #F87171;
+}
+
