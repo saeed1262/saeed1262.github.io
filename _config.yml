@@ -250,10 +250,10 @@ filtered_bibtex_keywords: [
 # Responsive WebP Images
 # -----------------------------------------------------------------------------
 
-enable_responsive_images: true # enables responsive images for your site (recomended, see https://github.com/alshedivat/al-folio/issues/537)
+enable_responsive_images: false # disable responsive images to ensure photos load on all devices
 
 imagemagick:
-    enabled: true # make it 'false' if not using responsive images
+    enabled: false # disable imagemagick since responsive images are not generated on GitHub Pages
     widths:
         - 480
         - 800
