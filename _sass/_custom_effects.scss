@@ -497,8 +497,182 @@ a:not(.navbar-brand.social a) {
   }
 }
 
+// Fun interaction animations
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes bounce {
+  0%, 20%, 53%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40%, 43% {
+    transform: translateY(-10px);
+  }
+  70% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+  20%, 40%, 60%, 80% { transform: translateX(2px); }
+}
+
+// Interactive profile image enhancements
+.profile img {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: scale(1.05);
+    filter: brightness(1.1);
+  }
+  
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+// Fun title interactions
+h1 {
+  transition: transform 0.2s ease;
+  cursor: default;
+  
+  &:hover {
+    text-shadow: 0 0 10px rgba(var(--global-theme-color-rgb), 0.3);
+  }
+}
+
+// Easter egg button styles
+.easter-egg-button {
+  background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+  background-size: 400% 400%;
+  animation: gradient-shift 3s ease infinite;
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  
+  &:hover {
+    transform: scale(1.05);
+    animation-duration: 1s;
+  }
+  
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+// Click burst effect styles
+.click-burst {
+  position: fixed;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  animation: burst 0.6s ease-out forwards;
+}
+
+@keyframes burst {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(3);
+    opacity: 0;
+  }
+}
+
+// Subtle hover effects for cards
+.card {
+  &:hover {
+    .card-title {
+      animation: bounce 0.6s ease;
+    }
+  }
+}
+
+// Fun loading states
+.loading-dots {
+  &::after {
+    content: '';
+    animation: loading-dots 1.5s infinite;
+  }
+}
+
+@keyframes loading-dots {
+  0%, 20% { content: '.'; }
+  40% { content: '..'; }
+  60%, 100% { content: '...'; }
+}
+
+// Secret developer mode styles
+.developer-mode {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #00ff00;
+  padding: 5px 10px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  border-radius: 3px;
+  z-index: 10001;
+  
+  &::before {
+    content: '> ';
+    color: #ffff00;
+  }
+}
+
 // Performance optimization - disable animations for prefers-reduced-motion
 @media (prefers-reduced-motion: reduce) {
+  // Disable fun animations for users who prefer reduced motion
+  .click-burst,
+  .easter-egg-button,
+  h1:hover,
+  .profile img:hover {
+    animation: none !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  
+  // Keep basic functionality but remove motion
   *,
   *::before,
   *::after {

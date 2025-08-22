@@ -253,11 +253,201 @@ function initializeEffects(prefersReducedMotion = false) {
     // Add loading indicator
     addLoadingEnhancements();
     
+    // Fun interactive features
+    addFunInteractions();
+    
     // Console Easter Egg
     console.log('%c Welcome to Saeed Ghorbani\'s Website! 🚀',
                 'font-size: 20px; font-weight: bold; color: #6C63FF; text-shadow: 2px 2px 4px rgba(0,0,0,0.2);');
     console.log('%c Built with ❤️ and modern web technologies',
                 'font-size: 14px; color: #4ECDC4;');
+    console.log('%c Try clicking around for some surprises! 😉',
+                'font-size: 12px; color: #FF6B6B;');
+}
+
+// Fun interactive features
+function addFunInteractions() {
+    // Interactive particle burst on click
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('a, button, .btn')) {
+            createClickBurst(e.clientX, e.clientY);
+        }
+    });
+    
+    // Konami Code Easter Egg
+    let konamiCode = [];
+    const konamiSequence = [
+        'ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown',
+        'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight',
+        'KeyB', 'KeyA'
+    ];
+    
+    document.addEventListener('keydown', (e) => {
+        konamiCode.push(e.code);
+        if (konamiCode.length > konamiSequence.length) {
+            konamiCode.shift();
+        }
+        
+        if (konamiCode.join(',') === konamiSequence.join(',')) {
+            triggerKonamiEasterEgg();
+            konamiCode = [];
+        }
+    });
+    
+    // Fun name hover effect
+    const nameElement = document.querySelector('h1');
+    if (nameElement) {
+        let hoverCount = 0;
+        nameElement.addEventListener('mouseenter', () => {
+            hoverCount++;
+            if (hoverCount % 5 === 0) {
+                nameElement.style.transform = 'rotate(5deg)';
+                setTimeout(() => {
+                    nameElement.style.transform = 'rotate(0deg)';
+                }, 200);
+            }
+        });
+    }
+}
+
+// Show temporary message
+function showTemporaryMessage(message) {
+    const msgDiv = document.createElement('div');
+    msgDiv.textContent = message;
+    msgDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--global-theme-color);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 25px;
+        font-size: 14px;
+        z-index: 10000;
+        animation: slideInRight 0.3s ease;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    `;
+    
+    document.body.appendChild(msgDiv);
+    
+    setTimeout(() => {
+        msgDiv.style.animation = 'slideOutRight 0.3s ease forwards';
+        setTimeout(() => msgDiv.remove(), 300);
+    }, 2000);
+}
+
+
+// Click burst effect
+function createClickBurst(x, y) {
+    const colors = ['#6C63FF', '#4ECDC4', '#FF6B6B', '#FFE66D', '#A8E6CF'];
+    
+    for (let i = 0; i < 6; i++) {
+        const particle = document.createElement('div');
+        particle.style.cssText = `
+            position: fixed;
+            width: 6px;
+            height: 6px;
+            background: ${colors[Math.floor(Math.random() * colors.length)]};
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            left: ${x}px;
+            top: ${y}px;
+        `;
+        
+        const angle = (Math.PI * 2 * i) / 6;
+        const velocity = 50 + Math.random() * 50;
+        const vx = Math.cos(angle) * velocity;
+        const vy = Math.sin(angle) * velocity;
+        
+        document.body.appendChild(particle);
+        
+        let posX = x;
+        let posY = y;
+        let opacity = 1;
+        
+        const animate = () => {
+            posX += vx * 0.02;
+            posY += vy * 0.02;
+            opacity -= 0.02;
+            
+            particle.style.left = posX + 'px';
+            particle.style.top = posY + 'px';
+            particle.style.opacity = opacity;
+            
+            if (opacity > 0) {
+                requestAnimationFrame(animate);
+            } else {
+                particle.remove();
+            }
+        };
+        
+        requestAnimationFrame(animate);
+    }
+}
+
+
+// Konami code easter egg
+function triggerKonamiEasterEgg() {
+    showTemporaryMessage('🎮 Konami Code activated! You are a true gamer!');
+    
+    // Add matrix rain effect for a few seconds
+    createMatrixRain();
+    
+    // Play a fun sound effect (if audio is enabled)
+    const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEcBjiS1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEcBjiS1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEcBjiS1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEcBjiS1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEcBjiS1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEcBjiS1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEcBjiS1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEcBjiS1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEcBjiS1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEcBjiS1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEcBjiS1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEcBjiS1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEcBjiS1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEcBjiS1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEcBjiS1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEcBjiS1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEcBjiS1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEcBjiS1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEcBjiS1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEcBjiS1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEcBjiS1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEcBjiS1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEcBjiS1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEcBjiS1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEcBjiS1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEcBjiS1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEcBjiS1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEcBjiS1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEcBjiS1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEcBjiS1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEcBjiS1/LNeSs=');
+    audio.volume = 0.1;
+    audio.play().catch(() => {}); // Ignore errors if audio can't play
+}
+
+// Matrix rain effect
+function createMatrixRain() {
+    const characters = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
+    const columns = Math.floor(window.innerWidth / 20);
+    
+    const canvas = document.createElement('canvas');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    canvas.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 9998;
+        pointer-events: none;
+        background: rgba(0, 0, 0, 0.8);
+    `;
+    
+    document.body.appendChild(canvas);
+    const ctx = canvas.getContext('2d');
+    
+    const drops = Array(columns).fill(1);
+    
+    const draw = () => {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.fillStyle = '#0F0';
+        ctx.font = '15px monospace';
+        
+        for (let i = 0; i < drops.length; i++) {
+            const text = characters.charAt(Math.floor(Math.random() * characters.length));
+            ctx.fillText(text, i * 20, drops[i] * 20);
+            
+            if (drops[i] * 20 > canvas.height && Math.random() > 0.975) {
+                drops[i] = 0;
+            }
+            drops[i]++;
+        }
+    };
+    
+    const interval = setInterval(draw, 33);
+    
+    setTimeout(() => {
+        clearInterval(interval);
+        canvas.style.opacity = '0';
+        canvas.style.transition = 'opacity 1s';
+        setTimeout(() => canvas.remove(), 1000);
+    }, 3000);
 }
 
 // Loading enhancements for better user experience
