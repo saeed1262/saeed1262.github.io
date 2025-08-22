@@ -1,32 +1,35 @@
-// Custom Interactive Effects for Unique Website Experience
-// Optimized for performance
+// Enhanced Interactive Effects for Professional Website
+// Performance optimized with reduced motion support
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Check for reduced motion preference
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    
     // Delay non-critical animations for faster initial load
-    setTimeout(() => initializeEffects(), 100);
+    setTimeout(() => initializeEffects(prefersReducedMotion), 100);
 });
 
-function initializeEffects() {
-    
-    // Add animated background elements
+function initializeEffects(prefersReducedMotion = false) {
     const body = document.body;
     
-    // Create floating shapes with varied types and speeds
-    const shapesContainer = document.createElement('div');
-    const shapeTypes = ['circle', 'square', 'triangle', 'hexagon'];
-    shapesContainer.className = 'floating-shapes';
-    for (let i = 0; i < 6; i++) {
-        const shape = document.createElement('div');
-        const type = shapeTypes[i % shapeTypes.length];
-        shape.className = `shape ${type}`;
-        // randomize position and animation timing for subtle variety
-        shape.style.left = Math.random() * 100 + '%';
-        shape.style.top = Math.random() * 100 + '%';
-        shape.style.animationDuration = 20 + Math.random() * 10 + 's';
-        shape.style.animationDelay = Math.random() * 5 + 's';
-        shapesContainer.appendChild(shape);
+    // Only add floating shapes if motion is not reduced and user prefers animations
+    if (!prefersReducedMotion) {
+        // Create subtle floating shapes - reduced count for better performance
+        const shapesContainer = document.createElement('div');
+        const shapeTypes = ['circle', 'square'];
+        shapesContainer.className = 'floating-shapes';
+        for (let i = 0; i < 3; i++) {
+            const shape = document.createElement('div');
+            const type = shapeTypes[i % shapeTypes.length];
+            shape.className = `shape ${type}`;
+            shape.style.left = Math.random() * 100 + '%';
+            shape.style.top = Math.random() * 100 + '%';
+            shape.style.animationDuration = 25 + Math.random() * 10 + 's';
+            shape.style.animationDelay = Math.random() * 3 + 's';
+            shapesContainer.appendChild(shape);
+        }
+        body.appendChild(shapesContainer);
     }
-    body.appendChild(shapesContainer);
     
     // Create subtle static background accents (optional)
     const createBackgroundAccents = false; // Set to true if you want very subtle accents
@@ -180,23 +183,26 @@ function initializeEffects() {
         }
     };
     
-    // Optimized particle system - reduced for performance
-    const particlesContainer = document.createElement('div');
-    particlesContainer.className = 'particles';
-    body.appendChild(particlesContainer);
-    
-    // Create fewer initial particles
-    for (let i = 0; i < 10; i++) {
-        setTimeout(() => createParticle(), i * 1000);
+    // Simplified particle system - only if motion is preferred
+    if (!prefersReducedMotion) {
+        const particlesContainer = document.createElement('div');
+        particlesContainer.className = 'particles';
+        body.appendChild(particlesContainer);
+        
+        // Create minimal particles for better performance
+        for (let i = 0; i < 5; i++) {
+            setTimeout(() => createParticle(), i * 2000);
+        }
+        
+        // Create particles less frequently
+        setInterval(createParticle, 8000);
     }
     
-    // Create particles less frequently
-    setInterval(createParticle, 5000);
+    // Mouse trail effect - disabled by default for better performance
+    // Can be enabled for special occasions or high-end devices
+    const mouseTrailEnabled = false;
     
-    // Mouse trail effect (optional - can be resource intensive)
-    let mouseTrailEnabled = false; // Set to true to enable
-    
-    if (mouseTrailEnabled) {
+    if (mouseTrailEnabled && !prefersReducedMotion) {
         const trail = document.createElement('div');
         trail.className = 'mouse-trail';
         body.appendChild(trail);
@@ -235,17 +241,62 @@ function initializeEffects() {
         el.style.animationDelay = `${index * 0.1}s`;
     });
     
-    // Remove page transition effects for faster navigation
-    // Keep the page load animation but make it faster
-    document.body.style.opacity = '0';
-    requestAnimationFrame(() => {
-        document.body.style.transition = 'opacity 0.2s';
-        document.body.style.opacity = '1';
-    });
+    // Smooth page load animation - only if motion is preferred
+    if (!prefersReducedMotion) {
+        document.body.style.opacity = '0';
+        requestAnimationFrame(() => {
+            document.body.style.transition = 'opacity 0.3s ease';
+            document.body.style.opacity = '1';
+        });
+    }
+    
+    // Add loading indicator
+    addLoadingEnhancements();
     
     // Console Easter Egg
     console.log('%c Welcome to Saeed Ghorbani\'s Website! 🚀',
                 'font-size: 20px; font-weight: bold; color: #6C63FF; text-shadow: 2px 2px 4px rgba(0,0,0,0.2);');
     console.log('%c Built with ❤️ and modern web technologies',
                 'font-size: 14px; color: #4ECDC4;');
+}
+
+// Loading enhancements for better user experience
+function addLoadingEnhancements() {
+    // Add intersection observer for lazy loading images
+    if ('IntersectionObserver' in window) {
+        const imageObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    if (img.dataset.src) {
+                        img.src = img.dataset.src;
+                        img.removeAttribute('data-src');
+                        img.classList.remove('lazy');
+                        observer.unobserve(img);
+                    }
+                }
+            });
+        });
+
+        // Observe all lazy images
+        document.querySelectorAll('img[data-src]').forEach(img => {
+            imageObserver.observe(img);
+        });
+    }
+
+    // Add loading states for dynamic content
+    const dynamicElements = document.querySelectorAll('.publications, .projects');
+    dynamicElements.forEach(element => {
+        element.classList.add('loaded');
+    });
+
+    // Performance monitoring
+    if ('performance' in window) {
+        window.addEventListener('load', () => {
+            const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
+            if (loadTime > 3000) {
+                console.warn('Page load time is slower than optimal:', loadTime + 'ms');
+            }
+        });
+    }
 }

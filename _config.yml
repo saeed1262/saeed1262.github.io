@@ -2,18 +2,18 @@
 # Site settings
 # -----------------------------------------------------------------------------
 
-title: blank # the website title (if blank, full name will be used instead)
+title: Saeed Ghorbani # the website title (if blank, full name will be used instead)
 first_name: Saeed
 middle_name:
 last_name: Ghorbani
 email: saeed.ghorbani1262 at gmail dot com
 description: > # the ">" symbol means to ignore newlines until "footer_text:"
-    Saeed Ghorbani, R&D Scientist, Ubisoft La Forge
+    Research Scientist at Amazon Games specializing in machine learning, computer vision, computer graphics, and computer animation. Expert in probabilistic motion modeling and deep learning for human motion synthesis.
 footer_text: >
     Powered by <a href="https://jekyllrb.com/" target="_blank">Jekyll</a> with <a href="https://github.com/alshedivat/al-folio">al-folio</a> theme.
     Hosted by <a href="https://pages.github.com/" target="_blank">GitHub Pages</a>.
     Photos from <a href="https://unsplash.com" target="_blank">Unsplash</a>.
-keywords: jekyll, jekyll-theme, academic-website, portfolio-website # add your own keywords or leave empty
+keywords: machine learning, computer vision, computer graphics, computer animation, human motion modeling, probabilistic models, deep learning, research scientist, Amazon Games, motion synthesis, pose estimation, gesture generation # add your own keywords or leave empty
 lang: en # the language of your site (for example: en, fr, cn, ru, etc.)
 icon: fav.png # the emoji used as the favicon (alternatively, provide image name in /assets/img/)
 
@@ -48,7 +48,7 @@ max_width: 800px
 # Display links to the page with a preview object on social media.
 serve_og_meta: true # Include Open Graph meta tags in the HTML head
 serve_schema_org: true # Include Schema.org in the HTML head
-og_image: # The site-wide (default for all links) Open Graph preview image
+og_image: /assets/img/saeed.jpg # The site-wide (default for all links) Open Graph preview image
 
 # -----------------------------------------------------------------------------
 # Social integration
@@ -78,10 +78,10 @@ contact_note: >
 # Analytics and search engine verification
 # -----------------------------------------------------------------------------
 
-google_analytics: # replace with your actual Google Analytics ID
+google_analytics: # replace with your actual Google Analytics ID (recommended to add)
 panelbear_analytics: # panelbear analytics site ID (format: XXXXXXXXX)
 
-google_site_verification: # replace with your actual verification code
+google_site_verification: # replace with your actual verification code (recommended to add)
 bing_site_verification: # out your bing-site-verification ID (Bing Webmaster)
 
 # -----------------------------------------------------------------------------
@@ -207,8 +207,8 @@ jekyll-archives:
 # -----------------------------------------------------------------------------
 
 scholar:
-    last_name: Einstein
-    first_name: [Albert, A.]
+    last_name: Ghorbani
+    first_name: [Saeed, S.]
 
     style: apa
     locale: en
@@ -280,9 +280,9 @@ jekyll-diagrams:
 # Optional Features
 # -----------------------------------------------------------------------------
 
-enable_google_analytics: false # enables google analytics
+enable_google_analytics: false # enables google analytics (set to true when you add GA ID)
 enable_panelbear_analytics: false # enables panelbear analytics
-enable_google_verification: false # enables google site verification
+enable_google_verification: false # enables google site verification (set to true when you add verification)
 enable_bing_verification: false # enables bing site verification
 enable_masonry: false # enables automatic project cards arangement
 enable_math: false # enables math typesetting (uses MathJax)

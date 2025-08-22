@@ -2,7 +2,7 @@
  * Custom Unique Effects - Performance Optimized
  ******************************************************************************/
 
-// Floating geometric shapes - simplified for performance
+// Professional floating shapes - optimized for subtlety
 .floating-shapes {
   position: fixed;
   width: 100%;
@@ -13,36 +13,24 @@
 
   .shape {
     position: absolute;
-    opacity: 0.05;
-    animation: float 30s infinite ease-in-out;
+    opacity: 0.03;
+    animation: float 40s infinite ease-in-out;
     will-change: transform;
+    border-radius: 2px;
   }
 
   .circle {
-    width: 80px;
-    height: 80px;
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
-    background: var(--global-theme-color);
+    background: linear-gradient(135deg, var(--global-theme-color), var(--global-secondary-color));
   }
 
   .square {
-    width: 60px;
-    height: 60px;
-    background: var(--global-secondary-color);
-  }
-
-  .triangle {
-    width: 80px;
-    height: 80px;
-    background: var(--global-theme-color);
-    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
-  }
-
-  .hexagon {
-    width: 90px;
-    height: 50px;
-    background: var(--global-secondary-color);
-    clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(45deg, var(--global-secondary-color), var(--global-theme-color));
+    border-radius: 8px;
   }
 }
 
@@ -99,13 +87,20 @@ h1 {
   50% { border-color: var(--global-theme-color); }
 }
 
-// 3D Tilt Effect for Cards - optimized
+// Enhanced Card Design - professional and engaging
 .card {
   transform-style: preserve-3d;
-  transition: transform 0.3s ease;
+  transition: all 0.3s ease;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
   
-  &:hover {
-    transform: perspective(1000px) rotateX(5deg) rotateY(-5deg) scale(1.02);
+  @media (prefers-reduced-motion: no-preference) {
+    &:hover {
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    }
   }
   
   &::before {
@@ -115,61 +110,106 @@ h1 {
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, transparent 40%, rgba(255, 255, 255, 0.1) 50%, transparent 60%);
+    background: linear-gradient(135deg, transparent 40%, rgba(255, 255, 255, 0.05) 50%, transparent 60%);
     transform: translateX(-100%);
     transition: transform 0.4s ease;
     pointer-events: none;
+    border-radius: inherit;
   }
   
-  &:hover::before {
-    transform: translateX(100%);
+  @media (prefers-reduced-motion: no-preference) {
+    &:hover::before {
+      transform: translateX(100%);
+    }
   }
 }
 
-// Neon glow buttons - optimized
+// Professional button design
 .btn, button {
   position: relative;
   z-index: 1;
+  border-radius: 8px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
   
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: var(--global-theme-color);
-    border-radius: inherit;
-    opacity: 0;
-    z-index: -1;
-    transition: opacity 0.2s ease;
-    filter: blur(15px);
+  &:not(.btn-sm) {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.95rem;
   }
   
-  &:hover::before {
-    opacity: 0.2;
+  &.btn-outline-primary {
+    border-color: var(--global-theme-color);
+    background: rgba(var(--global-theme-color-rgb), 0.05);
+    
+    @media (prefers-reduced-motion: no-preference) {
+      &:hover {
+        background: var(--global-theme-color);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(var(--global-theme-color-rgb), 0.3);
+      }
+    }
+  }
+  
+  // Subtle glow effect for primary buttons
+  &.btn-primary {
+    background: linear-gradient(135deg, var(--global-theme-color), var(--global-secondary-color));
+    border: none;
+    
+    @media (prefers-reduced-motion: no-preference) {
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(var(--global-theme-color-rgb), 0.4);
+      }
+    }
   }
 }
 
-// Nav links - lightweight hover effect
+// Enhanced navigation design
 .nav-link {
   position: relative;
-  transition: color 0.2s ease;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  border-radius: 6px;
+  padding: 0.5rem 1rem !important;
   
   &::after {
     content: '';
     position: absolute;
     bottom: 0;
-    left: 0;
+    left: 50%;
     width: 0;
     height: 2px;
-    background: var(--global-theme-color);
-    transition: width 0.2s ease;
+    background: linear-gradient(90deg, var(--global-theme-color), var(--global-secondary-color));
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+    border-radius: 1px;
   }
   
-  &:hover::after,
-  &.active::after {
-    width: 100%;
+  @media (prefers-reduced-motion: no-preference) {
+    &:hover {
+      background: rgba(var(--global-theme-color-rgb), 0.08);
+      transform: translateY(-1px);
+    }
+    
+    &:hover::after,
+    &.active::after {
+      width: 80%;
+    }
+  }
+  
+  // Static state for reduced motion
+  @media (prefers-reduced-motion: reduce) {
+    &:hover,
+    &.active {
+      background: rgba(var(--global-theme-color-rgb), 0.1);
+    }
+    
+    &.active::after {
+      width: 80%;
+    }
   }
 }
 

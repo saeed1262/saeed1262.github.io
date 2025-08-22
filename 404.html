@@ -1,9 +1,125 @@
 ---
 layout: page
 permalink: /404.html
-title: "Page not found"
-description: "Looks like there has been a mistake. Nothing exists here."
-redirect: true
+title: "Page Not Found"
+description: "The requested page could not be found. Navigate back to explore research, publications, and projects."
 ---
 
-<p>You will be redirected to the main page within 3 seconds. If not redirected, please click <a href="{{ site.baseurl | prepend: site.url }}/">here</a>.</p>
+<style type="text/css" media="screen">
+  .error-container {
+    margin: 60px auto;
+    max-width: 600px;
+    text-align: center;
+    padding: 2rem;
+  }
+  
+  .error-number {
+    font-size: 8rem;
+    font-weight: 700;
+    color: var(--global-theme-color);
+    margin: 0;
+    line-height: 1;
+    background: linear-gradient(135deg, var(--global-theme-color), var(--global-secondary-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .error-title {
+    font-size: 2rem;
+    margin: 1rem 0;
+    color: var(--global-text-color);
+  }
+  
+  .error-description {
+    font-size: 1.2rem;
+    margin: 2rem 0;
+    color: var(--global-text-color-light);
+    line-height: 1.6;
+  }
+  
+  .error-actions {
+    margin-top: 3rem;
+  }
+  
+  .error-actions .btn {
+    margin: 0.5rem;
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+  }
+  
+  .search-suggestions {
+    margin-top: 3rem;
+    padding: 2rem;
+    background: var(--global-bg-color);
+    border-radius: 12px;
+    border: 1px solid var(--global-divider-color);
+  }
+  
+  .suggestions-title {
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+    color: var(--global-text-color);
+  }
+  
+  .suggestions-list {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .suggestions-list li {
+    margin: 0.5rem 0;
+  }
+  
+  .suggestions-list a {
+    color: var(--global-theme-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+  }
+  
+  .suggestions-list a:hover {
+    color: var(--global-hover-color);
+  }
+</style>
+
+<div class="error-container">
+  <div class="error-number">404</div>
+  <h1 class="error-title">Page Not Found</h1>
+  <p class="error-description">
+    The page you're looking for seems to have moved or doesn't exist. 
+    Let me help you find what you're looking for!
+  </p>
+  
+  <div class="error-actions">
+    <a href="{{ '/' | relative_url }}" class="btn btn-primary">
+      <i class="fas fa-home"></i> Go Home
+    </a>
+    <a href="{{ '/publications/' | relative_url }}" class="btn btn-outline-primary">
+      <i class="fas fa-book"></i> View Publications
+    </a>
+    <a href="{{ '/projects/' | relative_url }}" class="btn btn-outline-primary">
+      <i class="fas fa-project-diagram"></i> Browse Projects
+    </a>
+  </div>
+  
+  <div class="search-suggestions">
+    <h3 class="suggestions-title"><i class="fas fa-compass"></i> Popular Pages</h3>
+    <ul class="suggestions-list">
+      <li><a href="{{ '/' | relative_url }}">About & Research Overview</a></li>
+      <li><a href="{{ '/publications/' | relative_url }}">Academic Publications</a></li>
+      <li><a href="{{ '/projects/' | relative_url }}">Research Projects</a></li>
+      <li><a href="{{ '/cv/' | relative_url }}">Curriculum Vitae</a></li>
+      <li><a href="{{ '/projects/zeggs/' | relative_url }}">ZeroEGGS - Gesture Generation</a></li>
+      <li><a href="{{ '/projects/movi/' | relative_url }}">MoVi Dataset</a></li>
+    </ul>
+  </div>
+  
+  <div style="margin-top: 2rem;">
+    <p style="color: var(--global-text-color-light); font-size: 0.9rem;">
+      <i class="fas fa-envelope"></i> 
+      If you believe this is an error, please 
+      <a href="mailto:{{ site.email | replace: ' at ', '@' | replace: ' dot ', '.' }}" style="color: var(--global-theme-color);">contact me</a>.
+    </p>
+  </div>
+</div>

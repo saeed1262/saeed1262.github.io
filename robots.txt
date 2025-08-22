@@ -1,7 +1,24 @@
 ---
 permalink: /robots.txt
+layout: none
 ---
+# Robots.txt for {{ site.title }} - {{ site.url }}
 User-agent: *
-Disallow:
+Allow: /
 
+# Allow search engines to crawl all important content
+Allow: /assets/
+Allow: /projects/
+Allow: /publications/
+Allow: /cv/
+{% if site.blog_nav_title %}Allow: /blog/{% endif %}
+
+# Allow crawling of academic resources
+Allow: /assets/pdf/
+Allow: /assets/img/
+
+# Enhanced sitemap reference
 Sitemap: {{ site.baseurl | prepend: site.url }}/sitemap.xml
+
+# Crawling guidance for better indexing
+Crawl-delay: 1
