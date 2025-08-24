@@ -88,10 +88,10 @@ bing_site_verification: # out your bing-site-verification ID (Bing Webmaster)
 # Blog
 # -----------------------------------------------------------------------------
 
-# blog_name: Blog # blog_name will be displayed in your blog page
-# blog_nav_title: Blog # your blog must have a title for it to be displayed in the nav bar
-# blog_description: Thoughts on machine learning, computer vision, and graphics
-# permalink: /blog/:year/:title/
+blog_name: Blog # blog_name will be displayed in your blog page
+blog_nav_title: Blog # your blog must have a title for it to be displayed in the nav bar
+blog_description: Thoughts on machine learning, computer vision, and graphics
+permalink: /blog/:year/:title/
 
 # Pagination
 pagination:
@@ -285,7 +285,7 @@ enable_panelbear_analytics: false # enables panelbear analytics
 enable_google_verification: false # enables google site verification (set to true when you add verification)
 enable_bing_verification: false # enables bing site verification
 enable_masonry: false # enables automatic project cards arangement
-enable_math: false # enables math typesetting (uses MathJax)
+enable_math: true # enables math typesetting (uses MathJax)
 enable_tooltips:
     false # enables automatic tooltip links generated
     # for each section titles on pages and posts

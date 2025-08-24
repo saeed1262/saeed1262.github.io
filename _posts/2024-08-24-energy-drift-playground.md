@@ -2,480 +2,980 @@
 layout: post
 title: "Energy Drift Playground — Simple Pendulum"
 date: 2024-08-24
-description: Interactive pendulum simulation comparing numerical integrators.
-tags: physics simulation react
+description: Interactive exploration of numerical integration schemes and energy conservation in physics simulations.
+tags: physics simulation numerical-methods energy-conservation
 categories: blog
 ---
 
-This post showcases an interactive React playground that compares energy drift across different numerical integrators for a simple pendulum.
+# Introduction: Why Energy Drift Matters
 
-## Why energy drift matters
+When we simulate physical systems on computers, we face a fundamental challenge: representing continuous mathematics with discrete numbers. This discretization introduces **numerical errors** that can accumulate dramatically over time, leading to completely unphysical behavior.
 
-When we simulate physical systems on a computer, tiny numerical errors can accumulate. In conservative systems like a frictionless pendulum, total mechanical energy should remain constant. Poor numerical integrators, however, cause the energy to steadily grow or decay—this is known as *energy drift*. Understanding and controlling this drift is crucial for long-term simulations in fields ranging from orbital mechanics to game physics.
+**Energy drift** is one of the most critical manifestations of this problem. In conservative systems (like a frictionless pendulum), total mechanical energy should remain constant forever. However, poor numerical integration schemes cause the energy to artificially grow or decay, fundamentally violating the laws of physics.
 
-## Four integrators, four behaviors
+## Real-World Impact
 
-The playground lets you switch among four time-stepping schemes:
+Energy drift isn't just an academic curiosity—it has profound practical consequences:
 
-- **Explicit Euler** – easy to implement but notoriously unstable; energy often explodes unless time steps are very small.
-- **Symplectic Euler** – a minor tweak that preserves the geometric structure of Hamiltonian systems, keeping energy bounded.
-- **Velocity Verlet** – another symplectic method that tends to be more accurate per step than Symplectic Euler.
-- **Runge–Kutta 4 (RK4)** – a high-order method that is very accurate locally but does not conserve energy over long simulations.
+### 🌍 **Climate Modeling**
+Long-term climate simulations must conserve energy to prevent artificial heating or cooling trends that could invalidate decades of predictions.
 
-Watching the energy chart as the pendulum swings makes these characteristics visible at a glance.
+### 🚀 **Orbital Mechanics** 
+Spacecraft trajectories computed over years must maintain energy conservation. Non-conservative methods could accumulate enough error to miss planetary encounters entirely.
 
-## Using the playground
+### 🧬 **Molecular Dynamics**
+Simulating atomic systems over nanosecond timescales requires energy conservation to maintain realistic thermodynamic behavior and prevent the simulation from "exploding" or "freezing."
 
-Tweak the initial angle, pendulum length, gravity, damping and time step from the control panel. Each integrator runs in parallel and the chart tracks how far its total energy strays from the starting value. You can pause, resume, or reset the simulation at any time, and choose which integrator's pendulum is rendered in 3D.
+### 🎮 **Game Physics**
+While games prioritize visual plausibility over accuracy, symplectic integrators provide stable, predictable behavior for rigid body dynamics without energy "leakage."
 
-The full React component is included below for reference:
+### 💊 **Drug Discovery**
+Protein folding simulations depend on accurate long-term dynamics where energy conservation ensures realistic molecular behavior.
 
-```tsx
-'use client';
-import React, { useMemo, useRef, useState, useEffect } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
-import { OrbitControls, ContactShadows, Html, Grid, Environment } from "@react-three/drei";
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
-import { Switch } from "@/components/ui/switch";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
+## The Test Case: Simple Pendulum
 
-/**
- * Energy Drift Playground — Simple Pendulum
- *
- * Topics: Explicit Euler vs Semi-Implicit (Symplectic) Euler vs Velocity Verlet vs RK4
- * Visuals: 3D pendulum for selected integrator + live energy plot comparing all integrators
- * Stack: react-three-fiber + drei + shadcn/ui + Tailwind + framer-motion
- *
- * Notes:
- * - Uses a fixed-time-step accumulator so visual FPS does not affect physics.
- * - Mass m=1 by default. Length L, gravity g, and damping c are user-controlled.
- * - Energy: E = m g L (1 - cos θ) + 1/2 m (L^2) ω^2. With m=1 -> E = gL (1 - cos θ) + 1/2 (L^2) ω^2.
- * - Damping is off by default (c = 0). For clean energy conservation comparisons, keep c = 0.
- */
+The simple pendulum provides an ideal testbed because:
+- **Conservative system**: Energy should remain constant
+- **Nonlinear dynamics**: Small errors can compound dramatically  
+- **Well-understood physics**: We know the correct behavior
+- **Rich dynamics**: Exhibits diverse behavior based on initial conditions
 
-// ---------- Math helpers ----------
-const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+### Mathematical Foundation
 
-function accel(theta, omega, g, L, c) {
-  // θ¨ = - (g/L) sin θ - c ω  (c is a simple viscous damping coefficient)
-  return - (g / L) * Math.sin(theta) - c * omega;
-}
+For a pendulum with length $$L$$ and mass $$m$$ under gravity $$g$$, the equation of motion is:
 
-function energy(theta, omega, g, L) {
-  // E = gL (1 - cos θ) + 0.5 * (L^2) * ω^2   (m=1)
-  return g * L * (1 - Math.cos(theta)) + 0.5 * (L * L) * omega * omega;
-}
+$$\frac{d^2\theta}{dt^2} = -\frac{g}{L}\sin(\theta)$$
 
-// ---------- Integrators ----------
-const Integrators = {
-  euler: {
-    name: "Explicit Euler",
-    step: (s, h, g, L, c) => {
-      // s = {theta, omega}
-      const domega = accel(s.theta, s.omega, g, L, c);
-      const theta = s.theta + h * s.omega;
-      const omega = s.omega + h * domega;
-      return { theta, omega };
-    },
-    color: "#ef4444", // red
-  },
-  symplectic: {
-    name: "Symplectic Euler",
-    step: (s, h, g, L, c) => {
-      let omega = s.omega + h * accel(s.theta, s.omega, g, L, c);
-      let theta = s.theta + h * omega;
-      return { theta, omega };
-    },
-    color: "#22c55e", // green
-  },
-  verlet: {
-    name: "Velocity Verlet",
-    step: (s, h, g, L, c) => {
-      const a0 = accel(s.theta, s.omega, g, L, c);
-      const omegaHalf = s.omega + 0.5 * h * a0;
-      const theta = s.theta + h * omegaHalf;
-      const a1 = accel(theta, omegaHalf, g, L, c);
-      const omega = omegaHalf + 0.5 * h * a1;
-      return { theta, omega };
-    },
-    color: "#3b82f6", // blue
-  },
-  rk4: {
-    name: "RK4",
-    step: (s, h, g, L, c) => {
-      // State y = [theta, omega]; y' = [omega, accel(theta, omega)]
-      const f = (th, om) => [om, accel(th, om, g, L, c)];
-      const k1 = f(s.theta, s.omega);
-      const k2 = f(s.theta + 0.5 * h * k1[0], s.omega + 0.5 * h * k1[1]);
-      const k3 = f(s.theta + 0.5 * h * k2[0], s.omega + 0.5 * h * k2[1]);
-      const k4 = f(s.theta + h * k3[0], s.omega + h * k3[1]);
-      const theta = s.theta + (h / 6) * (k1[0] + 2 * k2[0] + 2 * k3[0] + k4[0]);
-      const omega = s.omega + (h / 6) * (k1[1] + 2 * k2[1] + 2 * k3[1] + k4[1]);
-      return { theta, omega };
-    },
-    color: "#a855f7", // purple
-  },
-};
+where $$\theta$$ is the angle from vertical.
 
-function useSims({ L, g, c, h, theta0, omega0, running, sampleEverySteps = 3, maxSamples = 600 }) {
-  /**
-   * Manages four simulations in parallel, each with its own state & energy history.
-   */
-  const simsRef = useRef({});
-  const historiesRef = useRef({});
-  const tRef = useRef(0);
-  const accRef = useRef(0);
-  const stepCountRef = useRef(0);
+The total mechanical energy is:
 
-  const reset = React.useCallback(() => {
-    tRef.current = 0; accRef.current = 0; stepCountRef.current = 0;
-    simsRef.current = Object.fromEntries(
-      Object.entries(Integrators).map(([k]) => [k, { theta: theta0, omega: omega0 }])
-    );
-    historiesRef.current = Object.fromEntries(
-      Object.entries(Integrators).map(([k]) => [k, {
-        e0: energy(theta0, omega0, g, L),
-        e: [{ t: 0, E: energy(theta0, omega0, g, L) }],
-        // Store also rel error for quick access
-        relErr: 0,
-      }])
-    );
-  }, [L, g, theta0, omega0]);
+$$E = \frac{1}{2}mL^2\omega^2 + mgL(1 - \cos(\theta))$$
 
-  useEffect(() => { reset(); }, [reset]);
+where $$\omega = d\theta/dt$$ is the angular velocity.
 
-  useFrame((_, delta) => {
-    if (!running) return;
-    // Cap delta to avoid spiral of death when tab is hidden
-    const clamped = Math.min(delta, 0.05);
-    accRef.current += clamped;
-    while (accRef.current >= h) {
-      for (const key of Object.keys(Integrators)) {
-        const s = simsRef.current[key];
-        const stepper = Integrators[key].step;
-        const n = stepper(s, h, g, L, c);
-        // Keep angles within [-pi, pi] for numeric stability/pretty charts
-        let theta = ((n.theta + Math.PI) % (2 * Math.PI)) - Math.PI;
-        simsRef.current[key] = { theta, omega: n.omega };
-        // Sample energy
-        if (stepCountRef.current % sampleEverySteps === 0) {
-          const H = historiesRef.current[key];
-          const E = energy(theta, n.omega, g, L);
-          const t = tRef.current;
-          H.e.push({ t, E });
-          if (H.e.length > maxSamples) H.e.shift();
-          H.relErr = (E - H.e0) / H.e0;
-        }
-      }
-      tRef.current += h;
-      stepCountRef.current++;
-      accRef.current -= h;
-    }
-  });
+In a frictionless system, this energy **must remain constant** for all time.
 
-  return {
-    simsRef,
-    historiesRef,
-    tRef,
-    reset,
-  };
-}
+---
 
-function Legend({ items }) {
-  return (
-    <div className="flex flex-wrap gap-2 items-center">
-      {items.map((it) => (
-        <div key={it.key} className="flex items-center gap-2 text-xs">
-          <span className="inline-block w-3 h-3 rounded-full" style={{ background: it.color }} />
-          <span className="text-muted-foreground">{it.label}</span>
+# Numerical Integration Schemes
+
+We'll explore four different approaches to solving the pendulum equation numerically, each with distinct characteristics:
+
+## 1. Explicit Euler Method
+
+The **Explicit Euler** method is the simplest approach: use current values to predict future values.
+
+### Mathematical Formulation
+$$\omega_{n+1} = \omega_n + h \cdot a(\theta_n, \omega_n)$$
+
+$$\theta_{n+1} = \theta_n + h \cdot \omega_n$$
+
+### Characteristics
+- **Order**: First-order accurate (error ∝ h)
+- **Stability**: Poor - requires very small time steps
+- **Energy behavior**: Usually increases energy dramatically
+- **Problem**: Uses "stale" velocity information, systematically over-predicting kinetic energy
+
+<div id="euler-demo" style="max-width: 100%; margin: 30px 0; box-shadow: 0 8px 32px rgba(0,0,0,0.3);">
+    <div style="background: linear-gradient(135deg, #1e1e2e 0%, #2a2a3a 100%); border-radius: 16px; padding: 30px; color: white; border: 1px solid #3a3a4a;">
+        <div style="display: flex; align-items: center; margin-bottom: 25px;">
+            <div style="width: 4px; height: 30px; background: linear-gradient(to bottom, #ef4444, #dc2626); border-radius: 2px; margin-right: 15px;"></div>
+            <h4 style="margin: 0; color: #ef4444; font-size: 1.4em; font-weight: 600;">Explicit Euler Method</h4>
+            <span style="margin-left: auto; background: rgba(239, 68, 68, 0.15); color: #ef4444; padding: 4px 12px; border-radius: 20px; font-size: 0.8em; font-weight: 500;">Energy Growth</span>
         </div>
-      ))}
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 25px;">
+            <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.1);">
+                <h5 style="margin: 0 0 15px 0; color: #e5e5e5; font-size: 1.1em;">Pendulum Animation</h5>
+                <div style="position: relative; border-radius: 10px; overflow: hidden; box-shadow: inset 0 2px 10px rgba(0,0,0,0.3);">
+                    <canvas id="euler-canvas" width="280" height="280" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); width: 100%; display: block;"></canvas>
+                </div>
+            </div>
+            
+            <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.1);">
+                <h5 style="margin: 0 0 15px 0; color: #e5e5e5; font-size: 1.1em;">Energy Over Time</h5>
+                <div style="position: relative; border-radius: 10px; overflow: hidden; box-shadow: inset 0 2px 10px rgba(0,0,0,0.3);">
+                    <canvas id="euler-energy" width="280" height="280" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); width: 100%; display: block;"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.08); border-radius: 10px; padding: 15px;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <label style="color: #e5e5e5; font-weight: 500;">Time Step: <span id="euler-timestep" style="color: #ef4444; font-weight: 600;">10</span> ms</label>
+                <input type="range" id="euler-slider" min="1" max="50" value="10" style="width: 200px; accent-color: #ef4444;">
+            </div>
+            <button id="euler-reset" style="background: linear-gradient(135deg, #ef4444, #dc2626); border: none; color: white; padding: 8px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);">Reset</button>
+        </div>
+        
+        <div style="margin-top: 15px; text-align: center; font-size: 14px;">
+            Energy Error: <span id="euler-error" style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 12px; border-radius: 20px; font-weight: 600;">0.00%</span>
+        </div>
     </div>
-  );
-}
+</div>
 
-function EnergyChart({ histories, tMax }) {
-  // histories: { key: {e: [{t,E}], e0, relErr}, ... }
-  // Simple responsive SVG line chart
-  const ref = useRef(null);
-  const [size, setSize] = useState({ w: 600, h: 220 });
+## 2. Symplectic Euler Method
 
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const ro = new ResizeObserver((entries) => {
-      for (const e of entries) {
-        const cr = e.contentRect;
-        setSize({ w: cr.width, h: cr.height });
-      }
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
+**Symplectic Euler** makes a small but crucial change: update velocity first, then use the new velocity to update position.
 
-  const padding = { l: 40, r: 15, t: 20, b: 24 };
-  const w = Math.max(200, size.w);
-  const h = Math.max(140, size.h);
-  const innerW = w - padding.l - padding.r;
-  const innerH = h - padding.t - padding.b;
+### Mathematical Formulation
+$$\omega_{n+1} = \omega_n + h \cdot a(\theta_n, \omega_n)$$
 
-  // Compute domain across all series
-  let tMin = Infinity, tMaxLocal = -Infinity, eMin = Infinity, eMax = -Infinity;
-  Object.values(histories).forEach((H) => {
-    if (!H?.e?.length) return;
-    tMin = Math.min(tMin, H.e[0].t);
-    tMaxLocal = Math.max(tMaxLocal, H.e[H.e.length - 1].t);
-    for (const p of H.e) {
-      eMin = Math.min(eMin, p.E);
-      eMax = Math.max(eMax, p.E);
+$$\theta_{n+1} = \theta_n + h \cdot \omega_{n+1} \quad \leftarrow \text{Uses updated velocity!}$$
+
+### Characteristics
+- **Order**: First-order accurate (same as Explicit Euler)
+- **Stability**: Much better than Explicit Euler
+- **Energy behavior**: Bounded oscillations, no secular drift
+- **Key insight**: Preserves the **symplectic structure** of Hamiltonian systems
+
+<div id="symplectic-demo" style="max-width: 100%; margin: 30px 0; box-shadow: 0 8px 32px rgba(0,0,0,0.3);">
+    <div style="background: linear-gradient(135deg, #1e2e1e 0%, #2a3a2a 100%); border-radius: 16px; padding: 30px; color: white; border: 1px solid #3a4a3a;">
+        <div style="display: flex; align-items: center; margin-bottom: 25px;">
+            <div style="width: 4px; height: 30px; background: linear-gradient(to bottom, #22c55e, #16a34a); border-radius: 2px; margin-right: 15px;"></div>
+            <h4 style="margin: 0; color: #22c55e; font-size: 1.4em; font-weight: 600;">Symplectic Euler Method</h4>
+            <span style="margin-left: auto; background: rgba(34, 197, 94, 0.15); color: #22c55e; padding: 4px 12px; border-radius: 20px; font-size: 0.8em; font-weight: 500;">Energy Conservation</span>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 25px;">
+            <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.1);">
+                <h5 style="margin: 0 0 15px 0; color: #e5e5e5; font-size: 1.1em;">Pendulum Animation</h5>
+                <div style="position: relative; border-radius: 10px; overflow: hidden; box-shadow: inset 0 2px 10px rgba(0,0,0,0.3);">
+                    <canvas id="symplectic-canvas" width="280" height="280" style="background: linear-gradient(135deg, #1a2e1a 0%, #16213e 100%); width: 100%; display: block;"></canvas>
+                </div>
+            </div>
+            
+            <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.1);">
+                <h5 style="margin: 0 0 15px 0; color: #e5e5e5; font-size: 1.1em;">Energy Over Time</h5>
+                <div style="position: relative; border-radius: 10px; overflow: hidden; box-shadow: inset 0 2px 10px rgba(0,0,0,0.3);">
+                    <canvas id="symplectic-energy" width="280" height="280" style="background: linear-gradient(135deg, #1a2e1a 0%, #16213e 100%); width: 100%; display: block;"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.08); border-radius: 10px; padding: 15px;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <label style="color: #e5e5e5; font-weight: 500;">Time Step: <span id="symplectic-timestep" style="color: #22c55e; font-weight: 600;">10</span> ms</label>
+                <input type="range" id="symplectic-slider" min="1" max="50" value="10" style="width: 200px; accent-color: #22c55e;">
+            </div>
+            <button id="symplectic-reset" style="background: linear-gradient(135deg, #22c55e, #16a34a); border: none; color: white; padding: 8px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);">Reset</button>
+        </div>
+        
+        <div style="margin-top: 15px; text-align: center; font-size: 14px;">
+            Energy Error: <span id="symplectic-error" style="background: rgba(34, 197, 94, 0.2); color: #22c55e; padding: 4px 12px; border-radius: 20px; font-weight: 600;">0.00%</span>
+        </div>
+    </div>
+</div>
+
+## 3. Velocity Verlet Method
+
+**Velocity Verlet** (also called Leapfrog) uses a more sophisticated approach with half-step calculations.
+
+### Mathematical Formulation
+$$\omega_{n+1/2} = \omega_n + \frac{h}{2} \cdot a(\theta_n, \omega_n)$$
+
+$$\theta_{n+1} = \theta_n + h \cdot \omega_{n+1/2}$$
+
+$$\omega_{n+1} = \omega_{n+1/2} + \frac{h}{2} \cdot a(\theta_{n+1}, \omega_{n+1/2})$$
+
+### Characteristics
+- **Order**: Second-order accurate (error ∝ h²)
+- **Stability**: Excellent long-term stability
+- **Energy behavior**: Superior energy conservation
+- **Key insight**: Time-reversible and symplectic
+
+<div id="verlet-demo" style="max-width: 100%; margin: 30px 0; box-shadow: 0 8px 32px rgba(0,0,0,0.3);">
+    <div style="background: linear-gradient(135deg, #1e1e2e 0%, #2a2a3a 100%); border-radius: 16px; padding: 30px; color: white; border: 1px solid #3a3a4a;">
+        <div style="display: flex; align-items: center; margin-bottom: 25px;">
+            <div style="width: 4px; height: 30px; background: linear-gradient(to bottom, #3b82f6, #2563eb); border-radius: 2px; margin-right: 15px;"></div>
+            <h4 style="margin: 0; color: #3b82f6; font-size: 1.4em; font-weight: 600;">Velocity Verlet Method</h4>
+            <span style="margin-left: auto; background: rgba(59, 130, 246, 0.15); color: #3b82f6; padding: 4px 12px; border-radius: 20px; font-size: 0.8em; font-weight: 500;">Superior Accuracy</span>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 25px;">
+            <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.1);">
+                <h5 style="margin: 0 0 15px 0; color: #e5e5e5; font-size: 1.1em;">Pendulum Animation</h5>
+                <div style="position: relative; border-radius: 10px; overflow: hidden; box-shadow: inset 0 2px 10px rgba(0,0,0,0.3);">
+                    <canvas id="verlet-canvas" width="280" height="280" style="background: linear-gradient(135deg, #1a1a2e 0%, #162a3e 100%); width: 100%; display: block;"></canvas>
+                </div>
+            </div>
+            
+            <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.1);">
+                <h5 style="margin: 0 0 15px 0; color: #e5e5e5; font-size: 1.1em;">Energy Over Time</h5>
+                <div style="position: relative; border-radius: 10px; overflow: hidden; box-shadow: inset 0 2px 10px rgba(0,0,0,0.3);">
+                    <canvas id="verlet-energy" width="280" height="280" style="background: linear-gradient(135deg, #1a1a2e 0%, #162a3e 100%); width: 100%; display: block;"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.08); border-radius: 10px; padding: 15px;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <label style="color: #e5e5e5; font-weight: 500;">Time Step: <span id="verlet-timestep" style="color: #3b82f6; font-weight: 600;">10</span> ms</label>
+                <input type="range" id="verlet-slider" min="1" max="50" value="10" style="width: 200px; accent-color: #3b82f6;">
+            </div>
+            <button id="verlet-reset" style="background: linear-gradient(135deg, #3b82f6, #2563eb); border: none; color: white; padding: 8px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);">Reset</button>
+        </div>
+        
+        <div style="margin-top: 15px; text-align: center; font-size: 14px;">
+            Energy Error: <span id="verlet-error" style="background: rgba(59, 130, 246, 0.2); color: #3b82f6; padding: 4px 12px; border-radius: 20px; font-weight: 600;">0.00%</span>
+        </div>
+    </div>
+</div>
+
+## 4. Runge-Kutta 4th Order (RK4)
+
+**RK4** uses four intermediate calculations to achieve high local accuracy.
+
+### Mathematical Formulation
+$$k_1 = f(\theta_n, \omega_n)$$
+
+$$k_2 = f(\theta_n + \frac{h k_1}{2}, \omega_n + \frac{h k_1}{2})$$
+
+$$k_3 = f(\theta_n + \frac{h k_2}{2}, \omega_n + \frac{h k_2}{2})$$
+
+$$k_4 = f(\theta_n + h k_3, \omega_n + h k_3)$$
+
+$$[\theta_{n+1}, \omega_{n+1}] = [\theta_n, \omega_n] + \frac{h}{6}(k_1 + 2k_2 + 2k_3 + k_4)$$
+
+### Characteristics
+- **Order**: Fourth-order accurate (error ∝ h⁴)
+- **Stability**: Excellent local accuracy
+- **Energy behavior**: Subtle long-term drift (not symplectic)
+- **Trade-off**: High accuracy per step vs. energy conservation
+
+<div id="rk4-demo" style="max-width: 100%; margin: 30px 0; box-shadow: 0 8px 32px rgba(0,0,0,0.3);">
+    <div style="background: linear-gradient(135deg, #2e1e2e 0%, #3a2a3a 100%); border-radius: 16px; padding: 30px; color: white; border: 1px solid #4a3a4a;">
+        <div style="display: flex; align-items: center; margin-bottom: 25px;">
+            <div style="width: 4px; height: 30px; background: linear-gradient(to bottom, #a855f7, #9333ea); border-radius: 2px; margin-right: 15px;"></div>
+            <h4 style="margin: 0; color: #a855f7; font-size: 1.4em; font-weight: 600;">Runge-Kutta 4th Order</h4>
+            <span style="margin-left: auto; background: rgba(168, 85, 247, 0.15); color: #a855f7; padding: 4px 12px; border-radius: 20px; font-size: 0.8em; font-weight: 500;">High Accuracy</span>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 25px;">
+            <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.1);">
+                <h5 style="margin: 0 0 15px 0; color: #e5e5e5; font-size: 1.1em;">Pendulum Animation</h5>
+                <div style="position: relative; border-radius: 10px; overflow: hidden; box-shadow: inset 0 2px 10px rgba(0,0,0,0.3);">
+                    <canvas id="rk4-canvas" width="280" height="280" style="background: linear-gradient(135deg, #2a1a2e 0%, #21163e 100%); width: 100%; display: block;"></canvas>
+                </div>
+            </div>
+            
+            <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.1);">
+                <h5 style="margin: 0 0 15px 0; color: #e5e5e5; font-size: 1.1em;">Energy Over Time</h5>
+                <div style="position: relative; border-radius: 10px; overflow: hidden; box-shadow: inset 0 2px 10px rgba(0,0,0,0.3);">
+                    <canvas id="rk4-energy" width="280" height="280" style="background: linear-gradient(135deg, #2a1a2e 0%, #21163e 100%); width: 100%; display: block;"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.08); border-radius: 10px; padding: 15px;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <label style="color: #e5e5e5; font-weight: 500;">Time Step: <span id="rk4-timestep" style="color: #a855f7; font-weight: 600;">10</span> ms</label>
+                <input type="range" id="rk4-slider" min="1" max="50" value="10" style="width: 200px; accent-color: #a855f7;">
+            </div>
+            <button id="rk4-reset" style="background: linear-gradient(135deg, #a855f7, #9333ea); border: none; color: white; padding: 8px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);">Reset</button>
+        </div>
+        
+        <div style="margin-top: 15px; text-align: center; font-size: 14px;">
+            Energy Error: <span id="rk4-error" style="background: rgba(168, 85, 247, 0.2); color: #a855f7; padding: 4px 12px; border-radius: 20px; font-weight: 600;">0.00%</span>
+        </div>
+    </div>
+</div>
+
+---
+
+# Summary and Analysis
+
+## The Symplectic Advantage
+
+The key insight from these experiments is that **geometric structure matters more than local accuracy** for long-term simulations:
+
+### Symplectic Methods (Euler, Verlet)
+- **Preserve phase space volume** (Liouville's theorem)
+- **Maintain bounded energy errors** instead of secular drift
+- **Are time-reversible** - running backwards recovers initial state
+- **Provide stable long-term behavior** even with larger time steps
+
+### Non-Symplectic Methods (Explicit Euler, RK4)
+- May achieve **higher local accuracy** (especially RK4)
+- Can exhibit **energy drift** over long times
+- Are **not time-reversible**
+- Excel for **dissipative systems** with damping
+
+## Performance Comparison
+
+| Method | Order | Energy Conservation | Stability | Cost per Step |
+|--------|-------|-------------------|-----------|---------------|
+| Explicit Euler | O(h) | ❌ Poor | ❌ Poor | ⭐ Lowest |
+| Symplectic Euler | O(h) | ✅ Excellent | ✅ Good | ⭐ Lowest |
+| Velocity Verlet | O(h²) | ✅ Superior | ✅ Excellent | ⭐⭐ Low |
+| RK4 | O(h⁴) | ⚠️ Subtle drift | ✅ Good | ⭐⭐⭐⭐ High |
+
+---
+
+# Interactive Comparison: All Methods Together
+
+Now let's see all four methods running simultaneously to directly compare their energy behavior:
+
+<div id="comparison-demo" style="max-width: 100%; margin: 20px 0;">
+    <div style="background: #1a1a1a; border-radius: 12px; padding: 20px; color: white;">
+        <h4 style="margin: 0 0 20px 0; color: #4ECDC4;">Complete Comparison - All Integration Methods</h4>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+            <div>
+                <h5>Selected Pendulum Animation</h5>
+                <canvas id="comparison-canvas" width="300" height="300" style="background: #2a2a2a; border-radius: 8px; width: 100%;"></canvas>
+                
+                <div style="margin-top: 10px;">
+                    <label>Display Method: </label>
+                    <select id="comparison-select" style="background: #333; color: white; border: 1px solid #555; padding: 5px;">
+                        <option value="symplectic">Symplectic Euler</option>
+                        <option value="euler">Explicit Euler</option>
+                        <option value="verlet">Velocity Verlet</option>
+                        <option value="rk4">RK4</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div>
+                <h5>Energy Drift Comparison</h5>
+                <canvas id="comparison-energy" width="300" height="300" style="background: #2a2a2a; border-radius: 8px; width: 100%;"></canvas>
+                
+                <div style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 10px; font-size: 11px;">
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                        <div style="width: 12px; height: 12px; background: #ef4444; border-radius: 50%;"></div>
+                        <span>Explicit Euler</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                        <div style="width: 12px; height: 12px; background: #22c55e; border-radius: 50%;"></div>
+                        <span>Symplectic Euler</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                        <div style="width: 12px; height: 12px; background: #3b82f6; border-radius: 50%;"></div>
+                        <span>Velocity Verlet</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                        <div style="width: 12px; height: 12px; background: #a855f7; border-radius: 50%;"></div>
+                        <span>RK4</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+            <div>
+                <h5>Initial Conditions</h5>
+                <div style="margin-bottom: 10px;">
+                    <label>Initial Angle: <span id="comparison-angle">45</span>°</label>
+                    <input type="range" id="comparison-angle-slider" min="10" max="170" value="45" style="width: 100%;">
+                </div>
+                <div>
+                    <label>Time Step: <span id="comparison-timestep">10</span> ms</label>
+                    <input type="range" id="comparison-timestep-slider" min="1" max="50" value="10" style="width: 100%;">
+                </div>
+            </div>
+            
+            <div>
+                <h5>Current Energy Errors</h5>
+                <div style="font-size: 12px;">
+                    <div>Time: <span id="comparison-time">0.00</span>s</div>
+                    <div style="color: #ef4444;">Explicit Euler: <span id="comparison-euler-error">0.00</span>%</div>
+                    <div style="color: #22c55e;">Symplectic Euler: <span id="comparison-symplectic-error">0.00</span>%</div>
+                    <div style="color: #3b82f6;">Velocity Verlet: <span id="comparison-verlet-error">0.00</span>%</div>
+                    <div style="color: #a855f7;">RK4: <span id="comparison-rk4-error">0.00</span>%</div>
+                </div>
+            </div>
+        </div>
+        
+        <div style="text-align: center;">
+            <button id="comparison-play-pause" style="background: #4ECDC4; border: none; color: #1a1a1a; padding: 10px 20px; border-radius: 6px; margin-right: 10px;">Pause</button>
+            <button id="comparison-reset" style="background: #FF6B6B; border: none; color: white; padding: 10px 20px; border-radius: 6px;">Reset All</button>
+        </div>
+    </div>
+</div>
+
+---
+
+# Conclusion
+
+This exploration reveals fundamental principles that guide computational physics:
+
+## Key Takeaways
+
+1. **Geometric structure preservation trumps local accuracy** for conservative systems
+2. **Symplectic integrators maintain physical realism** over long time scales
+3. **The choice of integrator can make or break** long-term simulations
+4. **Understanding the mathematics behind the methods** enables informed algorithmic decisions
+
+## When to Use Each Method
+
+- **Explicit Euler**: Educational purposes only, or very short simulations with tiny time steps
+- **Symplectic Euler**: Long-term conservative simulations where simplicity matters
+- **Velocity Verlet**: High-precision physics simulations requiring excellent energy conservation
+- **RK4**: Non-conservative systems with dissipation, or short-term high-accuracy calculations
+
+The simple pendulum, despite its apparent simplicity, embodies the rich mathematical structure that underlies all of computational physics. By visualizing energy drift in real-time, we develop intuition for phenomena that affect everything from climate models to spacecraft navigation.
+
+### Further Exploration
+
+Try these experiments with the comparison tool above:
+- Set θ₀ = 170° and Δt = 30ms - watch Explicit Euler explode!
+- Compare long-term behavior (let it run for 100+ seconds)
+- Notice how symplectic methods maintain physical behavior even with large time steps
+
+*The mathematics of numerical integration isn't just academic theory—it's the foundation that determines whether our simulations reflect reality or fantasy.*
+
+<script>
+// Individual Pendulum Simulation Classes
+class SinglePendulumSim {
+    constructor(canvasId, energyCanvasId, integrator, color) {
+        this.canvas = document.getElementById(canvasId);
+        this.ctx = this.canvas.getContext('2d');
+        this.energyCanvas = document.getElementById(energyCanvasId);
+        this.energyCtx = this.energyCanvas.getContext('2d');
+        
+        this.integrator = integrator;
+        this.color = color;
+        
+        // Parameters
+        this.L = 1.0;
+        this.g = 9.81;
+        this.h = 0.01; // 10ms default
+        
+        // State
+        this.theta = Math.PI / 4; // 45 degrees
+        this.omega = 0;
+        this.time = 0;
+        this.running = true;
+        
+        // Energy tracking
+        this.energyHistory = [];
+        this.initialEnergy = this.energy(this.theta, this.omega);
+        this.maxSamples = 300;
+        
+        this.animate();
     }
-  });
-  if (!isFinite(tMin)) tMin = 0;
-  if (!isFinite(tMaxLocal)) tMaxLocal = tMax ?? 1;
-  if (!isFinite(eMin)) { eMin = 0; eMax = 1; }
-  const x = (t) => padding.l + ((t - tMin) / Math.max(1e-6, (tMaxLocal - tMin))) * innerW;
-  const y = (E) => padding.t + (1 - (E - eMin) / Math.max(1e-9, eMax - eMin)) * innerH;
-
-  // Build paths
-  const series = Object.entries(histories).map(([key, H]) => {
-    const d = (H.e || []).map((p, i) => `${i === 0 ? "M" : "L"}${x(p.t)},${y(p.E)}`).join(" ");
-    return { key, d, color: Integrators[key].color, relErr: H.relErr };
-  });
-
-  // Axis ticks (simple)
-  const xTicks = 5;
-  const yTicks = 4;
-  const xTickVals = Array.from({ length: xTicks + 1 }, (_, i) => tMin + (i / xTicks) * (tMaxLocal - tMin));
-  const yTickVals = Array.from({ length: yTicks + 1 }, (_, i) => eMin + (i / yTicks) * (eMax - eMin));
-
-  return (
-    <div ref={ref} className="w-full h-[240px]">
-      <svg width={w} height={h} className="rounded-xl bg-background/60 backdrop-blur supports-[backdrop-filter]:bg-background/40 ring-1 ring-border">
-        {/* Axes */}
-        <g>
-          {/* X axis */}
-          <line x1={padding.l} y1={h - padding.b} x2={w - padding.r} y2={h - padding.b} stroke="hsl(var(--muted-foreground))" strokeWidth={1} />
-          {xTickVals.map((tv, i) => (
-            <g key={i}>
-              <line x1={x(tv)} y1={h - padding.b} x2={x(tv)} y2={padding.t} stroke="hsl(var(--muted)/0.4)" strokeWidth={0.5} />
-              <text x={x(tv)} y={h - padding.b + 16} textAnchor="middle" fontSize={10} fill="hsl(var(--muted-foreground))">{tv.toFixed(1)}</text>
-            </g>
-          ))}
-          {/* Y axis */}
-          <line x1={padding.l} y1={padding.t} x2={padding.l} y2={h - padding.b} stroke="hsl(var(--muted-foreground))" strokeWidth={1} />
-          {yTickVals.map((ev, i) => (
-            <g key={i}>
-              <line x1={padding.l} y1={y(ev)} x2={w - padding.r} y2={y(ev)} stroke="hsl(var(--muted)/0.4)" strokeWidth={0.5} />
-              <text x={padding.l - 6} y={y(ev) + 3} textAnchor="end" fontSize={10} fill="hsl(var(--muted-foreground))">{ev.toFixed(2)}</text>
-            </g>
-          ))}
-          <text x={w - padding.r} y={h - 4} textAnchor="end" fontSize={10} fill="hsl(var(--muted-foreground))">time (s)</text>
-          <text x={padding.l + 4} y={padding.t + 10} textAnchor="start" fontSize={10} fill="hsl(var(--muted-foreground))">total energy</text>
-        </g>
-        {/* Series */}
-        <g>
-          {series.map((s) => (
-            <path key={s.key} d={s.d} fill="none" stroke={s.color} strokeWidth={2} />
-          ))}
-        </g>
-      </svg>
-      <div className="mt-2 flex gap-3 flex-wrap">
-        {series.map((s) => (
-          <Badge key={s.key} variant="secondary" className="gap-2">
-            <span className="inline-block w-3 h-3 rounded-full" style={{ background: s.color }} />
-            <span className="font-mono text-xs">{Integrators[s.key].name}</span>
-            <span className="text-xs text-muted-foreground">ΔE/E₀ ≈ { (s.relErr * 100).toFixed(2) }%</span>
-          </Badge>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function Pendulum3D({ state, L = 1, color = "#22c55e" }) {
-  // Compute bob position from angle θ
-  const x = L * Math.sin(state.theta);
-  const y = -L * Math.cos(state.theta);
-  const bobRef = useRef();
-
-  useFrame(() => {
-    if (bobRef.current) {
-      bobRef.current.position.set(x, y, 0);
+    
+    acceleration(theta) {
+        return -(this.g / this.L) * Math.sin(theta);
     }
-  });
-
-  return (
-    <group>
-      {/* Rod */}
-      <mesh position={[0, -L / 2, 0]} rotation={[0, 0, 0]}>
-        <cylinderGeometry args={[0.02, 0.02, L, 16]} />
-        <meshStandardMaterial color={color} metalness={0.1} roughness={0.4} />
-      </mesh>
-      {/* Bob */}
-      <mesh ref={bobRef} position={[x, y, 0]} castShadow>
-        <sphereGeometry args={[0.1, 32, 32]} />
-        <meshStandardMaterial color={color} metalness={0.3} roughness={0.3} />
-      </mesh>
-      {/* Pivot */}
-      <mesh position={[0, 0, 0]}>
-        <sphereGeometry args={[0.03, 16, 16]} />
-        <meshStandardMaterial color="#404040" />
-      </mesh>
-    </group>
-  );
+    
+    energy(theta, omega) {
+        return this.g * this.L * (1 - Math.cos(theta)) + 0.5 * (this.L * this.L) * omega * omega;
+    }
+    
+    step() {
+        if (!this.running) return;
+        
+        switch(this.integrator) {
+            case 'euler':
+                const domega = this.acceleration(this.theta);
+                this.theta += this.h * this.omega;
+                this.omega += this.h * domega;
+                break;
+                
+            case 'symplectic':
+                this.omega += this.h * this.acceleration(this.theta);
+                this.theta += this.h * this.omega;
+                break;
+                
+            case 'verlet':
+                const a0 = this.acceleration(this.theta);
+                const omegaHalf = this.omega + 0.5 * this.h * a0;
+                this.theta += this.h * omegaHalf;
+                const a1 = this.acceleration(this.theta);
+                this.omega = omegaHalf + 0.5 * this.h * a1;
+                break;
+                
+            case 'rk4':
+                const f = (theta, omega) => [omega, this.acceleration(theta)];
+                const k1 = f(this.theta, this.omega);
+                const k2 = f(this.theta + 0.5 * this.h * k1[0], this.omega + 0.5 * this.h * k1[1]);
+                const k3 = f(this.theta + 0.5 * this.h * k2[0], this.omega + 0.5 * this.h * k2[1]);
+                const k4 = f(this.theta + this.h * k3[0], this.omega + this.h * k3[1]);
+                this.theta += (this.h / 6) * (k1[0] + 2*k2[0] + 2*k3[0] + k4[0]);
+                this.omega += (this.h / 6) * (k1[1] + 2*k2[1] + 2*k3[1] + k4[1]);
+                break;
+        }
+        
+        this.time += this.h;
+        
+        // Sample energy
+        if (Math.floor(this.time * 50) % 2 === 0) {
+            const E = this.energy(this.theta, this.omega);
+            this.energyHistory.push({ t: this.time, E: E });
+            if (this.energyHistory.length > this.maxSamples) {
+                this.energyHistory.shift();
+            }
+        }
+    }
+    
+    draw() {
+        // Draw pendulum
+        const ctx = this.ctx;
+        const canvas = this.canvas;
+        const scale = Math.min(canvas.width, canvas.height) * 0.35;
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height * 0.2;
+        
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        const x = centerX + scale * Math.sin(this.theta);
+        const y = centerY + scale * Math.cos(this.theta);
+        
+        // Rod
+        ctx.strokeStyle = this.color;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        
+        // Pivot
+        ctx.fillStyle = '#666';
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 5, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        // Bob
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(x, y, 12, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        // Draw energy chart
+        this.drawEnergyChart();
+    }
+    
+    drawEnergyChart() {
+        const ctx = this.energyCtx;
+        const canvas = this.energyCanvas;
+        
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        if (this.energyHistory.length < 2) return;
+        
+        const padding = 30;
+        const chartWidth = canvas.width - 2 * padding;
+        const chartHeight = canvas.height - 2 * padding;
+        
+        // Find bounds
+        let tMin = this.energyHistory[0].t;
+        let tMax = this.energyHistory[this.energyHistory.length - 1].t;
+        let eMin = Math.min(...this.energyHistory.map(p => p.E));
+        let eMax = Math.max(...this.energyHistory.map(p => p.E));
+        
+        if (eMax === eMin) {
+            eMin -= 0.01;
+            eMax += 0.01;
+        }
+        
+        const timeRange = Math.max(tMax - tMin, 1);
+        const energyRange = eMax - eMin;
+        
+        // Draw axes
+        ctx.strokeStyle = '#666';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(padding, canvas.height - padding);
+        ctx.lineTo(canvas.width - padding, canvas.height - padding);
+        ctx.moveTo(padding, padding);
+        ctx.lineTo(padding, canvas.height - padding);
+        ctx.stroke();
+        
+        // Draw energy line
+        ctx.strokeStyle = this.color;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        
+        this.energyHistory.forEach((point, i) => {
+            const x = padding + ((point.t - tMin) / timeRange) * chartWidth;
+            const y = canvas.height - padding - ((point.E - eMin) / energyRange) * chartHeight;
+            
+            if (i === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+        });
+        
+        ctx.stroke();
+        
+        // Draw initial energy reference line
+        const refY = canvas.height - padding - ((this.initialEnergy - eMin) / energyRange) * chartHeight;
+        ctx.strokeStyle = '#666';
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        ctx.moveTo(padding, refY);
+        ctx.lineTo(canvas.width - padding, refY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        
+        // Labels
+        ctx.fillStyle = '#aaa';
+        ctx.font = '10px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Time (s)', canvas.width / 2, canvas.height - 5);
+        
+        ctx.save();
+        ctx.translate(10, canvas.height / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText('Energy', 0, 0);
+        ctx.restore();
+    }
+    
+    reset() {
+        this.theta = Math.PI / 4;
+        this.omega = 0;
+        this.time = 0;
+        this.energyHistory = [];
+        this.initialEnergy = this.energy(this.theta, this.omega);
+    }
+    
+    getEnergyError() {
+        const currentEnergy = this.energy(this.theta, this.omega);
+        return ((currentEnergy - this.initialEnergy) / this.initialEnergy) * 100;
+    }
+    
+    animate() {
+        this.step();
+        this.draw();
+        requestAnimationFrame(() => this.animate());
+    }
 }
 
-function Scene({ simsRef, selectedKey, L }) {
-  const color = Integrators[selectedKey].color;
-  const s = simsRef.current?.[selectedKey] ?? { theta: 0, omega: 0 };
-
-  return (
-    <Canvas shadows camera={{ position: [2.8, 1.8, 2.8], fov: 45 }} className="rounded-2xl">
-      <ambientLight intensity={0.6} />
-      <directionalLight castShadow position={[5, 6, 5]} intensity={1.1} shadow-mapSize-width={1024} shadow-mapSize-height={1024} />
-      {/* Reference grid */}
-      <Grid args={[6, 6]} cellSize={0.25} cellColor="#444" sectionColor="#666" sectionThickness={1} infiniteGrid position={[0, -L - 0.2, 0]} />
-
-      <group position={[0, 0, 0]}>
-        <Pendulum3D state={s} L={L} color={color} />
-      </group>
-
-      <ContactShadows opacity={0.5} scale={10} blur={1.5} far={10} resolution={512} color="#000" />
-      <Environment preset="city" />
-      <OrbitControls enablePan={false} minPolarAngle={0.2} maxPolarAngle={Math.PI / 2} />
-    </Canvas>
-  );
+// Multi-integrator comparison simulation
+class ComparisonSim {
+    constructor() {
+        this.canvas = document.getElementById('comparison-canvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.energyCanvas = document.getElementById('comparison-energy');
+        this.energyCtx = this.energyCanvas.getContext('2d');
+        
+        // Parameters
+        this.L = 1.0;
+        this.g = 9.81;
+        this.h = 0.01;
+        this.theta0 = Math.PI / 4;
+        this.selectedIntegrator = 'symplectic';
+        this.running = true;
+        
+        // States for all integrators
+        this.states = {
+            euler: { theta: this.theta0, omega: 0 },
+            symplectic: { theta: this.theta0, omega: 0 },
+            verlet: { theta: this.theta0, omega: 0 },
+            rk4: { theta: this.theta0, omega: 0 }
+        };
+        
+        this.energyHistory = {
+            euler: [],
+            symplectic: [],
+            verlet: [],
+            rk4: []
+        };
+        
+        this.colors = {
+            euler: '#ef4444',
+            symplectic: '#22c55e',
+            verlet: '#3b82f6',
+            rk4: '#a855f7'
+        };
+        
+        this.time = 0;
+        this.initialEnergy = this.energy(this.theta0, 0);
+        this.maxSamples = 400;
+        
+        this.setupControls();
+        this.animate();
+    }
+    
+    setupControls() {
+        // Play/Pause
+        document.getElementById('comparison-play-pause').addEventListener('click', () => {
+            this.running = !this.running;
+            document.getElementById('comparison-play-pause').textContent = this.running ? 'Pause' : 'Play';
+        });
+        
+        // Reset
+        document.getElementById('comparison-reset').addEventListener('click', () => {
+            this.reset();
+        });
+        
+        // Integrator selection
+        document.getElementById('comparison-select').addEventListener('change', (e) => {
+            this.selectedIntegrator = e.target.value;
+        });
+        
+        // Angle slider
+        document.getElementById('comparison-angle-slider').addEventListener('input', (e) => {
+            this.theta0 = parseFloat(e.target.value) * Math.PI / 180;
+            document.getElementById('comparison-angle').textContent = e.target.value;
+            this.reset();
+        });
+        
+        // Timestep slider
+        document.getElementById('comparison-timestep-slider').addEventListener('input', (e) => {
+            this.h = parseFloat(e.target.value) / 1000;
+            document.getElementById('comparison-timestep').textContent = e.target.value;
+        });
+    }
+    
+    acceleration(theta) {
+        return -(this.g / this.L) * Math.sin(theta);
+    }
+    
+    energy(theta, omega) {
+        return this.g * this.L * (1 - Math.cos(theta)) + 0.5 * (this.L * this.L) * omega * omega;
+    }
+    
+    step() {
+        if (!this.running) return;
+        
+        // Update Explicit Euler
+        const s1 = this.states.euler;
+        const domega1 = this.acceleration(s1.theta);
+        this.states.euler = {
+            theta: s1.theta + this.h * s1.omega,
+            omega: s1.omega + this.h * domega1
+        };
+        
+        // Update Symplectic Euler
+        const s2 = this.states.symplectic;
+        const omega2 = s2.omega + this.h * this.acceleration(s2.theta);
+        this.states.symplectic = {
+            theta: s2.theta + this.h * omega2,
+            omega: omega2
+        };
+        
+        // Update Velocity Verlet
+        const s3 = this.states.verlet;
+        const a0 = this.acceleration(s3.theta);
+        const omegaHalf = s3.omega + 0.5 * this.h * a0;
+        const theta3 = s3.theta + this.h * omegaHalf;
+        const a1 = this.acceleration(theta3);
+        this.states.verlet = {
+            theta: theta3,
+            omega: omegaHalf + 0.5 * this.h * a1
+        };
+        
+        // Update RK4
+        const s4 = this.states.rk4;
+        const f = (theta, omega) => [omega, this.acceleration(theta)];
+        const k1 = f(s4.theta, s4.omega);
+        const k2 = f(s4.theta + 0.5 * this.h * k1[0], s4.omega + 0.5 * this.h * k1[1]);
+        const k3 = f(s4.theta + 0.5 * this.h * k2[0], s4.omega + 0.5 * this.h * k2[1]);
+        const k4 = f(s4.theta + this.h * k3[0], s4.omega + this.h * k3[1]);
+        this.states.rk4 = {
+            theta: s4.theta + (this.h / 6) * (k1[0] + 2*k2[0] + 2*k3[0] + k4[0]),
+            omega: s4.omega + (this.h / 6) * (k1[1] + 2*k2[1] + 2*k3[1] + k4[1])
+        };
+        
+        this.time += this.h;
+        
+        // Sample energy
+        if (Math.floor(this.time * 50) % 3 === 0) {
+            Object.keys(this.states).forEach(key => {
+                const E = this.energy(this.states[key].theta, this.states[key].omega);
+                this.energyHistory[key].push({ t: this.time, E: E });
+                if (this.energyHistory[key].length > this.maxSamples) {
+                    this.energyHistory[key].shift();
+                }
+            });
+        }
+        
+        this.updateStatus();
+    }
+    
+    updateStatus() {
+        document.getElementById('comparison-time').textContent = this.time.toFixed(2);
+        
+        Object.keys(this.states).forEach(key => {
+            const currentEnergy = this.energy(this.states[key].theta, this.states[key].omega);
+            const relativeError = ((currentEnergy - this.initialEnergy) / this.initialEnergy) * 100;
+            document.getElementById(`comparison-${key}-error`).textContent = relativeError.toFixed(2);
+        });
+    }
+    
+    draw() {
+        this.drawPendulum();
+        this.drawEnergyChart();
+    }
+    
+    drawPendulum() {
+        const ctx = this.ctx;
+        const canvas = this.canvas;
+        const scale = Math.min(canvas.width, canvas.height) * 0.35;
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height * 0.2;
+        
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        const state = this.states[this.selectedIntegrator];
+        const x = centerX + scale * Math.sin(state.theta);
+        const y = centerY + scale * Math.cos(state.theta);
+        
+        // Rod
+        ctx.strokeStyle = this.colors[this.selectedIntegrator];
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        
+        // Pivot
+        ctx.fillStyle = '#666';
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 5, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        // Bob
+        ctx.fillStyle = this.colors[this.selectedIntegrator];
+        ctx.beginPath();
+        ctx.arc(x, y, 15, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        // Method name
+        ctx.fillStyle = 'white';
+        ctx.font = '14px Arial';
+        ctx.textAlign = 'center';
+        const names = {
+            euler: 'Explicit Euler',
+            symplectic: 'Symplectic Euler',
+            verlet: 'Velocity Verlet',
+            rk4: 'RK4'
+        };
+        ctx.fillText(names[this.selectedIntegrator], centerX, canvas.height - 20);
+    }
+    
+    drawEnergyChart() {
+        const ctx = this.energyCtx;
+        const canvas = this.energyCanvas;
+        
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        const padding = 35;
+        const chartWidth = canvas.width - 2 * padding;
+        const chartHeight = canvas.height - 2 * padding;
+        
+        // Find data bounds
+        let tMin = Infinity, tMax = -Infinity, eMin = Infinity, eMax = -Infinity;
+        
+        Object.keys(this.energyHistory).forEach(key => {
+            const history = this.energyHistory[key];
+            if (history.length === 0) return;
+            
+            history.forEach(point => {
+                tMin = Math.min(tMin, point.t);
+                tMax = Math.max(tMax, point.t);
+                eMin = Math.min(eMin, point.E);
+                eMax = Math.max(eMax, point.E);
+            });
+        });
+        
+        if (!isFinite(tMin)) return;
+        
+        const timeRange = Math.max(tMax - tMin, 1);
+        const energyRange = Math.max(eMax - eMin, 0.001);
+        
+        // Draw axes
+        ctx.strokeStyle = '#666';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(padding, padding);
+        ctx.lineTo(padding, canvas.height - padding);
+        ctx.lineTo(canvas.width - padding, canvas.height - padding);
+        ctx.stroke();
+        
+        // Draw energy lines
+        Object.keys(this.energyHistory).forEach(key => {
+            const history = this.energyHistory[key];
+            if (history.length < 2) return;
+            
+            ctx.strokeStyle = this.colors[key];
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            
+            let first = true;
+            history.forEach(point => {
+                const x = padding + ((point.t - tMin) / timeRange) * chartWidth;
+                const y = canvas.height - padding - ((point.E - eMin) / energyRange) * chartHeight;
+                
+                if (first) {
+                    ctx.moveTo(x, y);
+                    first = false;
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+            
+            ctx.stroke();
+        });
+        
+        // Labels
+        ctx.fillStyle = '#aaa';
+        ctx.font = '10px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Time (s)', canvas.width / 2, canvas.height - 5);
+        
+        ctx.save();
+        ctx.translate(12, canvas.height / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText('Energy', 0, 0);
+        ctx.restore();
+    }
+    
+    reset() {
+        this.time = 0;
+        this.initialEnergy = this.energy(this.theta0, 0);
+        
+        Object.keys(this.states).forEach(key => {
+            this.states[key] = { theta: this.theta0, omega: 0 };
+            this.energyHistory[key] = [];
+        });
+    }
+    
+    animate() {
+        this.step();
+        this.draw();
+        requestAnimationFrame(() => this.animate());
+    }
 }
 
-export default function EnergyDriftPlayground() {
-  const [L, setL] = useState(1.0);
-  const [g, setG] = useState(9.81);
-  const [c, setC] = useState(0.0); // damping
-  const [h, setH] = useState(1/240); // fixed time step (s)
-  const [theta0Deg, setTheta0Deg] = useState(45);
-  const [omega0, setOmega0] = useState(0);
-  const [selectedKey, setSelectedKey] = useState("symplectic");
-  const [running, setRunning] = useState(true);
-
-  const theta0 = useMemo(() => (theta0Deg * Math.PI) / 180, [theta0Deg]);
-
-  const { simsRef, historiesRef, tRef, reset } = useSims({ L, g, c, h, theta0, omega0, running });
-
-  const handleReset = () => {
-    reset();
-  };
-
-  return (
-    <div className="min-h-[640px] w-full p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-background to-muted rounded-3xl">
-      <div className="mx-auto max-w-7xl grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left: 3D Scene */}
-        <Card className="border bg-card/70 backdrop-blur supports-[backdrop-filter]:bg-card/40 shadow-xl">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-xl">Energy Drift Playground — Pendulum</CardTitle>
-            <div className="flex items-center gap-2">
-              <Badge variant="outline" className="hidden sm:flex">{Integrators[selectedKey].name}</Badge>
-              <Switch checked={running} onCheckedChange={setRunning} />
-              <span className="text-xs text-muted-foreground">{running ? "Running" : "Paused"}</span>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="aspect-[16/10] w-full overflow-hidden rounded-2xl">
-              <Scene simsRef={simsRef} selectedKey={selectedKey} L={L} />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Right: Controls + Chart */}
-        <Card className="border bg-card/70 backdrop-blur supports-[backdrop-filter]:bg-card/40 shadow-xl">
-          <CardHeader>
-            <CardTitle className="text-xl">Energy over time (all integrators)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="mb-3">
-              <Legend
-                items={Object.entries(Integrators).map(([k, v]) => ({ key: k, color: v.color, label: v.name }))}
-              />
-            </div>
-            <EnergyChart histories={historiesRef.current} tMax={tRef.current} />
-
-            <div className="mt-6 grid grid-cols-2 gap-4">
-              {/* Initial conditions */}
-              <div className="col-span-2">
-                <h3 className="text-sm font-medium mb-2">Initial Conditions</h3>
-                <div className="space-y-3">
-                  <LabeledSlider label={`θ₀ (deg): ${theta0Deg.toFixed(0)}`} value={theta0Deg} min={-170} max={170} step={1} onChange={setTheta0Deg} />
-                  <LabeledSlider label={`ω₀ (rad/s): ${omega0.toFixed(2)}`} value={omega0} min={-5} max={5} step={0.01} onChange={setOmega0} />
-                </div>
-              </div>
-              {/* Physical params */}
-              <div>
-                <h3 className="text-sm font-medium mb-2">Physical Params</h3>
-                <div className="space-y-3">
-                  <LabeledSlider label={`Length L: ${L.toFixed(2)} m`} value={L} min={0.3} max={2.0} step={0.01} onChange={setL} />
-                  <LabeledSlider label={`Gravity g: ${g.toFixed(2)} m/s²`} value={g} min={0.5} max={25} step={0.01} onChange={setG} />
-                  <LabeledSlider label={`Damping c: ${c.toFixed(3)}`} value={c} min={0} max={0.2} step={0.001} onChange={setC} />
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">Tip: set c = 0 for clean energy drift comparisons.</p>
-              </div>
-              {/* Integration */}
-              <div>
-                <h3 className="text-sm font-medium mb-2">Integration</h3>
-                <div className="space-y-3">
-                  <LabeledSlider label={`Δt (fixed): ${(h*1000).toFixed(1)} ms`} value={h} min={1/1000} max={1/30} step={1/1000} onChange={setH} />
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground">Show in 3D:</span>
-                    <Select value={selectedKey} onValueChange={setSelectedKey}>
-                      <SelectTrigger className="w-[220px]">
-                        <SelectValue placeholder="Integrator" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(Integrators).map(([k, v]) => (
-                          <SelectItem key={k} value={k}>{v.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-5 flex gap-2">
-              <Button onClick={() => setRunning((r) => !r)} variant="default">{running ? "Pause" : "Resume"}</Button>
-              <Button onClick={handleReset} variant="secondary">Reset</Button>
-            </div>
-
-            <p className="mt-4 text-xs text-muted-foreground leading-relaxed">
-              <strong>What to look for:</strong> Explicit Euler (red) tends to drift in energy (often upwards) and can explode for large Δt.
-              Symplectic Euler (green) keeps total energy bounded and oscillatory over long times.
-              Velocity Verlet (blue) is also symplectic and typically more accurate.
-              RK4 (purple) is very accurate per step but not symplectic — over very long runs, energy may drift subtly.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-}
-
-function LabeledSlider({ label, value, onChange, min, max, step }) {
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-1">
-        <span className="text-xs text-muted-foreground">{label}</span>
-      </div>
-      <Slider
-        value={[value]}
-        min={min}
-        max={max}
-        step={step}
-        onValueChange={(v) => onChange(v[0])}
-        className="w-full"
-      />
-    </div>
-  );
-}
-```
+// Initialize all simulations when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    // Individual simulations
+    const eulerSim = new SinglePendulumSim('euler-canvas', 'euler-energy', 'euler', '#ef4444');
+    const symplecticSim = new SinglePendulumSim('symplectic-canvas', 'symplectic-energy', 'symplectic', '#22c55e');
+    const verletSim = new SinglePendulumSim('verlet-canvas', 'verlet-energy', 'verlet', '#3b82f6');
+    const rk4Sim = new SinglePendulumSim('rk4-canvas', 'rk4-energy', 'rk4', '#a855f7');
+    
+    // Individual controls
+    const setupIndividualControls = (sim, prefix) => {
+        // Timestep slider
+        document.getElementById(`${prefix}-slider`).addEventListener('input', (e) => {
+            sim.h = parseFloat(e.target.value) / 1000;
+            document.getElementById(`${prefix}-timestep`).textContent = e.target.value;
+        });
+        
+        // Reset button
+        document.getElementById(`${prefix}-reset`).addEventListener('click', () => {
+            sim.reset();
+        });
+        
+        // Update error display
+        setInterval(() => {
+            const error = sim.getEnergyError();
+            document.getElementById(`${prefix}-error`).textContent = error.toFixed(2);
+        }, 100);
+    };
+    
+    setupIndividualControls(eulerSim, 'euler');
+    setupIndividualControls(symplecticSim, 'symplectic');
+    setupIndividualControls(verletSim, 'verlet');
+    setupIndividualControls(rk4Sim, 'rk4');
+    
+    // Comparison simulation
+    const comparisonSim = new ComparisonSim();
+});
+</script>
