@@ -90,8 +90,8 @@ where $$f(\theta, \omega) = -\frac{g}{L}\sin(\theta)$$ is the angular accelerati
 **The Fundamental Flaw:**
 Explicit Euler uses the velocity at time $$t_n$$ to update position to time $$t_{n+1}$$, while using the acceleration at time $$t_n$$ to update velocity to time $$t_{n+1}$$. This temporal mismatch systematically overestimates kinetic energy, leading to the characteristic exponential energy growth.
 
-<div id="euler-demo" style="max-width: 100%; margin: 30px 0; box-shadow: 0 8px 32px rgba(0,0,0,0.3);">
-    <div style="background: linear-gradient(135deg, #1e1e2e 0%, #2a2a3a 100%); border-radius: 16px; padding: 30px; color: white; border: 1px solid #3a3a4a;">
+<div id="euler-demo" style="max-width: 100%; margin: 30px 0; box-shadow: var(--global-box-shadow-lg);">
+    <div style="background-color: var(--global-card-bg-color); border-radius: 12px; padding: 30px; color: var(--global-text-color); border: 1px solid var(--global-border-color);">
         <div style="display: flex; align-items: center; margin-bottom: 25px;">
             <div style="width: 4px; height: 30px; background: linear-gradient(to bottom, #ef4444, #dc2626); border-radius: 2px; margin-right: 15px;"></div>
             <h4 style="margin: 0; color: #ef4444; font-size: 1.4em; font-weight: 600;">Explicit Euler Method</h4>
@@ -99,27 +99,27 @@ Explicit Euler uses the velocity at time $$t_n$$ to update position to time $$t_
         </div>
         
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 25px;">
-            <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.1);">
-                <h5 style="margin: 0 0 15px 0; color: #e5e5e5; font-size: 1.1em;">Pendulum Animation</h5>
-                <div style="position: relative; border-radius: 10px; overflow: hidden; box-shadow: inset 0 2px 10px rgba(0,0,0,0.3);">
-                    <canvas id="euler-canvas" width="280" height="280" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); width: 100%; display: block;"></canvas>
+            <div style="background-color: var(--global-bg-color-secondary); border-radius: 12px; padding: 20px; border: 1px solid var(--global-border-color);">
+                <h5 style="margin: 0 0 15px 0; color: var(--global-heading-color); font-size: 1.1em;">Pendulum Animation</h5>
+                <div style="position: relative; border-radius: 10px; overflow: hidden; box-shadow: var(--global-box-shadow-sm);">
+                    <canvas id="euler-canvas" width="280" height="280" style="background-color: var(--global-bg-color-secondary); width: 100%; display: block;"></canvas>
                 </div>
             </div>
             
-            <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.1);">
-                <h5 style="margin: 0 0 15px 0; color: #e5e5e5; font-size: 1.1em;">Energy Over Time</h5>
-                <div style="position: relative; border-radius: 10px; overflow: hidden; box-shadow: inset 0 2px 10px rgba(0,0,0,0.3);">
-                    <canvas id="euler-energy" width="280" height="280" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); width: 100%; display: block;"></canvas>
+            <div style="background-color: var(--global-bg-color-secondary); border-radius: 12px; padding: 20px; border: 1px solid var(--global-border-color);">
+                <h5 style="margin: 0 0 15px 0; color: var(--global-heading-color); font-size: 1.1em;">Energy Over Time</h5>
+                <div style="position: relative; border-radius: 10px; overflow: hidden; box-shadow: var(--global-box-shadow-sm);">
+                    <canvas id="euler-energy" width="280" height="280" style="background-color: var(--global-bg-color-secondary); width: 100%; display: block;"></canvas>
                 </div>
             </div>
         </div>
         
-        <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.08); border-radius: 10px; padding: 15px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; background-color: var(--global-bg-color-secondary); border-radius: 10px; padding: 15px; border: 1px solid var(--global-border-color);">
             <div style="display: flex; align-items: center; gap: 15px;">
-                <label style="color: #e5e5e5; font-weight: 500;">Time Step: <span id="euler-timestep" style="color: #ef4444; font-weight: 600;">10</span> ms</label>
+                <label style="color: var(--global-text-color); font-weight: 500;">Time Step: <span id="euler-timestep" style="color: #ef4444; font-weight: 600;">10</span> ms</label>
                 <input type="range" id="euler-slider" min="1" max="50" value="10" style="width: 200px; accent-color: #ef4444;">
             </div>
-            <button id="euler-reset" style="background: linear-gradient(135deg, #ef4444, #dc2626); border: none; color: white; padding: 8px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);">Reset</button>
+            <button id="euler-reset" style="background: linear-gradient(135deg, #ef4444, #dc2626); border: none; color: white; padding: 8px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: var(--global-box-shadow-md);">Reset</button>
         </div>
         
         <div style="margin-top: 15px; text-align: center; font-size: 14px;">
@@ -153,8 +153,8 @@ One can verify that $$\det(\mathbf{M}) = 1$$, ensuring phase space volume conser
 **The Geometric Miracle:**
 Despite having the same local accuracy as Explicit Euler, Symplectic Euler captures the essential geometric structure of Hamiltonian flow. This leads to fundamentally different long-term behavior—energy remains bounded rather than growing exponentially.
 
-<div id="symplectic-demo" style="max-width: 100%; margin: 30px 0; box-shadow: 0 8px 32px rgba(0,0,0,0.3);">
-    <div style="background: linear-gradient(135deg, #1e2e1e 0%, #2a3a2a 100%); border-radius: 16px; padding: 30px; color: white; border: 1px solid #3a4a3a;">
+<div id="symplectic-demo" style="max-width: 100%; margin: 30px 0; box-shadow: var(--global-box-shadow-lg);">
+    <div style="background-color: var(--global-card-bg-color); border-radius: 12px; padding: 30px; color: var(--global-text-color); border: 1px solid var(--global-border-color);">
         <div style="display: flex; align-items: center; margin-bottom: 25px;">
             <div style="width: 4px; height: 30px; background: linear-gradient(to bottom, #22c55e, #16a34a); border-radius: 2px; margin-right: 15px;"></div>
             <h4 style="margin: 0; color: #22c55e; font-size: 1.4em; font-weight: 600;">Symplectic Euler Method</h4>
@@ -162,27 +162,27 @@ Despite having the same local accuracy as Explicit Euler, Symplectic Euler captu
         </div>
         
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 25px;">
-            <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.1);">
-                <h5 style="margin: 0 0 15px 0; color: #e5e5e5; font-size: 1.1em;">Pendulum Animation</h5>
-                <div style="position: relative; border-radius: 10px; overflow: hidden; box-shadow: inset 0 2px 10px rgba(0,0,0,0.3);">
-                    <canvas id="symplectic-canvas" width="280" height="280" style="background: linear-gradient(135deg, #1a2e1a 0%, #16213e 100%); width: 100%; display: block;"></canvas>
+            <div style="background-color: var(--global-bg-color-secondary); border-radius: 12px; padding: 20px; border: 1px solid var(--global-border-color);">
+                <h5 style="margin: 0 0 15px 0; color: var(--global-heading-color); font-size: 1.1em;">Pendulum Animation</h5>
+                <div style="position: relative; border-radius: 10px; overflow: hidden; box-shadow: var(--global-box-shadow-sm);">
+                    <canvas id="symplectic-canvas" width="280" height="280" style="background-color: var(--global-bg-color-secondary); width: 100%; display: block;"></canvas>
                 </div>
             </div>
             
-            <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.1);">
-                <h5 style="margin: 0 0 15px 0; color: #e5e5e5; font-size: 1.1em;">Energy Over Time</h5>
-                <div style="position: relative; border-radius: 10px; overflow: hidden; box-shadow: inset 0 2px 10px rgba(0,0,0,0.3);">
-                    <canvas id="symplectic-energy" width="280" height="280" style="background: linear-gradient(135deg, #1a2e1a 0%, #16213e 100%); width: 100%; display: block;"></canvas>
+            <div style="background-color: var(--global-bg-color-secondary); border-radius: 12px; padding: 20px; border: 1px solid var(--global-border-color);">
+                <h5 style="margin: 0 0 15px 0; color: var(--global-heading-color); font-size: 1.1em;">Energy Over Time</h5>
+                <div style="position: relative; border-radius: 10px; overflow: hidden; box-shadow: var(--global-box-shadow-sm);">
+                    <canvas id="symplectic-energy" width="280" height="280" style="background-color: var(--global-bg-color-secondary); width: 100%; display: block;"></canvas>
                 </div>
             </div>
         </div>
         
-        <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.08); border-radius: 10px; padding: 15px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; background-color: var(--global-bg-color-secondary); border-radius: 10px; padding: 15px; border: 1px solid var(--global-border-color);">
             <div style="display: flex; align-items: center; gap: 15px;">
-                <label style="color: #e5e5e5; font-weight: 500;">Time Step: <span id="symplectic-timestep" style="color: #22c55e; font-weight: 600;">10</span> ms</label>
+                <label style="color: var(--global-text-color); font-weight: 500;">Time Step: <span id="symplectic-timestep" style="color: #22c55e; font-weight: 600;">10</span> ms</label>
                 <input type="range" id="symplectic-slider" min="1" max="50" value="10" style="width: 200px; accent-color: #22c55e;">
             </div>
-            <button id="symplectic-reset" style="background: linear-gradient(135deg, #22c55e, #16a34a); border: none; color: white; padding: 8px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);">Reset</button>
+            <button id="symplectic-reset" style="background: linear-gradient(135deg, #22c55e, #16a34a); border: none; color: white; padding: 8px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: var(--global-box-shadow-md);">Reset</button>
         </div>
         
         <div style="margin-top: 15px; text-align: center; font-size: 14px;">
@@ -219,8 +219,8 @@ $$\omega_{n+1} = \omega_{n+1/2} + \frac{h}{2} \left(-\frac{g}{L}\sin(\theta_{n+1
 **Why Verlet Dominates Molecular Dynamics:**
 The method's symplectic nature combined with second-order accuracy makes it the gold standard for molecular dynamics simulations, where energy conservation over millions of timesteps is crucial.
 
-<div id="verlet-demo" style="max-width: 100%; margin: 30px 0; box-shadow: 0 8px 32px rgba(0,0,0,0.3);">
-    <div style="background: linear-gradient(135deg, #1e1e2e 0%, #2a2a3a 100%); border-radius: 16px; padding: 30px; color: white; border: 1px solid #3a3a4a;">
+<div id="verlet-demo" style="max-width: 100%; margin: 30px 0; box-shadow: var(--global-box-shadow-lg);">
+    <div style="background-color: var(--global-card-bg-color); border-radius: 12px; padding: 30px; color: var(--global-text-color); border: 1px solid var(--global-border-color);">
         <div style="display: flex; align-items: center; margin-bottom: 25px;">
             <div style="width: 4px; height: 30px; background: linear-gradient(to bottom, #3b82f6, #2563eb); border-radius: 2px; margin-right: 15px;"></div>
             <h4 style="margin: 0; color: #3b82f6; font-size: 1.4em; font-weight: 600;">Velocity Verlet Method</h4>
@@ -228,27 +228,27 @@ The method's symplectic nature combined with second-order accuracy makes it the 
         </div>
         
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 25px;">
-            <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.1);">
-                <h5 style="margin: 0 0 15px 0; color: #e5e5e5; font-size: 1.1em;">Pendulum Animation</h5>
-                <div style="position: relative; border-radius: 10px; overflow: hidden; box-shadow: inset 0 2px 10px rgba(0,0,0,0.3);">
-                    <canvas id="verlet-canvas" width="280" height="280" style="background: linear-gradient(135deg, #1a1a2e 0%, #162a3e 100%); width: 100%; display: block;"></canvas>
+            <div style="background-color: var(--global-bg-color-secondary); border-radius: 12px; padding: 20px; border: 1px solid var(--global-border-color);">
+                <h5 style="margin: 0 0 15px 0; color: var(--global-heading-color); font-size: 1.1em;">Pendulum Animation</h5>
+                <div style="position: relative; border-radius: 10px; overflow: hidden; box-shadow: var(--global-box-shadow-sm);">
+                    <canvas id="verlet-canvas" width="280" height="280" style="background-color: var(--global-bg-color-secondary); width: 100%; display: block;"></canvas>
                 </div>
             </div>
             
-            <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.1);">
-                <h5 style="margin: 0 0 15px 0; color: #e5e5e5; font-size: 1.1em;">Energy Over Time</h5>
-                <div style="position: relative; border-radius: 10px; overflow: hidden; box-shadow: inset 0 2px 10px rgba(0,0,0,0.3);">
-                    <canvas id="verlet-energy" width="280" height="280" style="background: linear-gradient(135deg, #1a1a2e 0%, #162a3e 100%); width: 100%; display: block;"></canvas>
+            <div style="background-color: var(--global-bg-color-secondary); border-radius: 12px; padding: 20px; border: 1px solid var(--global-border-color);">
+                <h5 style="margin: 0 0 15px 0; color: var(--global-heading-color); font-size: 1.1em;">Energy Over Time</h5>
+                <div style="position: relative; border-radius: 10px; overflow: hidden; box-shadow: var(--global-box-shadow-sm);">
+                    <canvas id="verlet-energy" width="280" height="280" style="background-color: var(--global-bg-color-secondary); width: 100%; display: block;"></canvas>
                 </div>
             </div>
         </div>
         
-        <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.08); border-radius: 10px; padding: 15px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; background-color: var(--global-bg-color-secondary); border-radius: 10px; padding: 15px; border: 1px solid var(--global-border-color);">
             <div style="display: flex; align-items: center; gap: 15px;">
-                <label style="color: #e5e5e5; font-weight: 500;">Time Step: <span id="verlet-timestep" style="color: #3b82f6; font-weight: 600;">10</span> ms</label>
+                <label style="color: var(--global-text-color); font-weight: 500;">Time Step: <span id="verlet-timestep" style="color: #3b82f6; font-weight: 600;">10</span> ms</label>
                 <input type="range" id="verlet-slider" min="1" max="50" value="10" style="width: 200px; accent-color: #3b82f6;">
             </div>
-            <button id="verlet-reset" style="background: linear-gradient(135deg, #3b82f6, #2563eb); border: none; color: white; padding: 8px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);">Reset</button>
+            <button id="verlet-reset" style="background: linear-gradient(135deg, #3b82f6, #2563eb); border: none; color: white; padding: 8px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: var(--global-box-shadow-md);">Reset</button>
         </div>
         
         <div style="margin-top: 15px; text-align: center; font-size: 14px;">
@@ -280,8 +280,8 @@ While RK4 excels in local accuracy, it is **not symplectic**. For dissipative sy
 - **Memory overhead**: Minimal temporary storage
 - **Computational cost**: 4× that of simple methods per timestep
 
-<div id="rk4-demo" style="max-width: 100%; margin: 30px 0; box-shadow: 0 8px 32px rgba(0,0,0,0.3);">
-    <div style="background: linear-gradient(135deg, #2e1e2e 0%, #3a2a3a 100%); border-radius: 16px; padding: 30px; color: white; border: 1px solid #4a3a4a;">
+<div id="rk4-demo" style="max-width: 100%; margin: 30px 0; box-shadow: var(--global-box-shadow-lg);">
+    <div style="background-color: var(--global-card-bg-color); border-radius: 12px; padding: 30px; color: var(--global-text-color); border: 1px solid var(--global-border-color);">
         <div style="display: flex; align-items: center; margin-bottom: 25px;">
             <div style="width: 4px; height: 30px; background: linear-gradient(to bottom, #a855f7, #9333ea); border-radius: 2px; margin-right: 15px;"></div>
             <h4 style="margin: 0; color: #a855f7; font-size: 1.4em; font-weight: 600;">Runge-Kutta 4th Order</h4>
@@ -289,27 +289,27 @@ While RK4 excels in local accuracy, it is **not symplectic**. For dissipative sy
         </div>
         
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 25px;">
-            <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.1);">
-                <h5 style="margin: 0 0 15px 0; color: #e5e5e5; font-size: 1.1em;">Pendulum Animation</h5>
-                <div style="position: relative; border-radius: 10px; overflow: hidden; box-shadow: inset 0 2px 10px rgba(0,0,0,0.3);">
-                    <canvas id="rk4-canvas" width="280" height="280" style="background: linear-gradient(135deg, #2a1a2e 0%, #21163e 100%); width: 100%; display: block;"></canvas>
+            <div style="background-color: var(--global-bg-color-secondary); border-radius: 12px; padding: 20px; border: 1px solid var(--global-border-color);">
+                <h5 style="margin: 0 0 15px 0; color: var(--global-heading-color); font-size: 1.1em;">Pendulum Animation</h5>
+                <div style="position: relative; border-radius: 10px; overflow: hidden; box-shadow: var(--global-box-shadow-sm);">
+                    <canvas id="rk4-canvas" width="280" height="280" style="background-color: var(--global-bg-color-secondary); width: 100%; display: block;"></canvas>
                 </div>
             </div>
             
-            <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.1);">
-                <h5 style="margin: 0 0 15px 0; color: #e5e5e5; font-size: 1.1em;">Energy Over Time</h5>
-                <div style="position: relative; border-radius: 10px; overflow: hidden; box-shadow: inset 0 2px 10px rgba(0,0,0,0.3);">
-                    <canvas id="rk4-energy" width="280" height="280" style="background: linear-gradient(135deg, #2a1a2e 0%, #21163e 100%); width: 100%; display: block;"></canvas>
+            <div style="background-color: var(--global-bg-color-secondary); border-radius: 12px; padding: 20px; border: 1px solid var(--global-border-color);">
+                <h5 style="margin: 0 0 15px 0; color: var(--global-heading-color); font-size: 1.1em;">Energy Over Time</h5>
+                <div style="position: relative; border-radius: 10px; overflow: hidden; box-shadow: var(--global-box-shadow-sm);">
+                    <canvas id="rk4-energy" width="280" height="280" style="background-color: var(--global-bg-color-secondary); width: 100%; display: block;"></canvas>
                 </div>
             </div>
         </div>
         
-        <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.08); border-radius: 10px; padding: 15px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; background-color: var(--global-bg-color-secondary); border-radius: 10px; padding: 15px; border: 1px solid var(--global-border-color);">
             <div style="display: flex; align-items: center; gap: 15px;">
-                <label style="color: #e5e5e5; font-weight: 500;">Time Step: <span id="rk4-timestep" style="color: #a855f7; font-weight: 600;">10</span> ms</label>
+                <label style="color: var(--global-text-color); font-weight: 500;">Time Step: <span id="rk4-timestep" style="color: #a855f7; font-weight: 600;">10</span> ms</label>
                 <input type="range" id="rk4-slider" min="1" max="50" value="10" style="width: 200px; accent-color: #a855f7;">
             </div>
-            <button id="rk4-reset" style="background: linear-gradient(135deg, #a855f7, #9333ea); border: none; color: white; padding: 8px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);">Reset</button>
+            <button id="rk4-reset" style="background: linear-gradient(135deg, #a855f7, #9333ea); border: none; color: white; padding: 8px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: var(--global-box-shadow-md);">Reset</button>
         </div>
         
         <div style="margin-top: 15px; text-align: center; font-size: 14px;">
@@ -365,17 +365,17 @@ The eigenvalues lie exactly on the unit circle: $$|\lambda| = 1$$ for all $$h$$.
 ## Interactive Comparison: Complete Behavioral Analysis
 
 <div id="comparison-demo" style="max-width: 100%; margin: 20px 0;">
-    <div style="background: #1a1a1a; border-radius: 12px; padding: 20px; color: white;">
-        <h4 style="margin: 0 0 20px 0; color: #4ECDC4;">Complete Comparison - All Integration Methods</h4>
+    <div style="background-color: var(--global-card-bg-color); border-radius: 12px; padding: 20px; color: var(--global-text-color); border: 1px solid var(--global-border-color); box-shadow: var(--global-box-shadow-lg);">
+        <h4 style="margin: 0 0 20px 0; color: var(--global-theme-color);">Complete Comparison - All Integration Methods</h4>
         
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
             <div>
-                <h5>Selected Pendulum Animation</h5>
-                <canvas id="comparison-canvas" width="300" height="300" style="background: #2a2a2a; border-radius: 8px; width: 100%;"></canvas>
+                <h5 style="color: var(--global-heading-color);">Selected Pendulum Animation</h5>
+                <canvas id="comparison-canvas" width="300" height="300" style="background-color: var(--global-bg-color-secondary); border-radius: 8px; width: 100%; border: 1px solid var(--global-border-color);"></canvas>
                 
                 <div style="margin-top: 10px;">
-                    <label>Display Method: </label>
-                    <select id="comparison-select" style="background: #333; color: white; border: 1px solid #555; padding: 5px;">
+                    <label style="color: var(--global-text-color);">Display Method: </label>
+                    <select id="comparison-select" style="background-color: var(--global-card-bg-color); color: var(--global-text-color); border: 1px solid var(--global-border-color); padding: 5px; border-radius: 4px;">
                         <option value="symplectic">Symplectic Euler</option>
                         <option value="euler">Explicit Euler</option>
                         <option value="verlet">Velocity Verlet</option>
@@ -385,25 +385,25 @@ The eigenvalues lie exactly on the unit circle: $$|\lambda| = 1$$ for all $$h$$.
             </div>
             
             <div>
-                <h5>Energy Drift Comparison</h5>
-                <canvas id="comparison-energy" width="300" height="300" style="background: #2a2a2a; border-radius: 8px; width: 100%;"></canvas>
+                <h5 style="color: var(--global-heading-color);">Energy Drift Comparison</h5>
+                <canvas id="comparison-energy" width="300" height="300" style="background-color: var(--global-bg-color-secondary); border-radius: 8px; width: 100%; border: 1px solid var(--global-border-color);"></canvas>
                 
                 <div style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 10px; font-size: 11px;">
                     <div style="display: flex; align-items: center; gap: 4px;">
                         <div style="width: 12px; height: 12px; background: #ef4444; border-radius: 50%;"></div>
-                        <span>Explicit Euler</span>
+                        <span style="color: var(--global-text-color);">Explicit Euler</span>
                     </div>
                     <div style="display: flex; align-items: center; gap: 4px;">
                         <div style="width: 12px; height: 12px; background: #22c55e; border-radius: 50%;"></div>
-                        <span>Symplectic Euler</span>
+                        <span style="color: var(--global-text-color);">Symplectic Euler</span>
                     </div>
                     <div style="display: flex; align-items: center; gap: 4px;">
                         <div style="width: 12px; height: 12px; background: #3b82f6; border-radius: 50%;"></div>
-                        <span>Velocity Verlet</span>
+                        <span style="color: var(--global-text-color);">Velocity Verlet</span>
                     </div>
                     <div style="display: flex; align-items: center; gap: 4px;">
                         <div style="width: 12px; height: 12px; background: #a855f7; border-radius: 50%;"></div>
-                        <span>RK4</span>
+                        <span style="color: var(--global-text-color);">RK4</span>
                     </div>
                 </div>
             </div>
@@ -411,21 +411,21 @@ The eigenvalues lie exactly on the unit circle: $$|\lambda| = 1$$ for all $$h$$.
         
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
             <div>
-                <h5>Initial Conditions</h5>
+                <h5 style="color: var(--global-heading-color);">Initial Conditions</h5>
                 <div style="margin-bottom: 10px;">
-                    <label>Initial Angle: <span id="comparison-angle">45</span>°</label>
-                    <input type="range" id="comparison-angle-slider" min="10" max="170" value="45" style="width: 100%;">
+                    <label style="color: var(--global-text-color);">Initial Angle: <span id="comparison-angle">45</span>°</label>
+                    <input type="range" id="comparison-angle-slider" min="10" max="170" value="45" style="width: 100%; accent-color: var(--global-theme-color);">
                 </div>
                 <div>
-                    <label>Time Step: <span id="comparison-timestep">10</span> ms</label>
-                    <input type="range" id="comparison-timestep-slider" min="1" max="50" value="10" style="width: 100%;">
+                    <label style="color: var(--global-text-color);">Time Step: <span id="comparison-timestep">10</span> ms</label>
+                    <input type="range" id="comparison-timestep-slider" min="1" max="50" value="10" style="width: 100%; accent-color: var(--global-theme-color);">
                 </div>
             </div>
             
             <div>
-                <h5>Current Energy Errors</h5>
+                <h5 style="color: var(--global-heading-color);">Current Energy Errors</h5>
                 <div style="font-size: 12px;">
-                    <div>Time: <span id="comparison-time">0.00</span>s</div>
+                    <div style="color: var(--global-text-color);">Time: <span id="comparison-time">0.00</span>s</div>
                     <div style="color: #ef4444;">Explicit Euler: <span id="comparison-euler-error">0.00</span>%</div>
                     <div style="color: #22c55e;">Symplectic Euler: <span id="comparison-symplectic-error">0.00</span>%</div>
                     <div style="color: #3b82f6;">Velocity Verlet: <span id="comparison-verlet-error">0.00</span>%</div>
@@ -435,8 +435,8 @@ The eigenvalues lie exactly on the unit circle: $$|\lambda| = 1$$ for all $$h$$.
         </div>
         
         <div style="text-align: center;">
-            <button id="comparison-play-pause" style="background: #4ECDC4; border: none; color: #1a1a1a; padding: 10px 20px; border-radius: 6px; margin-right: 10px;">Pause</button>
-            <button id="comparison-reset" style="background: #FF6B6B; border: none; color: white; padding: 10px 20px; border-radius: 6px;">Reset All</button>
+            <button id="comparison-play-pause" style="background: var(--global-gradient-primary); border: none; color: white; padding: 10px 20px; border-radius: 6px; margin-right: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);">Pause</button>
+            <button id="comparison-reset" style="background: #FF6B6B; border: none; color: white; padding: 10px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);">Reset All</button>
         </div>
     </div>
 </div>
@@ -831,7 +831,6 @@ The simple pendulum, in its elegant simplicity, embodies the rich mathematical s
 - **NAMD**: [namd.org](https://www.ks.uiuc.edu/Research/namd/) - Large-scale parallel MD simulations
 - **yt-project**: [yt-project.org](https://yt-project.org) - Analysis tools for astrophysical simulations
 
-*Interactive visualization enhanced with modern web technologies for comprehensive analysis of numerical integration methods.*
 
 <script>
 // Individual Pendulum Simulation Classes

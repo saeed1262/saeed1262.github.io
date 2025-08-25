@@ -41,21 +41,22 @@ Try adjusting the PID parameters below. Watch how **P** (Proportional) responds 
 .pid-demo-container {
   max-width: 1200px;
   margin: 30px auto;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-  border-radius: 16px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--global-card-bg-color);
+  border-radius: 12px;
   padding: 24px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  border: 2px solid #444444;
+  box-shadow: var(--global-box-shadow-lg);
+  border: 1px solid var(--global-border-color);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .control-panel {
-  background: #2d2d2d;
+  background-color: var(--global-bg-color-secondary);
   padding: 24px;
   border-radius: 12px;
   margin-bottom: 20px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-  border: 2px solid #444444;
+  box-shadow: var(--global-box-shadow-sm);
+  border: 1px solid var(--global-border-color);
 }
 
 .control-grid {
@@ -66,25 +67,26 @@ Try adjusting the PID parameters below. Watch how **P** (Proportional) responds 
 }
 
 .control-group {
-  background: #3a3a3a;
+  background-color: var(--global-card-bg-color);
   padding: 20px;
   border-radius: 8px;
-  border: 2px solid #555555;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
+  border: 1px solid var(--global-border-color);
+  box-shadow: var(--global-box-shadow-sm);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
 }
 
 .control-group:hover {
-  border-color: #4dabf7;
-  box-shadow: 0 4px 16px rgba(77, 171, 247, 0.25);
+  border-color: var(--global-theme-color);
+  box-shadow: var(--global-box-shadow-md);
   transform: translateY(-2px);
+  background-color: var(--global-card-hover-bg);
 }
 
 .control-label {
   font-weight: 700;
   font-size: 18px;
-  color: #ffffff;
+  color: var(--global-heading-color);
   margin-bottom: 12px;
   display: block;
   text-shadow: none;
@@ -92,8 +94,8 @@ Try adjusting the PID parameters below. Watch how **P** (Proportional) responds 
 }
 
 .control-value {
-  background: #4dabf7;
-  color: #000000;
+  background: var(--global-theme-color);
+  color: #FFFFFF;
   padding: 8px 16px;
   border-radius: 20px;
   font-weight: 700;
@@ -102,12 +104,12 @@ Try adjusting the PID parameters below. Watch how **P** (Proportional) responds 
   display: inline-block;
   text-align: center;
   margin-left: 12px;
-  box-shadow: 0 2px 8px rgba(77, 171, 247, 0.4);
+  box-shadow: var(--global-box-shadow-sm);
   transition: all 0.2s ease;
 }
 
 .control-description {
-  color: #cccccc;
+  color: var(--global-text-color-light);
   font-size: 14px;
   margin-top: 8px;
   font-weight: 500;
@@ -117,7 +119,7 @@ Try adjusting the PID parameters below. Watch how **P** (Proportional) responds 
   width: 100%;
   height: 10px;
   border-radius: 5px;
-  background: #555555;
+  background: var(--global-border-color);
   outline: none;
   margin-top: 12px;
   cursor: pointer;
@@ -127,8 +129,8 @@ Try adjusting the PID parameters below. Watch how **P** (Proportional) responds 
 }
 
 .pid-slider:focus {
-  background: #666666;
-  box-shadow: 0 0 0 3px rgba(77, 171, 247, 0.4);
+  background: var(--global-text-color-light);
+  box-shadow: 0 0 0 3px rgba(var(--global-theme-color-rgb), 0.25);
 }
 
 .pid-slider::-webkit-slider-thumb {
@@ -137,27 +139,27 @@ Try adjusting the PID parameters below. Watch how **P** (Proportional) responds 
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: #4dabf7;
+  background: var(--global-theme-color);
   cursor: pointer;
-  border: 4px solid #ffffff;
-  box-shadow: 0 2px 12px rgba(77, 171, 247, 0.5);
+  border: 4px solid var(--global-card-bg-color);
+  box-shadow: var(--global-box-shadow-md);
   transition: all 0.2s ease;
 }
 
 .pid-slider::-webkit-slider-thumb:hover {
   transform: scale(1.15);
-  box-shadow: 0 4px 16px rgba(77, 171, 247, 0.7);
-  background: #339af0;
+  box-shadow: var(--global-box-shadow-lg);
+  background: var(--global-theme-color-dark);
 }
 
 .pid-slider::-moz-range-thumb {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: #4dabf7;
+  background: var(--global-theme-color);
   cursor: pointer;
-  border: 4px solid #ffffff;
-  box-shadow: 0 2px 12px rgba(77, 171, 247, 0.5);
+  border: 4px solid var(--global-card-bg-color);
+  box-shadow: var(--global-box-shadow-md);
 }
 
 .control-buttons {
@@ -169,57 +171,60 @@ Try adjusting the PID parameters below. Watch how **P** (Proportional) responds 
 }
 
 .reset-btn {
-  background: linear-gradient(135deg, #51cf66 0%, #37b24d 100%);
-  color: #000000;
+  background: var(--global-gradient-primary);
+  color: #FFFFFF;
   border: none;
   padding: 14px 28px;
   border-radius: 8px;
   font-weight: 700;
   font-size: 16px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(81, 207, 102, 0.4);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--global-box-shadow-md);
   text-transform: uppercase;
   letter-spacing: 1px;
 }
 
 .reset-btn:hover {
   transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(81, 207, 102, 0.5);
+  box-shadow: var(--global-box-shadow-lg);
 }
 
 .preset-btn {
-  background: linear-gradient(135deg, #845ef7 0%, #7048e8 100%);
-  color: #ffffff;
-  border: none;
+  background-color: var(--global-card-bg-color);
+  color: var(--global-text-color);
+  border: 2px solid var(--global-border-color);
   padding: 12px 20px;
   border-radius: 8px;
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(132, 94, 247, 0.4);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--global-box-shadow-sm);
 }
 
 .preset-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(132, 94, 247, 0.5);
+  box-shadow: var(--global-box-shadow-md);
+  background: var(--global-gradient-primary);
+  color: #FFFFFF;
+  border-color: transparent;
 }
 
 .wind-toggle-container {
   display: flex;
   align-items: center;
-  background: #3a3a3a;
+  background-color: var(--global-card-bg-color);
   padding: 14px 24px;
   border-radius: 8px;
-  border: 2px solid #555555;
+  border: 1px solid var(--global-border-color);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .wind-toggle-container:hover {
-  border-color: #ffd43b;
-  background: #4a4a4a;
+  border-color: var(--global-accent-color);
+  background-color: var(--global-card-hover-bg);
   transform: translateY(-1px);
 }
 
@@ -232,7 +237,7 @@ Try adjusting the PID parameters below. Watch how **P** (Proportional) responds 
 
 .wind-label {
   font-weight: 600;
-  color: #ffffff;
+  color: var(--global-text-color);
   font-size: 16px;
   cursor: pointer;
   margin: 0;
@@ -247,12 +252,12 @@ Try adjusting the PID parameters below. Watch how **P** (Proportional) responds 
 
 .simulation-container {
   height: 350px;
-  background: #1a1a1a;
+  background-color: var(--global-bg-color-secondary);
   border-radius: 8px;
   position: relative;
   overflow: hidden;
-  border: 2px solid #444444;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--global-border-color);
+  box-shadow: var(--global-box-shadow-sm);
 }
 
 .plots-container {
@@ -263,10 +268,10 @@ Try adjusting the PID parameters below. Watch how **P** (Proportional) responds 
 }
 
 .error-plot-container, .control-plot-container {
-  background: #2d2d2d;
-  border: 2px solid #444444;
+  background-color: var(--global-card-bg-color);
+  border: 1px solid var(--global-border-color);
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--global-box-shadow-sm);
   position: relative;
 }
 
@@ -276,21 +281,21 @@ Try adjusting the PID parameters below. Watch how **P** (Proportional) responds 
   left: 12px;
   font-weight: 700;
   font-size: 14px;
-  color: #ffffff;
+  color: var(--global-heading-color);
   z-index: 10;
-  background: rgba(45, 45, 45, 0.9);
+  background-color: var(--global-bg-color-secondary);
   padding: 4px 8px;
   border-radius: 4px;
-  border: 1px solid #555555;
+  border: 1px solid var(--global-border-color);
 }
 
 .status-display {
-  background: rgba(45, 45, 45, 0.95);
+  background-color: var(--global-bg-color-secondary);
   padding: 16px;
   border-radius: 8px;
   margin-top: 16px;
-  border: 2px solid #444444;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--global-border-color);
+  box-shadow: var(--global-box-shadow-sm);
 }
 
 .status-grid {
@@ -301,15 +306,15 @@ Try adjusting the PID parameters below. Watch how **P** (Proportional) responds 
 }
 
 .status-item {
-  background: #3a3a3a;
+  background-color: var(--global-card-bg-color);
   padding: 12px;
   border-radius: 6px;
-  border: 1px solid #555555;
+  border: 1px solid var(--global-border-color);
 }
 
 .status-label {
   font-weight: 600;
-  color: #cccccc;
+  color: var(--global-text-color-light);
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -317,7 +322,7 @@ Try adjusting the PID parameters below. Watch how **P** (Proportional) responds 
 
 .status-value {
   font-weight: 700;
-  color: #ffffff;
+  color: var(--global-heading-color);
   font-size: 18px;
   margin-top: 4px;
 }
@@ -331,8 +336,8 @@ Try adjusting the PID parameters below. Watch how **P** (Proportional) responds 
 }
 
 .comparison-mode {
-  background: rgba(255, 212, 59, 0.2);
-  border: 2px solid #ffd43b;
+  background: rgba(var(--global-accent-color-rgb), 0.1);
+  border: 2px solid var(--global-accent-color);
 }
 
 /* Responsive design */
@@ -367,9 +372,9 @@ Try adjusting the PID parameters below. Watch how **P** (Proportional) responds 
 }
 
 @keyframes glow {
-  0% { box-shadow: 0 0 5px rgba(77, 171, 247, 0.4); }
-  50% { box-shadow: 0 0 20px rgba(77, 171, 247, 0.7); }
-  100% { box-shadow: 0 0 5px rgba(77, 171, 247, 0.4); }
+  0% { box-shadow: 0 0 5px rgba(var(--global-theme-color-rgb), 0.4); }
+  50% { box-shadow: 0 0 20px rgba(var(--global-theme-color-rgb), 0.7); }
+  100% { box-shadow: 0 0 5px rgba(var(--global-theme-color-rgb), 0.4); }
 }
 
 .active-control {
@@ -603,12 +608,20 @@ function render2D() {
   const canvas = sim.canvas;
   const ctx = sim.ctx;
   
-  // Clear canvas with dark background matching page theme
-  ctx.fillStyle = '#1a1a1a';
+  // Get CSS custom properties for consistent theming
+  const computedStyle = getComputedStyle(document.documentElement);
+  const bgColor = computedStyle.getPropertyValue('--global-bg-color-secondary').trim();
+  const borderColor = computedStyle.getPropertyValue('--global-border-color').trim();
+  const textColor = computedStyle.getPropertyValue('--global-text-color-light').trim();
+  const themeColor = computedStyle.getPropertyValue('--global-theme-color').trim();
+  const headingColor = computedStyle.getPropertyValue('--global-heading-color').trim();
+  
+  // Clear canvas with theme background
+  ctx.fillStyle = bgColor;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   
   // Draw subtle grid for reference
-  ctx.strokeStyle = '#333333';
+  ctx.strokeStyle = borderColor;
   ctx.lineWidth = 1;
   const gridSize = 40;
   for (let x = 0; x < canvas.width; x += gridSize) {
@@ -629,7 +642,7 @@ function render2D() {
   const scale = Math.min(canvas.width, canvas.height) / 20;
   
   // Draw horizontal position line
-  ctx.strokeStyle = '#cccccc';
+  ctx.strokeStyle = textColor;
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.moveTo(50, centerY);
@@ -637,13 +650,13 @@ function render2D() {
   ctx.stroke();
   
   // Draw position scale markings
-  ctx.fillStyle = '#cccccc';
-  ctx.font = '12px Arial';
+  ctx.fillStyle = textColor;
+  ctx.font = '12px Inter, Arial, sans-serif';
   ctx.textAlign = 'center';
   for (let i = -10; i <= 10; i += 2) {
     const x = centerX + i * scale;
     if (x >= 50 && x <= canvas.width - 50) {
-      ctx.strokeStyle = '#cccccc';
+      ctx.strokeStyle = textColor;
       ctx.beginPath();
       ctx.moveTo(x, centerY - 5);
       ctx.lineTo(x, centerY + 5);
@@ -662,7 +675,7 @@ function render2D() {
   ctx.stroke();
   
   ctx.fillStyle = '#ff6b6b';
-  ctx.font = 'bold 14px Arial';
+  ctx.font = 'bold 14px Inter, Arial, sans-serif';
   ctx.textAlign = 'center';
   ctx.fillText('TARGET', centerX, centerY - 50);
   ctx.fillText('(Setpoint = 0)', centerX, centerY + 60);
@@ -671,13 +684,13 @@ function render2D() {
   const currentX = centerX + sim.position * scale;
   if (currentX >= 30 && currentX <= canvas.width - 30) {
     // Position marker (circle)
-    ctx.fillStyle = '#4dabf7';
+    ctx.fillStyle = themeColor;
     ctx.beginPath();
     ctx.arc(currentX, centerY, 15, 0, Math.PI * 2);
     ctx.fill();
     
     // Position indicator line
-    ctx.strokeStyle = '#4dabf7';
+    ctx.strokeStyle = themeColor;
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.moveTo(currentX, centerY - 35);
@@ -685,8 +698,8 @@ function render2D() {
     ctx.stroke();
     
     // Position label
-    ctx.fillStyle = '#4dabf7';
-    ctx.font = 'bold 14px Arial';
+    ctx.fillStyle = themeColor;
+    ctx.font = 'bold 14px Inter, Arial, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText('CURRENT', currentX, centerY - 70);
     ctx.fillText(`Position: ${sim.position.toFixed(2)}`, currentX, centerY + 80);
@@ -709,8 +722,8 @@ function render2D() {
     ctx.strokeRect(startX, centerY - 12, width, 24);
     
     // Error value label
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 12px Arial';
+    ctx.fillStyle = headingColor;
+    ctx.font = 'bold 12px Inter, Arial, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText(`Error: ${error.toFixed(2)}`, (startX + endX) / 2, centerY - 20);
   }
@@ -741,7 +754,7 @@ function render2D() {
     }
     
     // Velocity label
-    ctx.font = 'bold 12px Arial';
+    ctx.font = 'bold 12px Inter, Arial, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText(`Velocity: ${sim.velocity.toFixed(3)}`, currentX, centerY - 115);
   }
@@ -753,17 +766,17 @@ function render2D() {
     const barY = centerY + 120;
     
     // Control signal bar
-    ctx.fillStyle = thrust > 0 ? '#4dabf7' : '#ff6b6b';
+    ctx.fillStyle = thrust > 0 ? themeColor : '#ff6b6b';
     ctx.fillRect(currentX - 15, barY - (thrust > 0 ? barHeight : 0), 30, barHeight);
     
     // Bar outline
-    ctx.strokeStyle = '#ffffff';
+    ctx.strokeStyle = headingColor;
     ctx.lineWidth = 2;
     ctx.strokeRect(currentX - 15, barY - (thrust > 0 ? barHeight : 0), 30, barHeight);
     
     // Control signal label
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 12px Arial';
+    ctx.fillStyle = headingColor;
+    ctx.font = 'bold 12px Inter, Arial, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText(`Control: ${thrust.toFixed(3)}`, currentX, barY + 20);
     ctx.fillText(thrust > 0 ? '(Forward)' : '(Backward)', currentX, barY + 35);
@@ -776,28 +789,28 @@ function render2D() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
     ctx.fillStyle = '#51cf66';
-    ctx.font = 'bold 24px Arial';
+    ctx.font = 'bold 24px Inter, Arial, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText('✓ TARGET ACHIEVED!', canvas.width/2, 40);
     ctx.fillText('Position and Velocity at Zero', canvas.width/2, 70);
   }
   
   // System diagram labels
-  ctx.fillStyle = '#cccccc';
-  ctx.font = 'bold 11px Arial';
+  ctx.fillStyle = textColor;
+  ctx.font = 'bold 11px Inter, Arial, sans-serif';
   ctx.textAlign = 'left';
   ctx.fillText('PID Position Control System', 10, 20);
   
   // Legend
-  ctx.fillStyle = '#aaaaaa';
-  ctx.font = '10px Arial';
+  ctx.fillStyle = textColor;
+  ctx.font = '10px Inter, Arial, sans-serif';
   ctx.textAlign = 'left';
   const legendY = canvas.height - 60;
-  ctx.fillText('• Blue circle: Current position', 10, legendY);
+  ctx.fillText('• Theme circle: Current position', 10, legendY);
   ctx.fillText('• Red line: Target setpoint', 10, legendY + 12);
   ctx.fillText('• Yellow area: Position error', 10, legendY + 24);
   ctx.fillText('• Green arrow: Velocity', 10, legendY + 36);
-  ctx.fillText('• Blue/Red bar: Control output', 200, legendY + 24);
+  ctx.fillText('• Theme/Red bar: Control output', 200, legendY + 24);
 }
 
 function updateStatusDisplay(error, thrust) {
@@ -1374,4 +1387,3 @@ As we move toward an increasingly automated future, understanding PID control be
 
 The interactive simulation above is just the beginning. Try experimenting with different parameter combinations, observe how each component contributes to the overall behavior, and you'll gain an intuitive understanding of one of engineering's most powerful tools.
 
-*Enhanced visualization built with HTML5 Canvas and [D3.js](https://d3js.org) for comprehensive PID analysis.*
