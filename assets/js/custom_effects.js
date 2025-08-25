@@ -5,31 +5,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check for reduced motion preference
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     
-    // Delay non-critical animations for faster initial load
-    setTimeout(() => initializeEffects(prefersReducedMotion), 100);
+    // Initialize effects immediately for faster page load
+    initializeEffects(prefersReducedMotion);
 });
 
 function initializeEffects(prefersReducedMotion = false) {
     const body = document.body;
     
-    // Only add floating shapes if motion is not reduced and user prefers animations
-    if (!prefersReducedMotion) {
-        // Create subtle floating shapes - reduced count for better performance
-        const shapesContainer = document.createElement('div');
-        const shapeTypes = ['circle', 'square'];
-        shapesContainer.className = 'floating-shapes';
-        for (let i = 0; i < 3; i++) {
-            const shape = document.createElement('div');
-            const type = shapeTypes[i % shapeTypes.length];
-            shape.className = `shape ${type}`;
-            shape.style.left = Math.random() * 100 + '%';
-            shape.style.top = Math.random() * 100 + '%';
-            shape.style.animationDuration = 25 + Math.random() * 10 + 's';
-            shape.style.animationDelay = Math.random() * 3 + 's';
-            shapesContainer.appendChild(shape);
-        }
-        body.appendChild(shapesContainer);
-    }
+    // Floating shapes disabled for faster page loading
     
     // Create subtle static background accents (optional)
     const createBackgroundAccents = false; // Set to true if you want very subtle accents
@@ -49,7 +32,7 @@ function initializeEffects(prefersReducedMotion = false) {
     progressBar.style.width = '0%';
     document.body.appendChild(progressBar);
     
-    // Debounced scroll handler for better performance
+    // Optimized scroll handler for better performance
     let scrollTimeout;
     window.addEventListener('scroll', () => {
         if (scrollTimeout) return;
@@ -58,7 +41,7 @@ function initializeEffects(prefersReducedMotion = false) {
             const scrolled = (window.scrollY / windowHeight) * 100;
             progressBar.style.width = scrolled + '%';
             scrollTimeout = null;
-        }, 5);
+        }, 16); // Throttle to ~60fps
     }, { passive: true });
     
     // Optimized parallax effect with throttling
@@ -75,7 +58,7 @@ function initializeEffects(prefersReducedMotion = false) {
                 el.style.transform = `translateY(${yPos * 0.1}px)`;
             });
             parallaxTimeout = null;
-        }, 20);
+        }, 32); // Reduce frequency for better performance
     }, { passive: true });
     
     // Add reveal animations on scroll
@@ -97,26 +80,28 @@ function initializeEffects(prefersReducedMotion = false) {
         });
     };
     
-    // Throttled scroll reveal
+    // Optimized scroll reveal
     let revealTimeout;
     window.addEventListener('scroll', () => {
         if (revealTimeout) return;
         revealTimeout = setTimeout(() => {
             revealOnScroll();
             revealTimeout = null;
-        }, 50);
+        }, 100); // Reduce frequency for better performance
     }, { passive: true });
     
     // Delay initial reveal for faster page load
-    setTimeout(revealOnScroll, 200);
+    setTimeout(revealOnScroll, 500);
     
-    // Typing effect for main title
-    const title = document.querySelector('h1');
-    if (title && !title.classList.contains('typing-effect')) {
-        const text = title.textContent;
-        title.setAttribute('data-text', text);
-        title.classList.add('glitch');
-    }
+    // Delay typing effect for main title to improve initial load
+    setTimeout(() => {
+        const title = document.querySelector('h1');
+        if (title && !title.classList.contains('typing-effect')) {
+            const text = title.textContent;
+            title.setAttribute('data-text', text);
+            title.classList.add('glitch');
+        }
+    }, 800);
     
     // Rainbow text for special elements
     const specialElements = document.querySelectorAll('.navbar-brand, .footer a');
@@ -183,20 +168,7 @@ function initializeEffects(prefersReducedMotion = false) {
         }
     };
     
-    // Simplified particle system - only if motion is preferred
-    if (!prefersReducedMotion) {
-        const particlesContainer = document.createElement('div');
-        particlesContainer.className = 'particles';
-        body.appendChild(particlesContainer);
-        
-        // Create minimal particles for better performance
-        for (let i = 0; i < 5; i++) {
-            setTimeout(() => createParticle(), i * 2000);
-        }
-        
-        // Create particles less frequently
-        setInterval(createParticle, 8000);
-    }
+    // Particle system disabled for faster page loading
     
     // Mouse trail effect - disabled by default for better performance
     // Can be enabled for special occasions or high-end devices
@@ -241,14 +213,7 @@ function initializeEffects(prefersReducedMotion = false) {
         el.style.animationDelay = `${index * 0.1}s`;
     });
     
-    // Smooth page load animation - only if motion is preferred
-    if (!prefersReducedMotion) {
-        document.body.style.opacity = '0';
-        requestAnimationFrame(() => {
-            document.body.style.transition = 'opacity 0.3s ease';
-            document.body.style.opacity = '1';
-        });
-    }
+    // Removed page load fade-in animation for faster loading
     
     // Add loading indicator
     addLoadingEnhancements();

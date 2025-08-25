@@ -3,7 +3,8 @@ layout: post
 title: "Energy Drift Playground — Simple Pendulum"
 date: 2024-08-24
 description: Interactive exploration of numerical integration schemes and energy conservation in physics simulations. Master symplectic methods, stability analysis, and the mathematical foundations of computational physics.
-tags: physics simulation numerical-methods energy-conservation symplectic-integrators computational-physics
+img: /assets/img/Energy.png
+tags: energy-drift physics simulation numerical-methods energy-conservation symplectic-integrators computational-physics
 categories: blog
 ---
 

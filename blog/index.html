@@ -34,20 +34,169 @@ pagination:
     {% assign categories = post.categories | join: "" %}
 
     <li>
-      <h3>
-        {% if post.redirect == blank %}
-          <a class="post-title" href="{{ post.url | prepend: site.baseurl }}">{{ post.title }}</a>
-        {% else %}
-          {% if post.redirect contains '://' %}
-            <a class="post-title" href="{{ post.redirect }}" target="_blank">{{ post.title }}</a>
-            <svg width="2rem" height="2rem" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-              <path d="M17 13.5v6H5v-12h6m3-3h6v6m0-6-9 9" class="icon_svg-stroke" stroke="#999" stroke-width="1.5" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round"></path>
-            </svg>
+      <div class="post-header">
+        <div class="post-icon">
+          {% assign post_icon = 'fas fa-file-alt' %}
+          {% assign post_color = 'var(--global-theme-color)' %}
+          {% assign post_icon_src = '' %}
+          
+          {% comment %} Check for most specific tags first {% endcomment %}
+          {% assign icon_found = false %}
+          
+          {% comment %} Check for most specific tags first {% endcomment %}
+          
+          {% comment %} Priority 1: Most specific domain tags {% endcomment %}
+          {% unless icon_found %}
+            {% for tag in post.tags %}
+              {% case tag %}
+                {% when 'energy-drift' %}
+                  {% assign post_icon = 'custom-image' %}
+                  {% assign post_icon_src = '/assets/img/Energy.png' %}
+                  {% assign post_color = '#ef4444' %}
+                  {% assign icon_found = true %}
+                  {% break %}
+                {% when 'pid' %}
+                  {% assign post_icon = 'custom-image' %}
+                  {% assign post_icon_src = '/assets/img/PID.png' %}
+                  {% assign post_color = '#8b5cf6' %}
+                  {% assign icon_found = true %}
+                  {% break %}
+                {% when 'symplectic-integrators' %}
+                  {% assign post_icon = 'fas fa-infinity' %}
+                  {% assign post_color = '#06b6d4' %}
+                  {% assign icon_found = true %}
+                  {% break %}
+                {% when 'spacecraft' %}
+                  {% assign post_icon = 'fas fa-rocket' %}
+                  {% assign post_color = '#ef4444' %}
+                  {% assign icon_found = true %}
+                  {% break %}
+              {% endcase %}
+            {% endfor %}
+          {% endunless %}
+          
+          {% comment %} Priority 2: Methods and tools {% endcomment %}
+          {% unless icon_found %}
+            {% for tag in post.tags %}
+              {% case tag %}
+                {% when 'numerical-methods' %}
+                  {% assign post_icon = 'fas fa-calculator' %}
+                  {% assign post_color = '#f59e0b' %}
+                  {% assign icon_found = true %}
+                  {% break %}
+                {% when 'energy-conservation' %}
+                  {% assign post_icon = 'fas fa-chart-line' %}
+                  {% assign post_color = '#22c55e' %}
+                  {% assign icon_found = true %}
+                  {% break %}
+                {% when 'computational-physics' %}
+                  {% assign post_icon = 'fas fa-microchip' %}
+                  {% assign post_color = '#06b6d4' %}
+                  {% assign icon_found = true %}
+                  {% break %}
+                {% when 'algorithms' %}
+                  {% assign post_icon = 'fas fa-code-branch' %}
+                  {% assign post_color = '#8b5cf6' %}
+                  {% assign icon_found = true %}
+                  {% break %}
+                {% when 'visualization' %}
+                  {% assign post_icon = 'fas fa-chart-line' %}
+                  {% assign post_color = '#f59e0b' %}
+                  {% assign icon_found = true %}
+                  {% break %}
+                {% when 'interactive' %}
+                  {% assign post_icon = 'fas fa-mouse-pointer' %}
+                  {% assign post_color = '#22c55e' %}
+                  {% assign icon_found = true %}
+                  {% break %}
+                {% when 'control-systems' %}
+                  {% assign post_icon = 'fas fa-cogs' %}
+                  {% assign post_color = '#8b5cf6' %}
+                  {% assign icon_found = true %}
+                  {% break %}
+              {% endcase %}
+            {% endfor %}
+          {% endunless %}
+          
+          {% comment %} Priority 3: General subject areas {% endcomment %}
+          {% unless icon_found %}
+            {% for tag in post.tags %}
+              {% case tag %}
+                {% when 'physics' %}
+                  {% assign post_icon = 'fas fa-atom' %}
+                  {% assign post_color = '#3b82f6' %}
+                  {% assign icon_found = true %}
+                  {% break %}
+                {% when 'simulation' %}
+                  {% assign post_icon = 'fas fa-play-circle' %}
+                  {% assign post_color = '#10b981' %}
+                  {% assign icon_found = true %}
+                  {% break %}
+                {% when 'mathematics' %}
+                  {% assign post_icon = 'fas fa-square-root-alt' %}
+                  {% assign post_color = '#3b82f6' %}
+                  {% assign icon_found = true %}
+                  {% break %}
+                {% when 'tutorial' %}
+                  {% assign post_icon = 'fas fa-graduation-cap' %}
+                  {% assign post_color = '#10b981' %}
+                  {% assign icon_found = true %}
+                  {% break %}
+                {% when 'formatting' %}
+                  {% assign post_icon = 'fas fa-font' %}
+                  {% assign post_color = '#64748b' %}
+                  {% assign icon_found = true %}
+                  {% break %}
+                {% when 'links' %}
+                  {% assign post_icon = 'fas fa-link' %}
+                  {% assign post_color = '#64748b' %}
+                  {% assign icon_found = true %}
+                  {% break %}
+              {% endcase %}
+            {% endfor %}
+          {% endunless %}
+          
+          {% comment %} If no specific tag icon found, check categories {% endcomment %}
+          {% unless icon_found %}
+            {% for category in post.categories limit:1 %}
+              {% case category %}
+                {% when 'blog' %}
+                  {% assign post_icon = 'fas fa-blog' %}
+                  {% assign post_color = 'var(--global-theme-color)' %}
+                {% when 'sample-posts' %}
+                  {% assign post_icon = 'fas fa-file-alt' %}
+                  {% assign post_color = '#64748b' %}
+                {% when 'tutorial' %}
+                  {% assign post_icon = 'fas fa-graduation-cap' %}
+                  {% assign post_color = '#10b981' %}
+                {% when 'research' %}
+                  {% assign post_icon = 'fas fa-flask' %}
+                  {% assign post_color = '#8b5cf6' %}
+              {% endcase %}
+            {% endfor %}
+          {% endunless %}
+          
+          {% if post_icon == 'custom-image' %}
+            <img src="{{ post_icon_src | relative_url }}" alt="Post icon" style="width: 7rem; height: 7rem; object-fit: contain;" aria-hidden="true">
           {% else %}
-            <a class="post-title" href="{{ post.redirect | relative_url }}">{{ post.title }}</a>
+            <i class="{{ post_icon }}" style="color: {{ post_color }};" aria-hidden="true"></i>
           {% endif %}
-        {% endif %}
-      </h3>
+        </div>
+        <h3>
+          {% if post.redirect == blank %}
+            <a class="post-title" href="{{ post.url | prepend: site.baseurl }}">{{ post.title }}</a>
+          {% else %}
+            {% if post.redirect contains '://' %}
+              <a class="post-title" href="{{ post.redirect }}" target="_blank">{{ post.title }}</a>
+              <svg width="2rem" height="2rem" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+                <path d="M17 13.5v6H5v-12h6m3-3h6v6m0-6-9 9" class="icon_svg-stroke" stroke="#999" stroke-width="1.5" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round"></path>
+              </svg>
+            {% else %}
+              <a class="post-title" href="{{ post.redirect | relative_url }}">{{ post.title }}</a>
+            {% endif %}
+          {% endif %}
+        </h3>
+      </div>
       <p>{{ post.description }}</p>
       <p class="post-meta">
         {{ read_time }} min read &nbsp; &middot; &nbsp;

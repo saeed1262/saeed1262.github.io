@@ -3,6 +3,7 @@ layout: post
 title: "PID Controllers for Humans"
 date: 2024-09-07
 description: Understanding PID control through an interactive spacecraft docking simulation. Tune P, I, and D parameters to master the art of feedback control.
+img: /assets/img/PID.png
 tags: control-systems pid simulation spacecraft
 categories: blog
 ---

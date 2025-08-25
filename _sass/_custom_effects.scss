@@ -2,45 +2,9 @@
  * Custom Unique Effects - Performance Optimized
  ******************************************************************************/
 
-// Professional floating shapes - optimized for subtlety
+// Floating shapes disabled for performance - keeping styles for potential future use
 .floating-shapes {
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  z-index: -1;
-  pointer-events: none;
-
-  .shape {
-    position: absolute;
-    opacity: 0.03;
-    animation: float 40s infinite ease-in-out;
-    will-change: transform;
-    border-radius: 2px;
-  }
-
-  .circle {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--global-theme-color), var(--global-secondary-color));
-  }
-
-  .square {
-    width: 40px;
-    height: 40px;
-    background: linear-gradient(45deg, var(--global-secondary-color), var(--global-theme-color));
-    border-radius: 8px;
-  }
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-100px);
-  }
+  display: none; // Disabled for faster page loading
 }
 
 // Glowing text effect for name - simplified
@@ -65,7 +29,7 @@ h1 {
 
 @keyframes glow {
   0%, 100% { opacity: 0; }
-  50% { opacity: 0.3; }
+  50% { opacity: 0.1; } // Reduced opacity for subtlety
 }
 
 // Typing effect for main description
@@ -321,52 +285,9 @@ a:not(.navbar-brand.social a) {
   to { background-position: 200% center; }
 }
 
-// Particle effect - optimized
+// Particle effect disabled for performance
 .particles {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  z-index: -1;
-  pointer-events: none;
-  
-  .particle {
-    position: absolute;
-    width: 2px;
-    height: 2px;
-    background: var(--global-theme-color);
-    border-radius: 50%;
-    opacity: 0.2;
-    animation: particle-float 15s infinite linear;
-    will-change: transform;
-    
-    @for $i from 1 through 20 {
-      &:nth-child(#{$i}) {
-        left: random(100) * 1%;
-        animation-delay: random(10) * 1s;
-        animation-duration: (random(20) + 15) * 1s;
-      }
-    }
-  }
-}
-
-@keyframes particle-float {
-  from {
-    transform: translateY(100vh);
-    opacity: 0;
-  }
-  10% {
-    opacity: 0.2;
-  }
-  90% {
-    opacity: 0.2;
-  }
-  to {
-    transform: translateY(-10vh);
-    opacity: 0;
-  }
+  display: none; // Disabled for faster page loading
 }
 
 // Magnetic button effect - simplified
@@ -412,15 +333,15 @@ a:not(.navbar-brand.social a) {
   }
 }
 
-// Reveal animation on scroll - optimized
+// Reveal animation on scroll - optimized for performance
 .reveal {
   opacity: 0;
-  transform: translateY(20px);
+  transform: translateY(10px); // Reduced distance for faster animation
   
   &.active {
     opacity: 1;
     transform: translateY(0);
-    transition: opacity 0.6s ease, transform 0.6s ease;
+    transition: opacity 0.4s ease, transform 0.4s ease; // Faster transition
   }
 }
 
