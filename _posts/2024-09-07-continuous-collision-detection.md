@@ -22,7 +22,7 @@ $$u(t) = K_p e(t) + K_i \int_0^t e(\tau) d\tau + K_d \frac{d}{dt}e(t)$$
 Where:
 - **u(t)** is the control output
 - **e(t) = r(t) - y(t)** is the error between reference and actual values
-- **K_p, K_i, K_d** are the proportional, integral, and derivative gains
+- $$K_p, K_i, K_d$$ are the proportional, integral, and derivative gains
 
 This deceptively simple equation powers everything from the thermostat in your home to the guidance systems of interplanetary spacecraft.
 
