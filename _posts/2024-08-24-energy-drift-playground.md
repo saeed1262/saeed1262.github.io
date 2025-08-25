@@ -53,6 +53,99 @@ $$\mathbf{M}^T \mathbf{J} \mathbf{M} = \mathbf{J}$$
 
 where $$\mathbf{J} = \begin{pmatrix} 0 & 1 \\ -1 & 0 \end{pmatrix}$$ is the symplectic matrix.
 
+## Visualizing Phase Space: The Geometric Perspective
+
+Before exploring individual integration methods, we must understand how they behave in **phase space**—the natural coordinate system for Hamiltonian dynamics.
+
+### Phase Space Trajectories and Conservation
+
+In phase space, each point represents a complete state $(\theta, \omega)$ of the pendulum. As time evolves, the system traces out a trajectory in this space. For the conservative pendulum, these trajectories have remarkable properties:
+
+**Energy Conservation as Geometric Constraint:**
+Each trajectory lies on a curve of constant energy:
+$$H(\theta, \omega) = \frac{1}{2}\omega^2 + \frac{g}{L}(1 - \cos\theta) = E_0$$
+
+**Three Regimes of Motion:**
+- **Small oscillations** ($$E_0 < 2g/L$$): Closed elliptical orbits around $$(\theta, \omega) = (0, 0)$$
+- **Large oscillations** ($$E_0 > 2g/L$$): Open trajectories representing continuous rotation
+- **Separatrix** ($$E_0 = 2g/L$$): The critical boundary between oscillation and rotation
+
+<div id="phase-space-theory" style="max-width: 100%; margin: 30px 0;">
+    <div style="background-color: var(--global-card-bg-color); border-radius: 12px; padding: 25px; color: var(--global-text-color); border: 1px solid var(--global-border-color); box-shadow: var(--global-box-shadow-lg);">
+        <h4 style="margin: 0 0 20px 0; color: var(--global-theme-color);">Interactive Phase Space Explorer</h4>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+            <div>
+                <h5 style="color: var(--global-heading-color);">Theoretical Phase Portrait</h5>
+                <canvas id="theory-phase-canvas" width="350" height="350" style="background-color: var(--global-bg-color-secondary); border-radius: 8px; width: 100%; border: 1px solid var(--global-border-color);"></canvas>
+                
+                <div style="margin-top: 10px; font-size: 12px;">
+                    <div style="color: var(--global-text-color);">Click on the phase space to set initial conditions!</div>
+                    <div style="color: #3b82f6;">Current Energy: <span id="theory-energy">2.45</span> J</div>
+                </div>
+            </div>
+            
+            <div>
+                <h5 style="color: var(--global-heading-color);">Method Comparison</h5>
+                <canvas id="comparison-phase-canvas" width="350" height="350" style="background-color: var(--global-bg-color-secondary); border-radius: 8px; width: 100%; border: 1px solid var(--global-border-color);"></canvas>
+                
+                <div style="margin-top: 10px;">
+                    <label style="color: var(--global-text-color);">Integration Method: </label>
+                    <select id="phase-method-select" style="background-color: var(--global-card-bg-color); color: var(--global-text-color); border: 1px solid var(--global-border-color); padding: 5px; border-radius: 4px;">
+                        <option value="symplectic">Symplectic Euler</option>
+                        <option value="euler">Explicit Euler</option>
+                        <option value="verlet">Velocity Verlet</option>
+                        <option value="rk4">RK4</option>
+                        <option value="all">All Methods</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+            <div>
+                <h5 style="color: var(--global-heading-color);">Simulation Parameters</h5>
+                <div style="margin-bottom: 10px;">
+                    <label style="color: var(--global-text-color);">Time Step: <span id="phase-timestep">5</span> ms</label>
+                    <input type="range" id="phase-timestep-slider" min="1" max="20" value="5" style="width: 100%; accent-color: var(--global-theme-color);">
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <label style="color: var(--global-text-color);">Simulation Speed: <span id="phase-speed">1</span>x</label>
+                    <input type="range" id="phase-speed-slider" min="1" max="10" value="1" style="width: 100%; accent-color: var(--global-theme-color);">
+                </div>
+            </div>
+            
+            <div>
+                <h5 style="color: var(--global-heading-color);">Current State</h5>
+                <div style="font-size: 12px;">
+                    <div style="color: var(--global-text-color);">Time: <span id="phase-time">0.00</span>s</div>
+                    <div style="color: var(--global-text-color);">θ: <span id="phase-theta">0.785</span> rad</div>
+                    <div style="color: var(--global-text-color);">ω: <span id="phase-omega">0.000</span> rad/s</div>
+                    <div style="color: #ef4444; margin-top: 5px;">Energy Error: <span id="phase-energy-error">0.00</span>%</div>
+                </div>
+            </div>
+        </div>
+        
+        <div style="text-align: center;">
+            <button id="phase-play-pause" style="background: var(--global-gradient-primary); border: none; color: white; padding: 8px 16px; border-radius: 6px; margin-right: 10px; font-weight: 600; cursor: pointer;">Pause</button>
+            <button id="phase-reset" style="background: #FF6B6B; border: none; color: white; padding: 8px 16px; border-radius: 6px; margin-right: 10px; font-weight: 600; cursor: pointer;">Reset</button>
+            <button id="phase-clear" style="background: #6B7280; border: none; color: white; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer;">Clear Trails</button>
+        </div>
+    </div>
+</div>
+
+### The Symplectic Advantage: Geometric Structure Preservation
+
+The key insight is that **symplectic methods preserve the geometric structure of phase space**, while non-symplectic methods systematically distort it:
+
+**Explicit Euler:** Non-symplectic transformation causes trajectories to spiral outward, violating energy conservation.
+
+**Symplectic Euler:** Despite first-order accuracy, preserves the topological structure of phase space, keeping trajectories on correct energy surfaces.
+
+**Velocity Verlet:** Combines symplectic structure preservation with second-order accuracy, producing nearly perfect phase space trajectories.
+
+**RK4:** High local accuracy but lacks symplectic structure, leading to slow drift off energy surfaces.
+
 ## The Critical Challenge: Long-Term Stability vs. Local Accuracy
 
 The naive approach to numerical integration prioritizes **local truncation error**—how well each individual step approximates the true solution. However, for conservative systems, this focus can be catastrophically misguided.
@@ -119,7 +212,10 @@ Explicit Euler uses the velocity at time $$t_n$$ to update position to time $$t_
                 <label style="color: var(--global-text-color); font-weight: 500;">Time Step: <span id="euler-timestep" style="color: #ef4444; font-weight: 600;">10</span> ms</label>
                 <input type="range" id="euler-slider" min="1" max="50" value="10" style="width: 200px; accent-color: #ef4444;">
             </div>
-            <button id="euler-reset" style="background: linear-gradient(135deg, #ef4444, #dc2626); border: none; color: white; padding: 8px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: var(--global-box-shadow-md);">Reset</button>
+            <div style="display: flex; gap: 10px;">
+                <button id="euler-play-pause" style="background: linear-gradient(135deg, #10b981, #059669); border: none; color: white; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: var(--global-box-shadow-md);">Pause</button>
+                <button id="euler-reset" style="background: linear-gradient(135deg, #ef4444, #dc2626); border: none; color: white; padding: 8px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: var(--global-box-shadow-md);">Reset</button>
+            </div>
         </div>
         
         <div style="margin-top: 15px; text-align: center; font-size: 14px;">
@@ -182,7 +278,10 @@ Despite having the same local accuracy as Explicit Euler, Symplectic Euler captu
                 <label style="color: var(--global-text-color); font-weight: 500;">Time Step: <span id="symplectic-timestep" style="color: #22c55e; font-weight: 600;">10</span> ms</label>
                 <input type="range" id="symplectic-slider" min="1" max="50" value="10" style="width: 200px; accent-color: #22c55e;">
             </div>
-            <button id="symplectic-reset" style="background: linear-gradient(135deg, #22c55e, #16a34a); border: none; color: white; padding: 8px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: var(--global-box-shadow-md);">Reset</button>
+            <div style="display: flex; gap: 10px;">
+                <button id="symplectic-play-pause" style="background: linear-gradient(135deg, #10b981, #059669); border: none; color: white; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: var(--global-box-shadow-md);">Pause</button>
+                <button id="symplectic-reset" style="background: linear-gradient(135deg, #22c55e, #16a34a); border: none; color: white; padding: 8px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: var(--global-box-shadow-md);">Reset</button>
+            </div>
         </div>
         
         <div style="margin-top: 15px; text-align: center; font-size: 14px;">
@@ -248,7 +347,10 @@ The method's symplectic nature combined with second-order accuracy makes it the 
                 <label style="color: var(--global-text-color); font-weight: 500;">Time Step: <span id="verlet-timestep" style="color: #3b82f6; font-weight: 600;">10</span> ms</label>
                 <input type="range" id="verlet-slider" min="1" max="50" value="10" style="width: 200px; accent-color: #3b82f6;">
             </div>
-            <button id="verlet-reset" style="background: linear-gradient(135deg, #3b82f6, #2563eb); border: none; color: white; padding: 8px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: var(--global-box-shadow-md);">Reset</button>
+            <div style="display: flex; gap: 10px;">
+                <button id="verlet-play-pause" style="background: linear-gradient(135deg, #10b981, #059669); border: none; color: white; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: var(--global-box-shadow-md);">Pause</button>
+                <button id="verlet-reset" style="background: linear-gradient(135deg, #3b82f6, #2563eb); border: none; color: white; padding: 8px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: var(--global-box-shadow-md);">Reset</button>
+            </div>
         </div>
         
         <div style="margin-top: 15px; text-align: center; font-size: 14px;">
@@ -309,11 +411,94 @@ While RK4 excels in local accuracy, it is **not symplectic**. For dissipative sy
                 <label style="color: var(--global-text-color); font-weight: 500;">Time Step: <span id="rk4-timestep" style="color: #a855f7; font-weight: 600;">10</span> ms</label>
                 <input type="range" id="rk4-slider" min="1" max="50" value="10" style="width: 200px; accent-color: #a855f7;">
             </div>
-            <button id="rk4-reset" style="background: linear-gradient(135deg, #a855f7, #9333ea); border: none; color: white; padding: 8px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: var(--global-box-shadow-md);">Reset</button>
+            <div style="display: flex; gap: 10px;">
+                <button id="rk4-play-pause" style="background: linear-gradient(135deg, #10b981, #059669); border: none; color: white; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: var(--global-box-shadow-md);">Pause</button>
+                <button id="rk4-reset" style="background: linear-gradient(135deg, #a855f7, #9333ea); border: none; color: white; padding: 8px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: var(--global-box-shadow-md);">Reset</button>
+            </div>
         </div>
         
         <div style="margin-top: 15px; text-align: center; font-size: 14px;">
             Energy Error: <span id="rk4-error" style="background: rgba(168, 85, 247, 0.2); color: #a855f7; padding: 4px 12px; border-radius: 20px; font-weight: 600;">0.00%</span>
+        </div>
+    </div>
+</div>
+
+## Real-Time Method Comparison: Side-by-Side Analysis
+
+Experience all four integration methods simultaneously to see their fundamental differences in action.
+
+<div id="realtime-comparison" style="max-width: 100%; margin: 30px 0;">
+    <div style="background-color: var(--global-card-bg-color); border-radius: 12px; padding: 25px; color: var(--global-text-color); border: 1px solid var(--global-border-color); box-shadow: var(--global-box-shadow-lg);">
+        <div style="display: flex; align-items: center; margin-bottom: 25px;">
+            <div style="width: 4px; height: 30px; background: linear-gradient(to bottom, var(--global-theme-color), var(--global-theme-color-dark)); border-radius: 2px; margin-right: 15px;"></div>
+            <h4 style="margin: 0; color: var(--global-theme-color); font-size: 1.4em; font-weight: 600;">Real-Time Method Comparison</h4>
+            <span style="margin-left: auto; background: rgba(59, 130, 246, 0.15); color: var(--global-theme-color); padding: 4px 12px; border-radius: 20px; font-size: 0.8em; font-weight: 500;">All Methods</span>
+        </div>
+        
+        <!-- Pendulum Animations Grid -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+            <div style="background-color: var(--global-bg-color-secondary); border-radius: 12px; padding: 15px; border: 1px solid var(--global-border-color);">
+                <h5 style="margin: 0 0 10px 0; color: #ef4444; font-size: 0.9em; text-align: center;">Explicit Euler</h5>
+                <canvas id="realtime-euler-canvas" width="200" height="200" style="background-color: var(--global-bg-color-secondary); width: 100%; display: block; border-radius: 8px;"></canvas>
+            </div>
+            
+            <div style="background-color: var(--global-bg-color-secondary); border-radius: 12px; padding: 15px; border: 1px solid var(--global-border-color);">
+                <h5 style="margin: 0 0 10px 0; color: #22c55e; font-size: 0.9em; text-align: center;">Symplectic Euler</h5>
+                <canvas id="realtime-symplectic-canvas" width="200" height="200" style="background-color: var(--global-bg-color-secondary); width: 100%; display: block; border-radius: 8px;"></canvas>
+            </div>
+            
+            <div style="background-color: var(--global-bg-color-secondary); border-radius: 12px; padding: 15px; border: 1px solid var(--global-border-color);">
+                <h5 style="margin: 0 0 10px 0; color: #3b82f6; font-size: 0.9em; text-align: center;">Velocity Verlet</h5>
+                <canvas id="realtime-verlet-canvas" width="200" height="200" style="background-color: var(--global-bg-color-secondary); width: 100%; display: block; border-radius: 8px;"></canvas>
+            </div>
+            
+            <div style="background-color: var(--global-bg-color-secondary); border-radius: 12px; padding: 15px; border: 1px solid var(--global-border-color);">
+                <h5 style="margin: 0 0 10px 0; color: #a855f7; font-size: 0.9em; text-align: center;">RK4</h5>
+                <canvas id="realtime-rk4-canvas" width="200" height="200" style="background-color: var(--global-bg-color-secondary); width: 100%; display: block; border-radius: 8px;"></canvas>
+            </div>
+        </div>
+        
+        <!-- Energy Comparison Chart -->
+        <div style="background-color: var(--global-bg-color-secondary); border-radius: 12px; padding: 20px; border: 1px solid var(--global-border-color); margin-bottom: 20px;">
+            <h5 style="margin: 0 0 15px 0; color: var(--global-heading-color); font-size: 1.1em;">Energy Evolution Comparison</h5>
+            <canvas id="realtime-energy-chart" width="600" height="300" style="background-color: var(--global-bg-color-secondary); width: 100%; display: block; border-radius: 8px;"></canvas>
+        </div>
+        
+        <!-- Controls -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+            <div>
+                <h5 style="color: var(--global-heading-color); margin-bottom: 10px;">Simulation Parameters</h5>
+                <div style="margin-bottom: 10px;">
+                    <label style="color: var(--global-text-color);">Initial Angle: <span id="realtime-angle">45</span>°</label>
+                    <input type="range" id="realtime-angle-slider" min="10" max="170" value="45" style="width: 100%; accent-color: var(--global-theme-color);">
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <label style="color: var(--global-text-color);">Time Step: <span id="realtime-timestep">10</span> ms</label>
+                    <input type="range" id="realtime-timestep-slider" min="1" max="50" value="10" style="width: 100%; accent-color: var(--global-theme-color);">
+                </div>
+            </div>
+            
+            <div>
+                <h5 style="color: var(--global-heading-color); margin-bottom: 10px;">Current Energy Errors</h5>
+                <div style="font-size: 12px; line-height: 1.4;">
+                    <div style="color: var(--global-text-color);">Time: <span id="realtime-time">0.00</span>s</div>
+                    <div style="color: #ef4444;">Explicit Euler: <span id="realtime-euler-error">0.00</span>%</div>
+                    <div style="color: #22c55e;">Symplectic Euler: <span id="realtime-symplectic-error">0.00</span>%</div>
+                    <div style="color: #3b82f6;">Velocity Verlet: <span id="realtime-verlet-error">0.00</span>%</div>
+                    <div style="color: #a855f7;">RK4: <span id="realtime-rk4-error">0.00</span>%</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div style="text-align: center;">
+            <button id="realtime-play-pause" style="background: var(--global-gradient-primary); border: none; color: white; padding: 10px 20px; border-radius: 8px; margin-right: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);">Pause</button>
+            <button id="realtime-reset" style="background: #FF6B6B; border: none; color: white; padding: 10px 20px; border-radius: 8px; margin-right: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);">Reset All</button>
+            <button id="realtime-sync" style="background: #10B981; border: none; color: white; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);">Sync Methods</button>
+        </div>
+        
+        <div style="margin-top: 15px; padding: 15px; background-color: rgba(59, 130, 246, 0.1); border-radius: 8px; font-size: 13px; color: var(--global-text-color);">
+            <strong>💡 Watch carefully:</strong> Notice how Explicit Euler (red) spirals outward while Symplectic methods (green/blue) maintain bounded motion. RK4 (purple) shows subtle drift over longer periods.
         </div>
     </div>
 </div>
@@ -837,9 +1022,20 @@ The simple pendulum, in its elegant simplicity, embodies the rich mathematical s
 class SinglePendulumSim {
     constructor(canvasId, energyCanvasId, integrator, color) {
         this.canvas = document.getElementById(canvasId);
-        this.ctx = this.canvas.getContext('2d');
         this.energyCanvas = document.getElementById(energyCanvasId);
+        
+        if (!this.canvas || !this.energyCanvas) {
+            console.warn(`Canvas elements not found: ${canvasId}, ${energyCanvasId}`);
+            return;
+        }
+        
+        this.ctx = this.canvas.getContext('2d');
         this.energyCtx = this.energyCanvas.getContext('2d');
+        
+        if (!this.ctx || !this.energyCtx) {
+            console.warn(`Failed to get 2D context for canvases`);
+            return;
+        }
         
         this.integrator = integrator;
         this.color = color;
@@ -861,6 +1057,11 @@ class SinglePendulumSim {
         this.maxSamples = 300;
         
         this.animate();
+    }
+    
+    togglePause() {
+        this.running = !this.running;
+        return this.running;
     }
     
     acceleration(theta) {
@@ -1045,8 +1246,14 @@ class SinglePendulumSim {
     }
     
     animate() {
-        this.step();
-        this.draw();
+        try {
+            if (this.ctx && this.energyCtx) {
+                this.step();
+                this.draw();
+            }
+        } catch (e) {
+            console.warn('Animation error:', e);
+        }
         requestAnimationFrame(() => this.animate());
     }
 }
@@ -1055,9 +1262,20 @@ class SinglePendulumSim {
 class ComparisonSim {
     constructor() {
         this.canvas = document.getElementById('comparison-canvas');
-        this.ctx = this.canvas.getContext('2d');
         this.energyCanvas = document.getElementById('comparison-energy');
+        
+        if (!this.canvas || !this.energyCanvas) {
+            console.warn('Comparison canvas elements not found');
+            return;
+        }
+        
+        this.ctx = this.canvas.getContext('2d');
         this.energyCtx = this.energyCanvas.getContext('2d');
+        
+        if (!this.ctx || !this.energyCtx) {
+            console.warn('Failed to get 2D context for comparison canvases');
+            return;
+        }
         
         // Parameters
         this.L = 1.0;
@@ -1343,46 +1561,938 @@ class ComparisonSim {
     }
     
     animate() {
-        this.step();
-        this.draw();
+        try {
+            if (this.ctx && this.energyCtx) {
+                this.step();
+                this.draw();
+            }
+        } catch (e) {
+            console.warn('Comparison animation error:', e);
+        }
+        requestAnimationFrame(() => this.animate());
+    }
+}
+
+// Phase Space Visualization System
+class PhaseSpaceSim {
+    constructor() {
+        this.theoryCanvas = document.getElementById('theory-phase-canvas');
+        this.comparisonCanvas = document.getElementById('comparison-phase-canvas');
+        
+        if (!this.theoryCanvas || !this.comparisonCanvas) {
+            console.warn('Phase space canvas elements not found');
+            return;
+        }
+        
+        this.theoryCtx = this.theoryCanvas.getContext('2d');
+        this.comparisonCtx = this.comparisonCanvas.getContext('2d');
+        
+        if (!this.theoryCtx || !this.comparisonCtx) {
+            console.warn('Failed to get 2D context for phase space canvases');
+            return;
+        }
+        
+        // Parameters
+        this.L = 1.0;
+        this.g = 9.81;
+        this.h = 0.005; // 5ms default
+        this.speed = 1;
+        this.running = true;
+        
+        // Current state
+        this.theta = Math.PI / 4;
+        this.omega = 0;
+        this.time = 0;
+        this.selectedMethod = 'symplectic';
+        
+        // Simulation states for all methods
+        this.states = {
+            euler: { theta: this.theta, omega: this.omega, trail: [] },
+            symplectic: { theta: this.theta, omega: this.omega, trail: [] },
+            verlet: { theta: this.theta, omega: this.omega, trail: [] },
+            rk4: { theta: this.theta, omega: this.omega, trail: [] }
+        };
+        
+        this.colors = {
+            euler: '#ef4444',
+            symplectic: '#22c55e',
+            verlet: '#3b82f6',
+            rk4: '#a855f7'
+        };
+        
+        this.maxTrailLength = 500;
+        this.initialEnergy = this.energy(this.theta, this.omega);
+        
+        this.setupControls();
+        this.setupCanvasInteraction();
+        this.animate();
+    }
+    
+    setupControls() {
+        // Play/Pause
+        document.getElementById('phase-play-pause').addEventListener('click', () => {
+            this.running = !this.running;
+            document.getElementById('phase-play-pause').textContent = this.running ? 'Pause' : 'Play';
+        });
+        
+        // Reset
+        document.getElementById('phase-reset').addEventListener('click', () => {
+            this.reset();
+        });
+        
+        // Clear trails
+        document.getElementById('phase-clear').addEventListener('click', () => {
+            this.clearTrails();
+        });
+        
+        // Method selection
+        document.getElementById('phase-method-select').addEventListener('change', (e) => {
+            this.selectedMethod = e.target.value;
+        });
+        
+        // Timestep slider
+        document.getElementById('phase-timestep-slider').addEventListener('input', (e) => {
+            this.h = parseFloat(e.target.value) / 1000;
+            document.getElementById('phase-timestep').textContent = e.target.value;
+        });
+        
+        // Speed slider
+        document.getElementById('phase-speed-slider').addEventListener('input', (e) => {
+            this.speed = parseFloat(e.target.value);
+            document.getElementById('phase-speed').textContent = e.target.value;
+        });
+    }
+    
+    setupCanvasInteraction() {
+        this.theoryCanvas.addEventListener('click', (e) => {
+            const rect = this.theoryCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            // Convert canvas coordinates to phase space coordinates
+            const canvasSize = Math.min(this.theoryCanvas.width, this.theoryCanvas.height);
+            const centerX = this.theoryCanvas.width / 2;
+            const centerY = this.theoryCanvas.height / 2;
+            const scale = canvasSize * 0.35;
+            
+            const newTheta = ((x - centerX) / scale) * Math.PI;
+            const newOmega = -((y - centerY) / scale) * 6;
+            
+            // Clamp to reasonable bounds
+            if (Math.abs(newTheta) <= Math.PI && Math.abs(newOmega) <= 6) {
+                this.setInitialConditions(newTheta, newOmega);
+            }
+        });
+    }
+    
+    setInitialConditions(theta, omega) {
+        this.theta = theta;
+        this.omega = omega;
+        this.time = 0;
+        this.initialEnergy = this.energy(theta, omega);
+        
+        // Reset all method states
+        Object.keys(this.states).forEach(key => {
+            this.states[key] = { theta: theta, omega: omega, trail: [] };
+        });
+        
+        // Update display
+        document.getElementById('theory-energy').textContent = this.initialEnergy.toFixed(2);
+    }
+    
+    reset() {
+        this.setInitialConditions(Math.PI / 4, 0);
+    }
+    
+    clearTrails() {
+        Object.keys(this.states).forEach(key => {
+            this.states[key].trail = [];
+        });
+    }
+    
+    acceleration(theta) {
+        return -(this.g / this.L) * Math.sin(theta);
+    }
+    
+    energy(theta, omega) {
+        return this.g * this.L * (1 - Math.cos(theta)) + 0.5 * (this.L * this.L) * omega * omega;
+    }
+    
+    step() {
+        if (!this.running) return;
+        
+        for (let i = 0; i < this.speed; i++) {
+            // Update Explicit Euler
+            const s1 = this.states.euler;
+            const domega1 = this.acceleration(s1.theta);
+            this.states.euler = {
+                theta: s1.theta + this.h * s1.omega,
+                omega: s1.omega + this.h * domega1,
+                trail: s1.trail
+            };
+            
+            // Update Symplectic Euler
+            const s2 = this.states.symplectic;
+            const omega2 = s2.omega + this.h * this.acceleration(s2.theta);
+            this.states.symplectic = {
+                theta: s2.theta + this.h * omega2,
+                omega: omega2,
+                trail: s2.trail
+            };
+            
+            // Update Velocity Verlet
+            const s3 = this.states.verlet;
+            const a0 = this.acceleration(s3.theta);
+            const omegaHalf = s3.omega + 0.5 * this.h * a0;
+            const theta3 = s3.theta + this.h * omegaHalf;
+            const a1 = this.acceleration(theta3);
+            this.states.verlet = {
+                theta: theta3,
+                omega: omegaHalf + 0.5 * this.h * a1,
+                trail: s3.trail
+            };
+            
+            // Update RK4
+            const s4 = this.states.rk4;
+            const f = (theta, omega) => [omega, this.acceleration(theta)];
+            const k1 = f(s4.theta, s4.omega);
+            const k2 = f(s4.theta + 0.5 * this.h * k1[0], s4.omega + 0.5 * this.h * k1[1]);
+            const k3 = f(s4.theta + 0.5 * this.h * k2[0], s4.omega + 0.5 * this.h * k2[1]);
+            const k4 = f(s4.theta + this.h * k3[0], s4.omega + this.h * k3[1]);
+            this.states.rk4 = {
+                theta: s4.theta + (this.h / 6) * (k1[0] + 2*k2[0] + 2*k3[0] + k4[0]),
+                omega: s4.omega + (this.h / 6) * (k1[1] + 2*k2[1] + 2*k3[1] + k4[1]),
+                trail: s4.trail
+            };
+            
+            this.time += this.h;
+        }
+        
+        // Add points to trails every few steps
+        if (Math.floor(this.time * 200) % 2 === 0) {
+            Object.keys(this.states).forEach(key => {
+                const state = this.states[key];
+                state.trail.push({ theta: state.theta, omega: state.omega });
+                if (state.trail.length > this.maxTrailLength) {
+                    state.trail.shift();
+                }
+            });
+        }
+        
+        this.updateStatus();
+    }
+    
+    updateStatus() {
+        document.getElementById('phase-time').textContent = this.time.toFixed(2);
+        
+        const currentState = this.states[this.selectedMethod] || this.states.symplectic;
+        document.getElementById('phase-theta').textContent = currentState.theta.toFixed(3);
+        document.getElementById('phase-omega').textContent = currentState.omega.toFixed(3);
+        
+        const currentEnergy = this.energy(currentState.theta, currentState.omega);
+        const energyError = ((currentEnergy - this.initialEnergy) / this.initialEnergy) * 100;
+        document.getElementById('phase-energy-error').textContent = energyError.toFixed(2);
+    }
+    
+    drawTheoryPhasePortrait() {
+        const ctx = this.theoryCtx;
+        const canvas = this.theoryCanvas;
+        const canvasSize = Math.min(canvas.width, canvas.height);
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const scale = canvasSize * 0.35;
+        
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw energy contours
+        const energyLevels = [0.5, 1.0, 2.0, 4.0, 6.0, 8.0];
+        energyLevels.forEach((E, index) => {
+            ctx.strokeStyle = `rgba(100, 100, 100, ${0.3 + index * 0.1})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            
+            let firstPoint = true;
+            for (let theta = -Math.PI; theta <= Math.PI; theta += 0.02) {
+                // Calculate omega from energy: E = 0.5*omega^2 + g*L*(1-cos(theta))
+                const potentialEnergy = this.g * this.L * (1 - Math.cos(theta));
+                if (E > potentialEnergy) {
+                    const kineticEnergy = E - potentialEnergy;
+                    const omega = Math.sqrt(2 * kineticEnergy) / this.L;
+                    
+                    // Draw positive omega branch
+                    const x1 = centerX + (theta / Math.PI) * scale;
+                    const y1 = centerY - (omega / 6) * scale;
+                    
+                    if (firstPoint) {
+                        ctx.moveTo(x1, y1);
+                        firstPoint = false;
+                    } else {
+                        ctx.lineTo(x1, y1);
+                    }
+                }
+            }
+            ctx.stroke();
+            
+            // Draw negative omega branch
+            ctx.beginPath();
+            firstPoint = true;
+            for (let theta = -Math.PI; theta <= Math.PI; theta += 0.02) {
+                const potentialEnergy = this.g * this.L * (1 - Math.cos(theta));
+                if (E > potentialEnergy) {
+                    const kineticEnergy = E - potentialEnergy;
+                    const omega = -Math.sqrt(2 * kineticEnergy) / this.L;
+                    
+                    const x1 = centerX + (theta / Math.PI) * scale;
+                    const y1 = centerY - (omega / 6) * scale;
+                    
+                    if (firstPoint) {
+                        ctx.moveTo(x1, y1);
+                        firstPoint = false;
+                    } else {
+                        ctx.lineTo(x1, y1);
+                    }
+                }
+            }
+            ctx.stroke();
+        });
+        
+        // Draw axes
+        ctx.strokeStyle = '#666';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, centerY);
+        ctx.lineTo(canvas.width, centerY);
+        ctx.moveTo(centerX, 0);
+        ctx.lineTo(centerX, canvas.height);
+        ctx.stroke();
+        
+        // Draw current state
+        const x = centerX + (this.theta / Math.PI) * scale;
+        const y = centerY - (this.omega / 6) * scale;
+        
+        ctx.fillStyle = '#3b82f6';
+        ctx.beginPath();
+        ctx.arc(x, y, 6, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        // Labels
+        ctx.fillStyle = '#aaa';
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('θ (rad)', canvas.width / 2, canvas.height - 10);
+        
+        ctx.save();
+        ctx.translate(10, canvas.height / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText('ω (rad/s)', 0, 0);
+        ctx.restore();
+    }
+    
+    drawComparisonPhaseSpace() {
+        const ctx = this.comparisonCtx;
+        const canvas = this.comparisonCanvas;
+        const canvasSize = Math.min(canvas.width, canvas.height);
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const scale = canvasSize * 0.35;
+        
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw axes
+        ctx.strokeStyle = '#666';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, centerY);
+        ctx.lineTo(canvas.width, centerY);
+        ctx.moveTo(centerX, 0);
+        ctx.lineTo(centerX, canvas.height);
+        ctx.stroke();
+        
+        // Draw theoretical energy contour for reference
+        const E = this.initialEnergy;
+        ctx.strokeStyle = 'rgba(100, 100, 100, 0.3)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        
+        let firstPoint = true;
+        for (let theta = -Math.PI; theta <= Math.PI; theta += 0.02) {
+            const potentialEnergy = this.g * this.L * (1 - Math.cos(theta));
+            if (E > potentialEnergy) {
+                const kineticEnergy = E - potentialEnergy;
+                const omega = Math.sqrt(2 * kineticEnergy) / this.L;
+                
+                const x1 = centerX + (theta / Math.PI) * scale;
+                const y1 = centerY - (omega / 6) * scale;
+                
+                if (firstPoint) {
+                    ctx.moveTo(x1, y1);
+                    firstPoint = false;
+                } else {
+                    ctx.lineTo(x1, y1);
+                }
+            }
+        }
+        
+        // Negative branch
+        for (let theta = Math.PI; theta >= -Math.PI; theta -= 0.02) {
+            const potentialEnergy = this.g * this.L * (1 - Math.cos(theta));
+            if (E > potentialEnergy) {
+                const kineticEnergy = E - potentialEnergy;
+                const omega = -Math.sqrt(2 * kineticEnergy) / this.L;
+                
+                const x1 = centerX + (theta / Math.PI) * scale;
+                const y1 = centerY - (omega / 6) * scale;
+                ctx.lineTo(x1, y1);
+            }
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+        
+        // Draw trails and current positions
+        if (this.selectedMethod === 'all') {
+            // Draw all methods
+            Object.keys(this.states).forEach(key => {
+                const state = this.states[key];
+                const color = this.colors[key];
+                
+                // Draw trail
+                if (state.trail.length > 1) {
+                    ctx.strokeStyle = color + '80'; // Semi-transparent
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    
+                    state.trail.forEach((point, i) => {
+                        const x = centerX + (point.theta / Math.PI) * scale;
+                        const y = centerY - (point.omega / 6) * scale;
+                        
+                        if (i === 0) {
+                            ctx.moveTo(x, y);
+                        } else {
+                            ctx.lineTo(x, y);
+                        }
+                    });
+                    ctx.stroke();
+                }
+                
+                // Draw current position
+                const x = centerX + (state.theta / Math.PI) * scale;
+                const y = centerY - (state.omega / 6) * scale;
+                
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(x, y, 4, 0, 2 * Math.PI);
+                ctx.fill();
+            });
+        } else {
+            // Draw single method
+            const state = this.states[this.selectedMethod];
+            const color = this.colors[this.selectedMethod];
+            
+            // Draw trail
+            if (state.trail.length > 1) {
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                
+                state.trail.forEach((point, i) => {
+                    const x = centerX + (point.theta / Math.PI) * scale;
+                    const y = centerY - (point.omega / 6) * scale;
+                    
+                    if (i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                });
+                ctx.stroke();
+            }
+            
+            // Draw current position
+            const x = centerX + (state.theta / Math.PI) * scale;
+            const y = centerY - (state.omega / 6) * scale;
+            
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(x, y, 6, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+        
+        // Labels
+        ctx.fillStyle = '#aaa';
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('θ (rad)', canvas.width / 2, canvas.height - 10);
+        
+        ctx.save();
+        ctx.translate(10, canvas.height / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText('ω (rad/s)', 0, 0);
+        ctx.restore();
+    }
+    
+    animate() {
+        try {
+            if (this.theoryCtx && this.comparisonCtx) {
+                this.step();
+                this.drawTheoryPhasePortrait();
+                this.drawComparisonPhaseSpace();
+            }
+        } catch (e) {
+            console.warn('Phase space animation error:', e);
+        }
         requestAnimationFrame(() => this.animate());
     }
 }
 
 // Initialize all simulations when page loads
 document.addEventListener('DOMContentLoaded', () => {
-    // Individual simulations
-    const eulerSim = new SinglePendulumSim('euler-canvas', 'euler-energy', 'euler', '#ef4444');
-    const symplecticSim = new SinglePendulumSim('symplectic-canvas', 'symplectic-energy', 'symplectic', '#22c55e');
-    const verletSim = new SinglePendulumSim('verlet-canvas', 'verlet-energy', 'verlet', '#3b82f6');
-    const rk4Sim = new SinglePendulumSim('rk4-canvas', 'rk4-energy', 'rk4', '#a855f7');
-    
-    // Individual controls
-    const setupIndividualControls = (sim, prefix) => {
-        // Timestep slider
-        document.getElementById(`${prefix}-slider`).addEventListener('input', (e) => {
-            sim.h = parseFloat(e.target.value) / 1000;
-            document.getElementById(`${prefix}-timestep`).textContent = e.target.value;
-        });
+    try {
+        // Individual simulations
+        let eulerSim, symplecticSim, verletSim, rk4Sim;
         
-        // Reset button
-        document.getElementById(`${prefix}-reset`).addEventListener('click', () => {
-            sim.reset();
-        });
+        if (document.getElementById('euler-canvas') && document.getElementById('euler-energy')) {
+            eulerSim = new SinglePendulumSim('euler-canvas', 'euler-energy', 'euler', '#ef4444');
+        }
+        if (document.getElementById('symplectic-canvas') && document.getElementById('symplectic-energy')) {
+            symplecticSim = new SinglePendulumSim('symplectic-canvas', 'symplectic-energy', 'symplectic', '#22c55e');
+        }
+        if (document.getElementById('verlet-canvas') && document.getElementById('verlet-energy')) {
+            verletSim = new SinglePendulumSim('verlet-canvas', 'verlet-energy', 'verlet', '#3b82f6');
+        }
+        if (document.getElementById('rk4-canvas') && document.getElementById('rk4-energy')) {
+            rk4Sim = new SinglePendulumSim('rk4-canvas', 'rk4-energy', 'rk4', '#a855f7');
+        }
         
-        // Update error display
-        setInterval(() => {
-            const error = sim.getEnergyError();
-            document.getElementById(`${prefix}-error`).textContent = error.toFixed(2);
-        }, 100);
-    };
-    
-    setupIndividualControls(eulerSim, 'euler');
-    setupIndividualControls(symplecticSim, 'symplectic');
-    setupIndividualControls(verletSim, 'verlet');
-    setupIndividualControls(rk4Sim, 'rk4');
-    
-    // Comparison simulation
-    const comparisonSim = new ComparisonSim();
+        // Individual controls
+        const setupIndividualControls = (sim, prefix) => {
+            if (!sim) return;
+            
+            try {
+                // Timestep slider
+                const slider = document.getElementById(`${prefix}-slider`);
+                const timestepDisplay = document.getElementById(`${prefix}-timestep`);
+                if (slider && timestepDisplay) {
+                    slider.addEventListener('input', (e) => {
+                        sim.h = parseFloat(e.target.value) / 1000;
+                        timestepDisplay.textContent = e.target.value;
+                    });
+                }
+                
+                // Play-pause button
+                const playPauseButton = document.getElementById(`${prefix}-play-pause`);
+                if (playPauseButton) {
+                    playPauseButton.addEventListener('click', () => {
+                        const isRunning = sim.togglePause();
+                        playPauseButton.textContent = isRunning ? 'Pause' : 'Play';
+                    });
+                }
+                
+                // Reset button
+                const resetButton = document.getElementById(`${prefix}-reset`);
+                if (resetButton) {
+                    resetButton.addEventListener('click', () => {
+                        sim.reset();
+                    });
+                }
+                
+                // Update error display
+                const errorDisplay = document.getElementById(`${prefix}-error`);
+                if (errorDisplay) {
+                    setInterval(() => {
+                        try {
+                            const error = sim.getEnergyError();
+                            errorDisplay.textContent = error.toFixed(2);
+                        } catch (e) {
+                            console.warn(`Error updating ${prefix} display:`, e);
+                        }
+                    }, 100);
+                }
+            } catch (e) {
+                console.warn(`Error setting up controls for ${prefix}:`, e);
+            }
+        };
+        
+        setupIndividualControls(eulerSim, 'euler');
+        setupIndividualControls(symplecticSim, 'symplectic');
+        setupIndividualControls(verletSim, 'verlet');
+        setupIndividualControls(rk4Sim, 'rk4');
+        
+        // Comparison simulation
+        if (document.getElementById('comparison-canvas') && document.getElementById('comparison-energy')) {
+            const comparisonSim = new ComparisonSim();
+        }
+        
+        // Phase space simulation (only initialize if elements exist)
+        if (document.getElementById('theory-phase-canvas') && document.getElementById('comparison-phase-canvas')) {
+            try {
+                const phaseSpaceSim = new PhaseSpaceSim();
+            } catch (e) {
+                console.warn('Error initializing phase space simulation:', e);
+            }
+        }
+        
+        // Real-time comparison simulation
+        if (document.getElementById('realtime-euler-canvas')) {
+            try {
+                const realtimeComparisonSim = new RealtimeComparisonSim();
+            } catch (e) {
+                console.warn('Error initializing real-time comparison simulation:', e);
+            }
+        }
+    } catch (e) {
+        console.error('Error initializing simulations:', e);
+    }
 });
+
+// Real-time Method Comparison System
+class RealtimeComparisonSim {
+    constructor() {
+        this.canvases = {
+            euler: document.getElementById('realtime-euler-canvas'),
+            symplectic: document.getElementById('realtime-symplectic-canvas'),
+            verlet: document.getElementById('realtime-verlet-canvas'),
+            rk4: document.getElementById('realtime-rk4-canvas')
+        };
+        
+        // Check if any canvases are missing
+        const missingCanvases = Object.keys(this.canvases).filter(key => !this.canvases[key]);
+        if (missingCanvases.length > 0) {
+            console.warn('Missing realtime comparison canvases:', missingCanvases);
+            return;
+        }
+        
+        this.contexts = {};
+        Object.keys(this.canvases).forEach(key => {
+            if (this.canvases[key]) {
+                this.contexts[key] = this.canvases[key].getContext('2d');
+                if (!this.contexts[key]) {
+                    console.warn(`Failed to get 2D context for ${key} canvas`);
+                }
+            }
+        });
+        
+        this.energyCanvas = document.getElementById('realtime-energy-chart');
+        this.energyCtx = this.energyCanvas?.getContext('2d');
+        
+        if (!this.energyCanvas || !this.energyCtx) {
+            console.warn('Realtime energy chart canvas not found or context unavailable');
+        }
+        
+        // Parameters
+        this.L = 1.0;
+        this.g = 9.81;
+        this.h = 0.01;
+        this.theta0 = Math.PI / 4;
+        this.running = true;
+        
+        // States for all methods
+        this.states = {
+            euler: { theta: this.theta0, omega: 0 },
+            symplectic: { theta: this.theta0, omega: 0 },
+            verlet: { theta: this.theta0, omega: 0 },
+            rk4: { theta: this.theta0, omega: 0 }
+        };
+        
+        this.energyHistory = {
+            euler: [],
+            symplectic: [],
+            verlet: [],
+            rk4: []
+        };
+        
+        this.colors = {
+            euler: '#ef4444',
+            symplectic: '#22c55e',
+            verlet: '#3b82f6',
+            rk4: '#a855f7'
+        };
+        
+        this.time = 0;
+        this.initialEnergy = this.energy(this.theta0, 0);
+        this.maxSamples = 300;
+        
+        this.setupControls();
+        this.animate();
+    }
+    
+    setupControls() {
+        // Play/Pause
+        document.getElementById('realtime-play-pause')?.addEventListener('click', () => {
+            this.running = !this.running;
+            document.getElementById('realtime-play-pause').textContent = this.running ? 'Pause' : 'Play';
+        });
+        
+        // Reset
+        document.getElementById('realtime-reset')?.addEventListener('click', () => {
+            this.reset();
+        });
+        
+        // Sync methods
+        document.getElementById('realtime-sync')?.addEventListener('click', () => {
+            this.syncMethods();
+        });
+        
+        // Angle slider
+        document.getElementById('realtime-angle-slider')?.addEventListener('input', (e) => {
+            this.theta0 = parseFloat(e.target.value) * Math.PI / 180;
+            document.getElementById('realtime-angle').textContent = e.target.value;
+            this.reset();
+        });
+        
+        // Timestep slider
+        document.getElementById('realtime-timestep-slider')?.addEventListener('input', (e) => {
+            this.h = parseFloat(e.target.value) / 1000;
+            document.getElementById('realtime-timestep').textContent = e.target.value;
+        });
+    }
+    
+    syncMethods() {
+        Object.keys(this.states).forEach(key => {
+            this.states[key] = { theta: this.theta0, omega: 0 };
+            this.energyHistory[key] = [];
+        });
+        this.time = 0;
+        this.initialEnergy = this.energy(this.theta0, 0);
+    }
+    
+    reset() {
+        this.theta0 = Math.PI / 4;
+        this.time = 0;
+        this.initialEnergy = this.energy(this.theta0, 0);
+        
+        Object.keys(this.states).forEach(key => {
+            this.states[key] = { theta: this.theta0, omega: 0 };
+            this.energyHistory[key] = [];
+        });
+        
+        document.getElementById('realtime-angle').textContent = '45';
+        document.getElementById('realtime-angle-slider').value = '45';
+    }
+    
+    acceleration(theta) {
+        return -(this.g / this.L) * Math.sin(theta);
+    }
+    
+    energy(theta, omega) {
+        return this.g * this.L * (1 - Math.cos(theta)) + 0.5 * (this.L * this.L) * omega * omega;
+    }
+    
+    step() {
+        if (!this.running) return;
+        
+        // Update Explicit Euler
+        const s1 = this.states.euler;
+        const domega1 = this.acceleration(s1.theta);
+        this.states.euler = {
+            theta: s1.theta + this.h * s1.omega,
+            omega: s1.omega + this.h * domega1
+        };
+        
+        // Update Symplectic Euler
+        const s2 = this.states.symplectic;
+        const omega2 = s2.omega + this.h * this.acceleration(s2.theta);
+        this.states.symplectic = {
+            theta: s2.theta + this.h * omega2,
+            omega: omega2
+        };
+        
+        // Update Velocity Verlet
+        const s3 = this.states.verlet;
+        const a0 = this.acceleration(s3.theta);
+        const omegaHalf = s3.omega + 0.5 * this.h * a0;
+        const theta3 = s3.theta + this.h * omegaHalf;
+        const a1 = this.acceleration(theta3);
+        this.states.verlet = {
+            theta: theta3,
+            omega: omegaHalf + 0.5 * this.h * a1
+        };
+        
+        // Update RK4
+        const s4 = this.states.rk4;
+        const f = (theta, omega) => [omega, this.acceleration(theta)];
+        const k1 = f(s4.theta, s4.omega);
+        const k2 = f(s4.theta + 0.5 * this.h * k1[0], s4.omega + 0.5 * this.h * k1[1]);
+        const k3 = f(s4.theta + 0.5 * this.h * k2[0], s4.omega + 0.5 * this.h * k2[1]);
+        const k4 = f(s4.theta + this.h * k3[0], s4.omega + this.h * k3[1]);
+        this.states.rk4 = {
+            theta: s4.theta + (this.h / 6) * (k1[0] + 2*k2[0] + 2*k3[0] + k4[0]),
+            omega: s4.omega + (this.h / 6) * (k1[1] + 2*k2[1] + 2*k3[1] + k4[1])
+        };
+        
+        this.time += this.h;
+        
+        // Sample energy
+        if (Math.floor(this.time * 50) % 3 === 0) {
+            Object.keys(this.states).forEach(key => {
+                const E = this.energy(this.states[key].theta, this.states[key].omega);
+                this.energyHistory[key].push({ t: this.time, E: E });
+                if (this.energyHistory[key].length > this.maxSamples) {
+                    this.energyHistory[key].shift();
+                }
+            });
+        }
+        
+        this.updateStatus();
+    }
+    
+    updateStatus() {
+        document.getElementById('realtime-time').textContent = this.time.toFixed(2);
+        
+        Object.keys(this.states).forEach(key => {
+            const currentEnergy = this.energy(this.states[key].theta, this.states[key].omega);
+            const relativeError = ((currentEnergy - this.initialEnergy) / this.initialEnergy) * 100;
+            document.getElementById(`realtime-${key}-error`).textContent = relativeError.toFixed(2);
+        });
+    }
+    
+    drawPendulum(key) {
+        const ctx = this.contexts[key];
+        const canvas = this.canvases[key];
+        if (!ctx || !canvas) return;
+        
+        const scale = Math.min(canvas.width, canvas.height) * 0.3;
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height * 0.25;
+        
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        const state = this.states[key];
+        const x = centerX + scale * Math.sin(state.theta);
+        const y = centerY + scale * Math.cos(state.theta);
+        
+        // Rod
+        ctx.strokeStyle = this.colors[key];
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        
+        // Pivot
+        ctx.fillStyle = '#666';
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 4, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        // Bob
+        ctx.fillStyle = this.colors[key];
+        ctx.beginPath();
+        ctx.arc(x, y, 8, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        // Energy error display
+        const currentEnergy = this.energy(state.theta, state.omega);
+        const error = ((currentEnergy - this.initialEnergy) / this.initialEnergy) * 100;
+        
+        ctx.fillStyle = this.colors[key];
+        ctx.font = '11px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(`${error.toFixed(1)}%`, centerX, canvas.height - 10);
+    }
+    
+    drawEnergyChart() {
+        if (!this.energyCtx || !this.energyCanvas) return;
+        
+        const ctx = this.energyCtx;
+        const canvas = this.energyCanvas;
+        
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        const padding = 40;
+        const chartWidth = canvas.width - 2 * padding;
+        const chartHeight = canvas.height - 2 * padding;
+        
+        // Find bounds
+        let tMin = Infinity, tMax = -Infinity, eMin = Infinity, eMax = -Infinity;
+        
+        Object.keys(this.energyHistory).forEach(key => {
+            const history = this.energyHistory[key];
+            history.forEach(point => {
+                tMin = Math.min(tMin, point.t);
+                tMax = Math.max(tMax, point.t);
+                eMin = Math.min(eMin, point.E);
+                eMax = Math.max(eMax, point.E);
+            });
+        });
+        
+        if (!isFinite(tMin)) return;
+        
+        const timeRange = Math.max(tMax - tMin, 1);
+        const energyRange = Math.max(eMax - eMin, 0.001);
+        
+        // Draw axes
+        ctx.strokeStyle = '#666';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(padding, padding);
+        ctx.lineTo(padding, canvas.height - padding);
+        ctx.lineTo(canvas.width - padding, canvas.height - padding);
+        ctx.stroke();
+        
+        // Draw initial energy line
+        const refY = canvas.height - padding - ((this.initialEnergy - eMin) / energyRange) * chartHeight;
+        ctx.strokeStyle = '#666';
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        ctx.moveTo(padding, refY);
+        ctx.lineTo(canvas.width - padding, refY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        
+        // Draw energy lines for each method
+        Object.keys(this.energyHistory).forEach(key => {
+            const history = this.energyHistory[key];
+            if (history.length < 2) return;
+            
+            ctx.strokeStyle = this.colors[key];
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            
+            let first = true;
+            history.forEach(point => {
+                const x = padding + ((point.t - tMin) / timeRange) * chartWidth;
+                const y = canvas.height - padding - ((point.E - eMin) / energyRange) * chartHeight;
+                
+                if (first) {
+                    ctx.moveTo(x, y);
+                    first = false;
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+            
+            ctx.stroke();
+        });
+        
+        // Labels
+        ctx.fillStyle = '#aaa';
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Time (s)', canvas.width / 2, canvas.height - 5);
+        
+        ctx.save();
+        ctx.translate(15, canvas.height / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText('Energy', 0, 0);
+        ctx.restore();
+    }
+    
+    animate() {
+        try {
+            this.step();
+            Object.keys(this.canvases).forEach(key => {
+                if (this.canvases[key] && this.contexts[key]) {
+                    this.drawPendulum(key);
+                }
+            });
+            if (this.energyCtx) {
+                this.drawEnergyChart();
+            }
+        } catch (e) {
+            console.warn('Realtime comparison animation error:', e);
+        }
+        requestAnimationFrame(() => this.animate());
+    }
+}
 </script>
