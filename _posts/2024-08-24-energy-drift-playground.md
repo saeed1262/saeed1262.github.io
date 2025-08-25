@@ -235,10 +235,10 @@ $$q_{n+1} = q_n + h \cdot \frac{p_{n+1}}{m}$$
 For the pendulum: $$\omega_{n+1} = \omega_n + h \cdot \left(-\frac{g}{L}\sin(\theta_n)\right)$$, then $$\theta_{n+1} = \theta_n + h \cdot \omega_{n+1}$$
 
 **Symplectic Structure Preservation:**
-The transformation matrix for symplectic Euler is:
-$$\mathbf{M} = \begin{pmatrix} 1 & h/m \\ -hF'(q) & 1-hF'(q)h/m \end{pmatrix}$$
+For the linearized harmonic oscillator, the transformation matrix for symplectic Euler is:
+$$\mathbf{M} = \begin{pmatrix} 1 - h^2 \omega_0^2 & h \\ - h \omega_0^2 & 1 \end{pmatrix}$$
 
-One can verify that $$\det(\mathbf{M}) = 1$$, ensuring phase space volume conservation.
+One can verify that $$\det(\mathbf{M}) = 1$$, ensuring the method is symplectic (area-preserving in phase space).
 
 **Key Properties:**
 - **Order of accuracy**: Still $$O(h)$$ locally
@@ -540,9 +540,12 @@ where $$\omega_0 = \sqrt{g/L}$$ is the natural frequency.
 
 **Explicit Euler Stability:**
 The amplification matrix eigenvalues are:
-$$\lambda = 1 + ih\omega_0 \pm h\omega_0\sqrt{h\omega_0/2}$$
+$$\lambda_{\pm} = 1 \pm i h \omega_0$$
 
-For $$|\lambda| > 1$$, the solution grows exponentially. Stability requires $$h < 2/\omega_0$$.
+Their magnitudes are:
+$$|\lambda_{\pm}| = \sqrt{1 + (h\omega_0)^2} > 1 \quad \text{for any } h>0$$
+
+This explains the exponential energy growth. For $$|\lambda| > 1$$, the solution grows exponentially.
 
 **Symplectic Euler Stability:**
 The eigenvalues lie exactly on the unit circle: $$|\lambda| = 1$$ for all $$h$$. This guarantees bounded solutions for arbitrary timestep sizes.

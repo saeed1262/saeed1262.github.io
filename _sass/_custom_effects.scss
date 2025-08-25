@@ -618,13 +618,9 @@ h1 {
   }
 }
 
-// Subtle hover effects for cards
+// Subtle hover effects for cards - title animation removed
 .card {
-  &:hover {
-    .card-title {
-      animation: bounce 0.6s ease;
-    }
-  }
+  // Card hover effects without title animation
 }
 
 // Fun loading states
