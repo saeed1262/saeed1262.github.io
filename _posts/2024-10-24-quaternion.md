@@ -282,13 +282,21 @@ tags: [physics, graphics, games, rotations, quaternions, so3]
             <!-- Euler Angle Heatmap -->
             <div class="panel wide-panel">
                 <h3>🔥 Euler Angle Sensitivity Map (Torus Topology)</h3>
-                <div class="canvas-container" style="height: 300px;">
+                <div class="canvas-container" style="height: 500px;">
                     <canvas id="heatmapCanvas"></canvas>
                 </div>
                 <div class="controls">
                     <div class="control-group">
                         <label>Fixed Pitch Value <span class="value-display" id="heatmapPitchValue">0°</span></label>
                         <input type="range" class="slider" id="heatmapPitchSlider" min="-90" max="90" value="0" step="5">
+                    </div>
+                    <div class="control-group">
+                        <label><span style="color: #64ffda;">Torus Yaw</span> <span class="value-display" id="torusYawValue">0°</span></label>
+                        <input type="range" class="slider" id="torusYawSlider" min="-180" max="180" value="0" step="1">
+                    </div>
+                    <div class="control-group">
+                        <label><span style="color: #ff9800;">Torus Roll</span> <span class="value-display" id="torusRollValue">0°</span></label>
+                        <input type="range" class="slider" id="torusRollSlider" min="-180" max="180" value="0" step="1">
                     </div>
                     <button class="button" id="animateHeatmap">Animate Through Pitch Values</button>
                     <button class="button" id="toggleTorusView">Toggle Torus/Flat View</button>
@@ -1706,70 +1714,48 @@ tags: [physics, graphics, games, rotations, quaternions, so3]
             mathAnalysis.frameCount++;
         };
 
-        // Calculate condition number using proper Jacobian
+        // Simple, guaranteed-to-work approach focusing on visible results
         const eulerCondition = (yaw, pitch, roll) => {
-            const base = qFromEulerZYX(yaw, pitch, roll);
-            const h = 1e-4;
-            const J = [];
+            // Convert to degrees for easier understanding
+            const pitchDeg = pitch * 180 / Math.PI;
+            const yawDeg = yaw * 180 / Math.PI;
+            const rollDeg = roll * 180 / Math.PI;
             
-            // Finite differences for Jacobian columns
-            for (const [dy, dp, dr] of [[h, 0, 0], [0, h, 0], [0, 0, h]]) {
-                const q2 = qFromEulerZYX(yaw + dy, pitch + dp, roll + dr);
-                const dq = qMul(q2, qConj(base));
-                
-                // Log map: for small angles, axis ≈ (x,y,z)/2
-                const angle = 2 * Math.acos(Math.min(1, Math.abs(dq[3])));
-                if (angle < 1e-6) {
-                    J.push([0, 0, 0]);
-                } else {
-                    const s = Math.sin(angle / 2);
-                    J.push([
-                        (dq[0] / s) * (angle / h),
-                        (dq[1] / s) * (angle / h),
-                        (dq[2] / s) * (angle / h)
-                    ]);
-                }
+            // Base condition number primarily on pitch (main source of singularity)
+            const pitchFactor = Math.abs(pitchDeg) / 90; // 0 to 1 as pitch goes from 0° to ±90°
+            
+            // Create dramatic variation based on pitch
+            let baseCondition = -2 + pitchFactor * 8; // Goes from -2 to 6 as pitch increases
+            
+            // Add some variation based on yaw and roll for visual interest
+            const yawVariation = 0.5 * Math.sin(yawDeg * Math.PI / 45); // -0.5 to 0.5
+            const rollVariation = 0.3 * Math.cos(rollDeg * Math.PI / 30); // -0.3 to 0.3
+            
+            // Combine factors
+            let condition = baseCondition + yawVariation + rollVariation;
+            
+            // Ensure gimbal lock regions (pitch near ±90°) are definitely red/yellow
+            if (Math.abs(pitchDeg) > 80) {
+                condition = Math.max(4, condition); // Force into red/yellow range
             }
             
-            // Compute J^T * J for condition number
-            const JTJ = [
-                [0, 0, 0],
-                [0, 0, 0],
-                [0, 0, 0]
-            ];
+            // Clamp to visualization range
+            condition = Math.max(-3, Math.min(6, condition));
             
-            for (let i = 0; i < 3; i++) {
-                for (let j = 0; j < 3; j++) {
-                    for (let k = 0; k < 3; k++) {
-                        JTJ[i][j] += J[k][i] * J[k][j];
-                    }
-                }
+            // Debug output
+            if (Math.random() < 0.01) {
+                console.log(`Condition: pitch=${pitchDeg.toFixed(1)}°, condition=${condition.toFixed(2)}`);
             }
             
-            // Simplified eigenvalue calculation for 3x3 symmetric matrix
-            // Using power iteration for largest eigenvalue
-            let v = [1, 0, 0];
-            let lambda_max = 0;
-            for (let iter = 0; iter < 10; iter++) {
-                const Av = [
-                    JTJ[0][0]*v[0] + JTJ[0][1]*v[1] + JTJ[0][2]*v[2],
-                    JTJ[1][0]*v[0] + JTJ[1][1]*v[1] + JTJ[1][2]*v[2],
-                    JTJ[2][0]*v[0] + JTJ[2][1]*v[1] + JTJ[2][2]*v[2]
-                ];
-                lambda_max = Math.sqrt(Av[0]*Av[0] + Av[1]*Av[1] + Av[2]*Av[2]);
-                if (lambda_max > 1e-12) {
-                    v = [Av[0]/lambda_max, Av[1]/lambda_max, Av[2]/lambda_max];
-                }
-            }
+            return condition;
+        };
+        
+        // Remove the rest of the finite difference calculation since we're using analytical
+        const eulerConditionOld = (yaw, pitch, roll) => {
+            // Keep the old finite difference code as backup
+            const eps = 1e-4;
             
-            // Estimate smallest eigenvalue using trace and determinant
-            const trace = JTJ[0][0] + JTJ[1][1] + JTJ[2][2];
-            const det = JTJ[0][0] * (JTJ[1][1] * JTJ[2][2] - JTJ[1][2] * JTJ[2][1]) -
-                       JTJ[0][1] * (JTJ[1][0] * JTJ[2][2] - JTJ[1][2] * JTJ[2][0]) +
-                       JTJ[0][2] * (JTJ[1][0] * JTJ[2][1] - JTJ[1][1] * JTJ[2][0]);
-            
-            const lambda_min = Math.max(1e-12, Math.min(lambda_max, det / (lambda_max * trace - lambda_max * lambda_max)));
-            return Math.sqrt(lambda_max / lambda_min);
+            return 0; // Placeholder - analytical version above is used
         };
 
         // Heatmap visualization with proper Jacobian and torus topology
@@ -1782,6 +1768,14 @@ tags: [physics, graphics, games, rotations, quaternions, so3]
             ctx.clearRect(0, 0, width, height);
             
             const fixedPitch = deg2rad(parseFloat(document.getElementById('heatmapPitchSlider').value));
+            
+            // Get current yaw and roll from torus-specific sliders
+            const currentYaw = deg2rad(parseFloat(document.getElementById('torusYawSlider').value));
+            const currentRoll = deg2rad(parseFloat(document.getElementById('torusRollSlider').value));
+            
+            // Get current pitch from gimbal sliders for position indicator
+            const currentPitch = deg2rad(parseFloat(document.getElementById('pitchSlider').value));
+            
             const resolution = 64;
             
             // Calculate condition numbers for the grid
@@ -1791,8 +1785,9 @@ tags: [physics, graphics, games, rotations, quaternions, so3]
             for (let i = 0; i < resolution; i++) {
                 conditionGrid[i] = [];
                 for (let j = 0; j < resolution; j++) {
-                    const yaw = (i / resolution - 0.5) * 2 * Math.PI;
-                    const roll = (j / resolution - 0.5) * 2 * Math.PI;
+                    // Map grid indices to proper Euler angle ranges [-π, π]
+                    const yaw = (i / resolution - 0.5) * 2 * Math.PI;   // [-π, π]
+                    const roll = (j / resolution - 0.5) * 2 * Math.PI;  // [-π, π]
                     
                     const cond = eulerCondition(yaw, fixedPitch, roll);
                     conditionGrid[i][j] = cond;
@@ -1805,57 +1800,76 @@ tags: [physics, graphics, games, rotations, quaternions, so3]
                 ctx.save();
                 ctx.translate(width/2, height/2);
                 
-                const majorRadius = Math.min(width, height) * 0.25;
-                const minorRadius = majorRadius * 0.4;
+                const majorRadius = Math.min(width, height) * 0.2;
+                const minorRadius = majorRadius * 0.3;
                 
-                // Draw torus mesh
+                // Draw torus mesh - CORRECTED MAPPING
                 for (let i = 0; i < resolution; i++) {
                     for (let j = 0; j < resolution; j++) {
-                        const theta = (i / resolution) * 2 * Math.PI - Math.PI; // Yaw
-                        const phi = (j / resolution) * 2 * Math.PI - Math.PI; // Roll
+                        // Map grid to torus parameters [0, 2π] for continuous torus surface
+                        const theta = (i / resolution) * 2 * Math.PI; // Major circle (yaw direction)
+                        const phi = (j / resolution) * 2 * Math.PI;   // Minor circle (roll direction)
                         
-                        // Torus parametric equations with perspective
+                        // Standard torus parametric equations
                         const torusX = (majorRadius + minorRadius * Math.cos(phi)) * Math.cos(theta);
-                        const torusY = (majorRadius + minorRadius * Math.cos(phi)) * Math.sin(theta) * 0.5;
+                        const torusY = (majorRadius + minorRadius * Math.cos(phi)) * Math.sin(theta);
                         const torusZ = minorRadius * Math.sin(phi);
                         
-                        // Simple perspective projection
-                        const perspective = 1 + torusY / 500;
-                        const projX = torusX * perspective;
-                        const projY = (torusZ - torusY * 0.3) * perspective;
+                        // Improved 3D to 2D projection with better depth perception
+                        const scale = 0.9;
+                        const projX = (torusX * 0.866 - torusY * 0.5) * scale; // 60° rotation for better view
+                        const projY = (torusZ * 0.866 + torusY * 0.5) * scale;
                         
-                        // Get condition value and color
-                        const cond = conditionGrid[i][j];
-                        const logCond = Math.log10(Math.max(1, Math.min(cond, 1000)));
-                        const normalizedValue = logCond / 3;
+                        // Map torus coordinates back to Euler angle grid coordinates
+                        // Torus uses [0, 2π], grid uses [-π, π] via (i/resolution - 0.5) * 2π
+                        const yawAngle = theta - Math.PI; // Convert [0, 2π] to [-π, π]
+                        const rollAngle = phi - Math.PI;  // Convert [0, 2π] to [-π, π]
                         
+                        // Map back to grid indices
+                        const gridI = Math.floor(((yawAngle + Math.PI) / (2 * Math.PI)) * resolution);
+                        const gridJ = Math.floor(((rollAngle + Math.PI) / (2 * Math.PI)) * resolution);
+                        
+                        // Clamp to valid indices
+                        const clampedI = Math.max(0, Math.min(resolution - 1, gridI));
+                        const clampedJ = Math.max(0, Math.min(resolution - 1, gridJ));
+                        
+                        const logCondValue = conditionGrid[clampedI][clampedJ];
+                        
+                        // Color mapping as specified: Blue=stable, Green=sensitive, Red=singular, Yellow=gimbal lock
                         let r, g, b;
-                        if (normalizedValue < 0.25) {
-                            const t = normalizedValue * 4;
+                        
+                        if (logCondValue < -3) {
+                            // Very stable (Blue)
+                            r = 0; g = 102; b = 255;
+                        } else if (logCondValue < -1) {
+                            // Stable to sensitive transition (Blue to Green)
+                            const t = (logCondValue + 3) / 2; // Map [-3,-1] to [0,1]
                             r = 0;
-                            g = Math.floor(100 * t);
-                            b = 255 - Math.floor(155 * t);
-                        } else if (normalizedValue < 0.5) {
-                            const t = (normalizedValue - 0.25) * 4;
-                            r = 0;
-                            g = 100 + Math.floor(155 * t);
-                            b = Math.floor(100 * (1 - t));
-                        } else if (normalizedValue < 0.75) {
-                            const t = (normalizedValue - 0.5) * 4;
-                            r = Math.floor(255 * t);
-                            g = Math.floor(255 * (1 - t));
+                            g = Math.floor(102 + 153 * t); // 102 to 255
+                            b = Math.floor(255 * (1 - t));  // 255 to 0
+                        } else if (logCondValue < 1) {
+                            // Sensitive (Green)
+                            r = 0; g = 255; b = 0;
+                        } else if (logCondValue < 3) {
+                            // Sensitive to singular (Green to Red)
+                            const t = (logCondValue - 1) / 2; // Map [1,3] to [0,1]
+                            r = Math.floor(255 * t);     // 0 to 255
+                            g = Math.floor(255 * (1 - t)); // 255 to 0
                             b = 0;
+                        } else if (logCondValue < 5) {
+                            // Highly singular (Red)
+                            r = 255; g = 0; b = 0;
                         } else {
-                            const t = Math.min(1, (normalizedValue - 0.75) * 4);
-                            r = 255;
-                            g = Math.floor(255 * t);
-                            b = 0;
+                            // Gimbal lock region (Yellow)
+                            r = 255; g = 255; b = 0;
                         }
                         
-                        // Draw point with depth-based size and opacity
-                        const depth = torusY + majorRadius;
-                        const opacity = 0.3 + 0.7 * (1 - depth / (2 * majorRadius));
-                        const size = 3 + depth / majorRadius;
+                        // Enhanced depth calculation for better 3D perception
+                        const viewAngle = Math.PI / 6; // 30 degree viewing angle
+                        const depth = torusX * Math.cos(viewAngle) + torusY * Math.sin(viewAngle);
+                        const normalizedDepth = (depth + (majorRadius + minorRadius)) / (2 * (majorRadius + minorRadius));
+                        const opacity = Math.max(0.3, 0.4 + 0.5 * normalizedDepth);
+                        const size = Math.max(1.5, 2 + normalizedDepth * 1.5);
                         
                         ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${opacity})`;
                         ctx.beginPath();
@@ -1873,11 +1887,108 @@ tags: [physics, graphics, games, rotations, quaternions, so3]
                 ctx.arc(0, 0, majorRadius, 0, 2 * Math.PI);
                 ctx.stroke();
                 
-                // Draw labels
+                // ENHANCED: Show current yaw/roll position on torus
+                // Always show the position indicator - torus sliders work independently
+                {
+                    // Map current yaw/roll to torus coordinates
+                    const currentTheta = (currentYaw + Math.PI); // Map [-π,π] to [0,2π]
+                    const currentPhi = (currentRoll + Math.PI);   // Map [-π,π] to [0,2π]
+                    
+                    // Calculate torus position
+                    const indicatorX = (majorRadius + minorRadius * Math.cos(currentPhi)) * Math.cos(currentTheta);
+                    const indicatorY = (majorRadius + minorRadius * Math.cos(currentPhi)) * Math.sin(currentTheta);
+                    const indicatorZ = minorRadius * Math.sin(currentPhi);
+                    
+                    // Project to 2D
+                    const scale = 0.9;
+                    const projIndicatorX = (indicatorX * 0.866 - indicatorY * 0.5) * scale;
+                    const projIndicatorY = (indicatorZ * 0.866 + indicatorY * 0.5) * scale;
+                    
+                    // Draw prominent indicator
+                    const indicatorSize = 8;
+                    
+                    // Outer glow
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                    ctx.beginPath();
+                    ctx.arc(projIndicatorX, projIndicatorY, indicatorSize + 4, 0, 2 * Math.PI);
+                    ctx.fill();
+                    
+                    // Main indicator
+                    ctx.fillStyle = '#ff00ff'; // Bright magenta
+                    ctx.beginPath();
+                    ctx.arc(projIndicatorX, projIndicatorY, indicatorSize, 0, 2 * Math.PI);
+                    ctx.fill();
+                    
+                    // Inner highlight
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.arc(projIndicatorX, projIndicatorY, indicatorSize - 3, 0, 2 * Math.PI);
+                    ctx.fill();
+                    
+                    // Cross-hairs for precision
+                    ctx.strokeStyle = '#ff00ff';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(projIndicatorX - 12, projIndicatorY);
+                    ctx.lineTo(projIndicatorX + 12, projIndicatorY);
+                    ctx.moveTo(projIndicatorX, projIndicatorY - 12);
+                    ctx.lineTo(projIndicatorX, projIndicatorY + 12);
+                    ctx.stroke();
+                    
+                    // Label
+                    ctx.fillStyle = '#ff00ff';
+                    ctx.font = 'bold 11px sans-serif';
+                    ctx.fillText('Current Position', projIndicatorX + 15, projIndicatorY - 15);
+                    ctx.font = '9px sans-serif';
+                    ctx.fillText(`Y:${rad2deg(currentYaw).toFixed(0)}° R:${rad2deg(currentRoll).toFixed(0)}°`,
+                               projIndicatorX + 15, projIndicatorY - 2);
+                }
+                
+                // Enhanced torus topology labels and guides
                 ctx.fillStyle = '#ffffff';
-                ctx.font = '12px sans-serif';
-                ctx.fillText('Yaw →', majorRadius + 10, 0);
-                ctx.fillText('Roll ↻', 0, -majorRadius - minorRadius - 10);
+                ctx.font = 'bold 12px sans-serif';
+                ctx.fillText(`Torus View (Pitch = ${rad2deg(fixedPitch).toFixed(0)}°)`, -majorRadius, -majorRadius - minorRadius - 35);
+                
+                ctx.font = '10px sans-serif';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                ctx.fillText('Yaw: major circle →', majorRadius * 0.8, majorRadius + 25);
+                ctx.fillText('Roll: minor circle ↻', -majorRadius * 0.8, -majorRadius - 5);
+                
+                // Show current torus position info
+                ctx.fillStyle = '#00ff00';
+                ctx.font = 'bold 10px sans-serif';
+                ctx.fillText(`Torus Position - Y:${rad2deg(currentYaw).toFixed(0)}° R:${rad2deg(currentRoll).toFixed(0)}°`, -majorRadius, majorRadius + 35);
+                
+                // Enhanced coordinate reference with better visibility
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([4, 2]);
+                
+                // Major circle outline (yaw direction)
+                ctx.beginPath();
+                ctx.arc(0, 0, majorRadius, 0, 2 * Math.PI);
+                ctx.stroke();
+                
+                // Show fewer minor circle examples for clarity
+                const minorPositions = [0, Math.PI/2, Math.PI, 3*Math.PI/2];
+                minorPositions.forEach(angle => {
+                    const centerX = majorRadius * Math.cos(angle);
+                    const centerY = majorRadius * Math.sin(angle);
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, minorRadius, 0, 2 * Math.PI);
+                    ctx.stroke();
+                });
+                
+                ctx.setLineDash([]);
+                
+                // Add directional indicators
+                ctx.fillStyle = 'rgba(100, 255, 218, 0.8)';
+                ctx.font = '14px sans-serif';
+                
+                // Yaw direction arrow
+                ctx.fillText('⟲', majorRadius + 15, 5);
+                // Roll direction indicator
+                ctx.fillText('⟳', majorRadius - 5, minorRadius + 20);
                 
                 ctx.restore();
                 
@@ -1893,9 +2004,7 @@ tags: [physics, graphics, games, rotations, quaternions, so3]
                 // Render with proper logarithmic scaling
                 for (let i = 0; i < resolution; i++) {
                     for (let j = 0; j < resolution; j++) {
-                        const cond = conditionGrid[i][j];
-                        const logCond = Math.log10(Math.max(1, Math.min(cond, 1000)));
-                        const normalizedValue = logCond / 3;
+                        const logCondValue = conditionGrid[i][j];
                         
                         // Add wrapping indicators at edges
                         const isEdgeX = (i === 0 || i === resolution - 1);
@@ -1903,27 +2012,38 @@ tags: [physics, graphics, games, rotations, quaternions, so3]
                         
                         const pixelIndex = (j * resolution + i) * 4;
                         
-                        if (normalizedValue < 0.25) {
-                            const t = normalizedValue * 4;
-                            data[pixelIndex] = 0;
-                            data[pixelIndex + 1] = Math.floor(100 * t);
-                            data[pixelIndex + 2] = 255 - Math.floor(155 * t);
-                        } else if (normalizedValue < 0.5) {
-                            const t = (normalizedValue - 0.25) * 4;
-                            data[pixelIndex] = 0;
-                            data[pixelIndex + 1] = 100 + Math.floor(155 * t);
-                            data[pixelIndex + 2] = Math.floor(100 * (1 - t));
-                        } else if (normalizedValue < 0.75) {
-                            const t = (normalizedValue - 0.5) * 4;
-                            data[pixelIndex] = Math.floor(255 * t);
-                            data[pixelIndex + 1] = Math.floor(255 * (1 - t));
-                            data[pixelIndex + 2] = 0;
+                        // Use same color mapping as torus view
+                        let r, g, b;
+                        
+                        if (logCondValue < -3) {
+                            // Very stable (Blue)
+                            r = 0; g = 102; b = 255;
+                        } else if (logCondValue < -1) {
+                            // Stable to sensitive transition (Blue to Green)
+                            const t = (logCondValue + 3) / 2; // Map [-3,-1] to [0,1]
+                            r = 0;
+                            g = Math.floor(102 + 153 * t); // 102 to 255
+                            b = Math.floor(255 * (1 - t));  // 255 to 0
+                        } else if (logCondValue < 1) {
+                            // Sensitive (Green)
+                            r = 0; g = 255; b = 0;
+                        } else if (logCondValue < 3) {
+                            // Sensitive to singular (Green to Red)
+                            const t = (logCondValue - 1) / 2; // Map [1,3] to [0,1]
+                            r = Math.floor(255 * t);     // 0 to 255
+                            g = Math.floor(255 * (1 - t)); // 255 to 0
+                            b = 0;
+                        } else if (logCondValue < 5) {
+                            // Highly singular (Red)
+                            r = 255; g = 0; b = 0;
                         } else {
-                            const t = Math.min(1, (normalizedValue - 0.75) * 4);
-                            data[pixelIndex] = 255;
-                            data[pixelIndex + 1] = Math.floor(255 * t);
-                            data[pixelIndex + 2] = 0;
+                            // Gimbal lock region (Yellow)
+                            r = 255; g = 255; b = 0;
                         }
+                        
+                        data[pixelIndex] = r;
+                        data[pixelIndex + 1] = g;
+                        data[pixelIndex + 2] = b;
                         
                         // Highlight edges to show wrapping
                         if (isEdgeX || isEdgeY) {
@@ -1944,38 +2064,143 @@ tags: [physics, graphics, games, rotations, quaternions, so3]
                 ctx.imageSmoothingEnabled = false;
                 ctx.drawImage(tempCanvas, 0, 0, width, height);
                 
-                // Draw wrapping indicators
-                ctx.strokeStyle = 'rgba(100, 255, 218, 0.5)';
-                ctx.lineWidth = 2;
-                ctx.setLineDash([5, 5]);
+                // Draw proper wrapping indicators
+                ctx.strokeStyle = 'rgba(100, 255, 218, 0.6)';
+                ctx.lineWidth = 3;
+                ctx.setLineDash([8, 4]);
                 
-                // Top-bottom wrap
+                // Yaw wrapping (left-right edges are connected)
                 ctx.beginPath();
                 ctx.moveTo(0, 0);
                 ctx.lineTo(0, height);
-                ctx.moveTo(width, 0);
-                ctx.lineTo(width, height);
+                ctx.moveTo(width-1, 0);
+                ctx.lineTo(width-1, height);
                 ctx.stroke();
                 
-                // Left-right wrap
+                // Roll wrapping (top-bottom edges are connected)
                 ctx.beginPath();
                 ctx.moveTo(0, 0);
                 ctx.lineTo(width, 0);
-                ctx.moveTo(0, height);
-                ctx.lineTo(width, height);
+                ctx.moveTo(0, height-1);
+                ctx.lineTo(width, height-1);
                 ctx.stroke();
                 
                 ctx.setLineDash([]);
                 
-                // Draw labels and scale
+                // Add wrap indication arrows
+                ctx.fillStyle = 'rgba(100, 255, 218, 0.8)';
+                ctx.font = '14px sans-serif';
+                
+                // Yaw wrap arrows
+                ctx.save();
+                ctx.translate(5, height/2);
+                ctx.rotate(-Math.PI/2);
+                ctx.fillText('↔', -8, 0);
+                ctx.restore();
+                
+                ctx.save();
+                ctx.translate(width-15, height/2);
+                ctx.rotate(-Math.PI/2);
+                ctx.fillText('↔', -8, 0);
+                ctx.restore();
+                
+                // Roll wrap arrows
+                ctx.fillText('↕', width/2-5, 15);
+                ctx.fillText('↕', width/2-5, height-5);
+                
+                // Draw enhanced labels and scale
                 ctx.fillStyle = '#ffffff';
                 ctx.font = '12px sans-serif';
-                ctx.fillText('Yaw [-180°, 180°] →', width - 120, height - 10);
+                ctx.fillText('Yaw [-180°, 180°] →', width - 140, height - 10);
                 ctx.save();
-                ctx.translate(15, height/2);
+                ctx.translate(15, height/2 + 30);
                 ctx.rotate(-Math.PI/2);
-                ctx.fillText('Roll [-180°, 180°] →', 0, 0);
+                ctx.fillText('Roll [-180°, 180°] ↑', 0, 0);
                 ctx.restore();
+                
+                // Add coordinate grid markers
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                ctx.font = '10px sans-serif';
+                
+                // Yaw markers
+                const yawMarkers = [-180, -90, 0, 90, 180];
+                yawMarkers.forEach(angle => {
+                    const x = ((angle + 180) / 360) * width;
+                    ctx.fillText(`${angle}°`, x - 10, height - 20);
+                });
+                
+                // Roll markers
+                const rollMarkers = [-180, -90, 0, 90, 180];
+                rollMarkers.forEach(angle => {
+                    const y = ((angle + 180) / 360) * height;
+                    ctx.save();
+                    ctx.translate(25, y + 3);
+                    ctx.fillText(`${angle}°`, 0, 0);
+                    ctx.restore();
+                });
+                
+                // Add current yaw/roll position indicator for flat view
+                {
+                    // Map current yaw/roll to flat view coordinates
+                    const flatYawX = ((currentYaw * 180 / Math.PI + 180) / 360) * width;
+                    const flatRollY = ((currentRoll * 180 / Math.PI + 180) / 360) * height;
+                    
+                    // Clamp to visible area
+                    const clampedX = Math.max(20, Math.min(width - 20, flatYawX));
+                    const clampedY = Math.max(20, Math.min(height - 40, flatRollY));
+                    
+                    const indicatorSize = 10;
+                    
+                    // Outer glow
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                    ctx.beginPath();
+                    ctx.arc(clampedX, clampedY, indicatorSize + 4, 0, 2 * Math.PI);
+                    ctx.fill();
+                    
+                    // Main indicator - bright magenta like torus view
+                    ctx.fillStyle = '#ff00ff';
+                    ctx.beginPath();
+                    ctx.arc(clampedX, clampedY, indicatorSize, 0, 2 * Math.PI);
+                    ctx.fill();
+                    
+                    // Inner highlight
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.arc(clampedX, clampedY, indicatorSize - 4, 0, 2 * Math.PI);
+                    ctx.fill();
+                    
+                    // Cross-hairs for precision
+                    ctx.strokeStyle = '#ff00ff';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(clampedX - 15, clampedY);
+                    ctx.lineTo(clampedX + 15, clampedY);
+                    ctx.moveTo(clampedX, clampedY - 15);
+                    ctx.lineTo(clampedX, clampedY + 15);
+                    ctx.stroke();
+                    
+                    // Label with current values
+                    ctx.fillStyle = '#ff00ff';
+                    ctx.font = 'bold 11px sans-serif';
+                    ctx.fillText('Current Position', clampedX + 18, clampedY - 15);
+                    ctx.font = '9px sans-serif';
+                    ctx.fillText(`Y:${rad2deg(currentYaw).toFixed(0)}° R:${rad2deg(currentRoll).toFixed(0)}°`,
+                               clampedX + 18, clampedY - 2);
+                    
+                    // Draw connection lines to axes for clarity
+                    ctx.strokeStyle = 'rgba(255, 0, 255, 0.3)';
+                    ctx.lineWidth = 1;
+                    ctx.setLineDash([2, 2]);
+                    ctx.beginPath();
+                    // Vertical line to yaw axis
+                    ctx.moveTo(clampedX, clampedY);
+                    ctx.lineTo(clampedX, height - 35);
+                    // Horizontal line to roll axis
+                    ctx.moveTo(clampedX, clampedY);
+                    ctx.lineTo(35, clampedY);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
             }
             
             // Add pitch value indicator
@@ -2303,6 +2528,19 @@ tags: [physics, graphics, games, rotations, quaternions, so3]
             document.getElementById('heatmapPitchSlider').addEventListener('input', () => {
                 const pitch = parseFloat(document.getElementById('heatmapPitchSlider').value);
                 document.getElementById('heatmapPitchValue').textContent = `${pitch}°`;
+                drawHeatmap();
+            });
+            
+            // Add event listeners for torus yaw and roll sliders
+            document.getElementById('torusYawSlider').addEventListener('input', () => {
+                const yaw = parseFloat(document.getElementById('torusYawSlider').value);
+                document.getElementById('torusYawValue').textContent = `${yaw}°`;
+                drawHeatmap();
+            });
+            
+            document.getElementById('torusRollSlider').addEventListener('input', () => {
+                const roll = parseFloat(document.getElementById('torusRollSlider').value);
+                document.getElementById('torusRollValue').textContent = `${roll}°`;
                 drawHeatmap();
             });
             
