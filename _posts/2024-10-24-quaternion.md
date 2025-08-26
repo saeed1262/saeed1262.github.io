@@ -273,6 +273,7 @@ tags: [physics, graphics, games, rotations, quaternions, so3]
                 </div>
                 <div class="controls">
                     <button class="button" id="showAntipodes">Show Antipodal Points (±q)</button>
+                    <button class="button" id="showGeodesicArc">Show Antipodal Geodesic Arc</button>
                 </div>
                 <div class="info-box">
                     Quaternions live on a 4D unit sphere. Each 3D rotation maps to TWO points: q and -q. This "double cover" eliminates singularities!
@@ -911,6 +912,7 @@ tags: [physics, graphics, games, rotations, quaternions, so3]
         // Global state
         let currentQuaternion = [0, 0, 0, 1];
         let showAntipodes = false;
+        let showGeodesicArc = false;
         let animating = false;
         let quaternionHistory = [[0, 0, 0, 1]]; // For drift correction
         let frameCount = 0;
@@ -1678,6 +1680,80 @@ tags: [physics, graphics, games, rotations, quaternions, so3]
                 }
             }
             
+            // Draw SLERP geodesic arc between q and -q if enabled
+            if (showGeodesicArc) {
+                const [x, y, z, qw] = currentQuaternion;
+                const antipodalQ = [-x, -y, -z, -qw];
+                
+                // Draw geodesic arc using proper spherical interpolation
+                ctx.strokeStyle = '#FFD700'; // Bright gold color for geodesic
+                ctx.lineWidth = 3;
+                ctx.setLineDash([]);
+                
+                const geodesicSteps = 60;
+                
+                // For antipodal quaternions, create a great circle by using a perpendicular quaternion
+                // Find a quaternion perpendicular to the current one
+                let perpQ;
+                if (Math.abs(qw) < 0.9) {
+                    // If w component is not too large, use [0,0,0,1] as base
+                    perpQ = qNorm([0, 0, 0, 1]);
+                } else {
+                    // If w is large, use [1,0,0,0] as base
+                    perpQ = qNorm([1, 0, 0, 0]);
+                }
+                
+                // Make perpQ orthogonal to currentQuaternion using Gram-Schmidt
+                const dot = currentQuaternion[0]*perpQ[0] + currentQuaternion[1]*perpQ[1] +
+                           currentQuaternion[2]*perpQ[2] + currentQuaternion[3]*perpQ[3];
+                perpQ = qNorm([
+                    perpQ[0] - dot * currentQuaternion[0],
+                    perpQ[1] - dot * currentQuaternion[1],
+                    perpQ[2] - dot * currentQuaternion[2],
+                    perpQ[3] - dot * currentQuaternion[3]
+                ]);
+                
+                // Draw the geodesic curve using proper spherical interpolation
+                ctx.beginPath();
+                
+                for (let i = 0; i <= geodesicSteps; i++) {
+                    const theta = (i / geodesicSteps) * Math.PI; // 0 to π
+                    
+                    // Create point on great circle: q*cos(θ) + perp*sin(θ)
+                    const interpQ = qNorm([
+                        currentQuaternion[0] * Math.cos(theta) + perpQ[0] * Math.sin(theta),
+                        currentQuaternion[1] * Math.cos(theta) + perpQ[1] * Math.sin(theta),
+                        currentQuaternion[2] * Math.cos(theta) + perpQ[2] * Math.sin(theta),
+                        currentQuaternion[3] * Math.cos(theta) + perpQ[3] * Math.sin(theta)
+                    ]);
+                    
+                    // Project to 2D using same method as main quaternion
+                    let projX_geo = interpQ[0] * projectionScale;
+                    let projY_geo = -interpQ[1] * projectionScale;
+                    
+                    // Clamp to visible bounds if needed
+                    const currentDist_geo = Math.sqrt(projX_geo*projX_geo + projY_geo*projY_geo);
+                    if (currentDist_geo > maxDist) {
+                        projX_geo = (projX_geo / currentDist_geo) * maxDist;
+                        projY_geo = (projY_geo / currentDist_geo) * maxDist;
+                    }
+                    
+                    if (i === 0) {
+                        ctx.moveTo(projX_geo, projY_geo);
+                    } else {
+                        ctx.lineTo(projX_geo, projY_geo);
+                    }
+                }
+                
+                ctx.stroke();
+                
+                // Add mathematical annotation
+                ctx.fillStyle = '#FFD700';
+                ctx.font = '9px monospace';
+                ctx.fillText('Great Circle Geodesic: q ↔ -q', -radius*1.2, radius + 65);
+                ctx.fillText('Spherical interpolation on S³', -radius*1.2, radius + 75);
+            }
+            
             // Mathematical analysis display
             ctx.fillStyle = '#ffffff';
             ctx.font = 'bold 10px monospace';
@@ -1856,11 +1932,17 @@ tags: [physics, graphics, games, rotations, quaternions, so3]
                             r = Math.floor(255 * t);     // 0 to 255
                             g = Math.floor(255 * (1 - t)); // 255 to 0
                             b = 0;
-                        } else if (logCondValue < 5) {
+                        } else if (logCondValue < 4.5) {
                             // Highly singular (Red)
                             r = 255; g = 0; b = 0;
+                        } else if (logCondValue < 6) {
+                            // SMOOTH Red to Yellow transition
+                            const t = (logCondValue - 4.5) / 1.5; // Map [4.5,6] to [0,1]
+                            r = 255; // Always full red
+                            g = Math.floor(255 * t);     // 0 to 255 (adds yellow)
+                            b = 0;   // No blue
                         } else {
-                            // Gimbal lock region (Yellow)
+                            // Pure gimbal lock region (Yellow)
                             r = 255; g = 255; b = 0;
                         }
                         
@@ -2033,11 +2115,17 @@ tags: [physics, graphics, games, rotations, quaternions, so3]
                             r = Math.floor(255 * t);     // 0 to 255
                             g = Math.floor(255 * (1 - t)); // 255 to 0
                             b = 0;
-                        } else if (logCondValue < 5) {
+                        } else if (logCondValue < 4.5) {
                             // Highly singular (Red)
                             r = 255; g = 0; b = 0;
+                        } else if (logCondValue < 6) {
+                            // SMOOTH Red to Yellow transition
+                            const t = (logCondValue - 4.5) / 1.5; // Map [4.5,6] to [0,1]
+                            r = 255; // Always full red
+                            g = Math.floor(255 * t);     // 0 to 255 (adds yellow)
+                            b = 0;   // No blue
                         } else {
-                            // Gimbal lock region (Yellow)
+                            // Pure gimbal lock region (Yellow)
                             r = 255; g = 255; b = 0;
                         }
                         
@@ -2548,12 +2636,23 @@ tags: [physics, graphics, games, rotations, quaternions, so3]
                 const t = parseFloat(document.getElementById('tSlider').value);
                 document.getElementById('tValue').textContent = t.toFixed(2);
                 drawSlerpComparison();
+                // Update geodesic arc to show current position
+                if (showGeodesicArc) {
+                    drawQuaternionSphere();
+                }
             });
             
             document.getElementById('showAntipodes').addEventListener('click', () => {
                 showAntipodes = !showAntipodes;
-                document.getElementById('showAntipodes').textContent = 
+                document.getElementById('showAntipodes').textContent =
                     showAntipodes ? 'Hide Antipodal Points' : 'Show Antipodal Points (±q)';
+                drawQuaternionSphere();
+            });
+            
+            document.getElementById('showGeodesicArc').addEventListener('click', () => {
+                showGeodesicArc = !showGeodesicArc;
+                document.getElementById('showGeodesicArc').textContent =
+                    showGeodesicArc ? 'Hide Antipodal Geodesic Arc' : 'Show Antipodal Geodesic Arc';
                 drawQuaternionSphere();
             });
             
@@ -2622,6 +2721,10 @@ tags: [physics, graphics, games, rotations, quaternions, so3]
                 };
                 animate();
             });
+            
+            // Initialize orientations for geodesic arc
+            window.orientationA = orientationA;
+            window.orientationB = orientationB;
             
             // Initial draw
             updateFromSliders();
