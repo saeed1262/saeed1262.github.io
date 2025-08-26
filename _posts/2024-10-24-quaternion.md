@@ -5,6 +5,111 @@ description: "Why Euler angles hit singularities, how quaternions live on S³, a
 tags: [physics, graphics, games, rotations, quaternions, so3]
 ---
 
+# Why Your Camera Controls Die at 90° Pitch (And How Quaternions Save the Day)
+
+Picture this: you're building a 3D application, everything's working perfectly, and then BAM! Your camera controls seize up when looking straight up or down. Users are filing bug reports. Your lead developer is asking questions. You're frantically googling "gimbal lock" at 2 AM.
+
+**This isn't a bug. It's mathematics.**
+
+The problem isn't your code—it's that you're using **Euler angles** to represent 3D rotations, and Euler angles have a fundamental limitation that's been haunting 3D graphics since the dawn of computer animation.
+
+## The Gimbal Lock Curse
+
+Try this: set the pitch slider below to exactly +90° or -90° and then try to use the yaw and roll controls. Notice something weird?
+
+<div class="visualization-container">
+<!-- Interactive demos go here -->
+</div>
+
+*Yaw and roll do the exact same thing!* You've lost a degree of freedom. This is **gimbal lock** - the moment when two of your rotation axes align and you can no longer represent certain rotations smoothly.
+
+## It's Not a Bug, It's the Map
+
+Think of Euler angles like latitude and longitude on Earth. They work great for most places, but what happens at the North Pole? Every direction is south! The coordinate system breaks down at the poles, just like Euler angles break down at ±90° pitch.
+
+This isn't a flaw in your implementation—it's a fundamental mathematical limitation. You can't represent the full space of 3D rotations smoothly using just three angles. Period.
+
+## Enter the Quaternion: Your Mathematical Superhero
+
+Here's where quaternions come to the rescue. Instead of three angles, quaternions use **four numbers** to represent rotations. But here's the beautiful part: they live on a 4D sphere where **every point represents a valid rotation**.
+
+Look at the quaternion sphere visualization above. See those two dots? The cyan one is your current quaternion `q`, and the red one is its "antipodal" point `-q`. Here's the mind-bending part: **both points represent the exact same rotation**.
+
+This "double coverage" is what eliminates singularities. There's always a smooth path between any two rotations on the quaternion sphere.
+
+## The Great Circle: Nature's Shortest Path
+
+When you need to interpolate between two rotations, quaternions give you something beautiful: **great circle interpolation** (SLERP). Click "Show Antipodal Geodesic Arc" to see the golden path connecting `q` and `-q`.
+
+This isn't just mathematically elegant—it's **physically correct**. SLERP maintains constant angular velocity, just like a gyroscope spinning in free space.
+
+## Show, Don't Tell: Watch Mathematics in Action
+
+Now for the fun part. Let's see these concepts in action:
+
+1. **Watch the Singularity Form**: Drag the pitch slider toward ±90°. See how the sensitivity map (the torus) glows increasingly red? That's the coordinate system screaming in mathematical agony.
+
+2. **Compare Interpolations**: Click "Set Random Orientations" and then animate the interpolation comparison. The blue SLERP path is smooth and natural. The red Euler LERP path? It's having an identity crisis.
+
+3. **See the Double Cover**: Toggle "Show Antipodal Points" and move the sliders. Watch how `q` and `-q` dance together, always representing the same rotation but from opposite points on the 4D sphere.
+
+## Your Quaternion Recipe Book
+
+Here's how to escape Euler angle hell:
+
+### **Storage Recipe**
+```javascript
+// Store rotations as normalized quaternions
+let orientation = [0, 0, 0, 1]; // x, y, z, w
+
+// Renormalize periodically to fight floating-point drift
+orientation = qNorm(orientation);
+```
+
+### **Interpolation Recipe**
+```javascript
+// Always use SLERP for smooth rotation interpolation
+const interpolated = qSlerp(startQuat, endQuat, t);
+
+// Pick the shorter path (handle the double cover)
+if (qDot(startQuat, endQuat) < 0) {
+    endQuat = [-endQuat[0], -endQuat[1], -endQuat[2], -endQuat[3]];
+}
+```
+
+### **UI Layer Recipe**
+```javascript
+// Only convert to Euler angles at the UI layer
+const [yaw, pitch, roll] = qToEulerZYX(orientation);
+
+// Never store or interpolate Euler angles!
+```
+
+### **Integration Recipe**
+```javascript
+// Integrate angular velocity using quaternions
+const deltaQ = qFromAxisAngle(angularVelocity, deltaTime);
+orientation = qMul(orientation, deltaQ);
+```
+
+## The Deeper Truth: Topology Matters
+
+The real insight here isn't just about avoiding gimbal lock—it's about understanding the **topology** of rotation space. 3D rotations naturally live on a 3-dimensional manifold, but that manifold can't be smoothly parameterized by three coordinates everywhere.
+
+Quaternions work because they embed this 3D rotation manifold into a 4D space where everything becomes linear and smooth. You're not just avoiding a technical problem; you're choosing the right mathematical tool for the job.
+
+## The Takeaway
+
+Next time someone asks why you're using quaternions instead of "simple" Euler angles, show them the pitch slider at 90°. Watch their face when the controls break. Then show them the smooth quaternion sphere, the great circle paths, and the mathematical elegance of SLERP.
+
+**Mathematics doesn't care about your intuitions.** But when you align your code with the underlying mathematical reality, everything becomes not just more robust, but more beautiful.
+
+Your camera controls will thank you. Your users will thank you. And somewhere, a mathematician will nod approvingly.
+
+---
+
+*Try the interactive demos above to build your intuition. Mathematics is best learned through play.*
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -221,7 +326,7 @@ tags: [physics, graphics, games, rotations, quaternions, so3]
         <div class="visualization-grid">
             <!-- Gimbal Rig Visualization -->
             <div class="panel">
-                <h3>🎯 Gimbal Rig</h3>
+                <h3>Gimbal Rig</h3>
                 <div class="canvas-container">
                     <canvas id="gimbalCanvas"></canvas>
                 </div>
@@ -240,7 +345,7 @@ tags: [physics, graphics, games, rotations, quaternions, so3]
                     </div>
                 </div>
                 <div class="warning" id="gimbalWarning">
-                    ⚠️ GIMBAL LOCK! Yaw and Roll axes are aligned - you've lost a degree of freedom!
+                    GIMBAL LOCK! Yaw and Roll axes are aligned - you've lost a degree of freedom!
                 </div>
                 <div class="info-box">
                     <strong>Try this:</strong> Set pitch to ±90° and notice how yaw and roll controls do the same thing. This is gimbal lock - the curse of Euler angles!
@@ -249,7 +354,7 @@ tags: [physics, graphics, games, rotations, quaternions, so3]
             
             <!-- Quaternion Sphere -->
             <div class="panel">
-                <h3>🌐 Quaternion Sphere (S³)</h3>
+                <h3>Quaternion Sphere (S³)</h3>
                 <div class="canvas-container">
                     <canvas id="quaternionCanvas"></canvas>
                 </div>
@@ -282,7 +387,7 @@ tags: [physics, graphics, games, rotations, quaternions, so3]
             
             <!-- Euler Angle Heatmap -->
             <div class="panel wide-panel">
-                <h3>🔥 Euler Angle Sensitivity Map (Torus Topology)</h3>
+                <h3>Euler Angle Sensitivity Map (Torus Topology)</h3>
                 <div class="canvas-container" style="height: 500px;">
                     <canvas id="heatmapCanvas"></canvas>
                 </div>
@@ -310,7 +415,7 @@ tags: [physics, graphics, games, rotations, quaternions, so3]
             
             <!-- SLERP Comparison -->
             <div class="panel wide-panel">
-                <h3>📈 Interpolation: Euler LERP vs SLERP</h3>
+                <h3>Interpolation: Euler LERP vs SLERP</h3>
                 <div class="canvas-container" style="height: 300px;">
                     <canvas id="slerpCanvas"></canvas>
                 </div>
@@ -919,7 +1024,7 @@ tags: [physics, graphics, games, rotations, quaternions, so3]
         let showTorusView = false;
 
         // Canvas contexts (will be initialized in init function)
-        let quaternionCtx, heatmapCtx, slerpCtx;
+        let heatmapCtx, slerpCtx;
 
         // Utility functions
         const deg2rad = (deg) => deg * Math.PI / 180;
@@ -954,6 +1059,12 @@ tags: [physics, graphics, games, rotations, quaternions, so3]
         let gimbalRings = [];
         let coordinateAxes = [];
         let centerSphere;
+
+        // THREE.JS 3D Quaternion Sphere Visualization
+        let quaternionScene, quaternionCamera, quaternionRenderer, quaternionControls;
+        let quaternionSphere;
+        let quaternionPoint, antipodalPoint;
+        let geodesicCurve;
 
         const initThreeJS = () => {
             const canvas = document.getElementById('gimbalCanvas');
@@ -1381,413 +1492,289 @@ tags: [physics, graphics, games, rotations, quaternions, so3]
             if (renderer) {
                 updateGimbalFromSliders();
                 // Also update quaternion sphere
-                drawQuaternionSphere();
+                updateQuaternionSphere3D();
             }
         };
 
+        // Initialize 3D Quaternion Sphere Visualization
+        const initQuaternionSphere3D = () => {
+            const canvas = document.getElementById('quaternionCanvas');
+            const width = canvas.clientWidth;
+            const height = canvas.clientHeight;
+
+            // Scene
+            quaternionScene = new THREE.Scene();
+            quaternionScene.background = new THREE.Color(0x000011);
+
+            // Camera
+            quaternionCamera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+            quaternionCamera.position.set(2.5, 1.5, 3);
+
+            // Renderer
+            quaternionRenderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+            quaternionRenderer.setSize(width, height);
+            quaternionRenderer.setPixelRatio(window.devicePixelRatio);
+            quaternionRenderer.shadowMap.enabled = true;
+            quaternionRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+            // Trackball Controls for free-form 3D navigation
+            quaternionControls = new THREE.TrackballControls(quaternionCamera, quaternionRenderer.domElement);
+            quaternionControls.rotateSpeed = 1.0;
+            quaternionControls.zoomSpeed = 1.2;
+            quaternionControls.panSpeed = 0.8;
+            quaternionControls.noZoom = false;
+            quaternionControls.noPan = false;
+            quaternionControls.staticMoving = true;
+            quaternionControls.dynamicDampingFactor = 0.3;
+            quaternionControls.minDistance = 1.5;
+            quaternionControls.maxDistance = 6;
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+            quaternionScene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0x64ffda, 0.8);
+            directionalLight.position.set(3, 3, 3);
+            directionalLight.castShadow = true;
+            quaternionScene.add(directionalLight);
+
+            const pointLight = new THREE.PointLight(0x7c4dff, 0.4, 100);
+            pointLight.position.set(-2, 2, -2);
+            quaternionScene.add(pointLight);
+
+            // Create main quaternion sphere (wireframe)
+            const sphereGeometry = new THREE.SphereGeometry(1, 32, 32);
+            const sphereMaterial = new THREE.MeshPhongMaterial({
+                color: 0x333333,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.3
+            });
+            quaternionSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+            quaternionScene.add(quaternionSphere);
+
+            // Create solid sphere for depth reference
+            const solidSphereMaterial = new THREE.MeshPhongMaterial({
+                color: 0x111133,
+                transparent: true,
+                opacity: 0.1
+            });
+            const solidSphere = new THREE.Mesh(sphereGeometry, solidSphereMaterial);
+            quaternionScene.add(solidSphere);
+
+            // Create quaternion point
+            const pointGeometry = new THREE.SphereGeometry(0.05, 16, 16);
+            const pointMaterial = new THREE.MeshPhongMaterial({
+                color: 0x64ffda,
+                emissive: 0x64ffda,
+                emissiveIntensity: 0.3
+            });
+            quaternionPoint = new THREE.Mesh(pointGeometry, pointMaterial);
+            quaternionScene.add(quaternionPoint);
+
+            // Create antipodal point
+            const antipodalMaterial = new THREE.MeshPhongMaterial({
+                color: 0xff6b6b,
+                emissive: 0xff6b6b,
+                emissiveIntensity: 0.3
+            });
+            antipodalPoint = new THREE.Mesh(pointGeometry, antipodalMaterial);
+            antipodalPoint.visible = false; // Initially hidden
+            quaternionScene.add(antipodalPoint);
+
+            // Create coordinate axes for reference
+            const axisLength = 1.3;
+            const axisConfigs = [
+                { color: 0xff4444, direction: new THREE.Vector3(1, 0, 0), label: 'X' },
+                { color: 0x44ff44, direction: new THREE.Vector3(0, 1, 0), label: 'Y' },
+                { color: 0x4444ff, direction: new THREE.Vector3(0, 0, 1), label: 'Z' }
+            ];
+
+            axisConfigs.forEach(config => {
+                const arrowHelper = new THREE.ArrowHelper(
+                    config.direction,
+                    new THREE.Vector3(0, 0, 0),
+                    axisLength,
+                    config.color,
+                    0.1,
+                    0.05
+                );
+                arrowHelper.line.material.linewidth = 2;
+                quaternionScene.add(arrowHelper);
+            });
+
+            // Add grid helper
+            const gridHelper = new THREE.GridHelper(2, 10, 0x333333, 0x111111);
+            gridHelper.position.y = -1.2;
+            quaternionScene.add(gridHelper);
+
+            // Start animation loop for quaternion sphere
+            const animateQuaternionSphere = () => {
+                requestAnimationFrame(animateQuaternionSphere);
+                quaternionControls.update();
+                quaternionRenderer.render(quaternionScene, quaternionCamera);
+            };
+            animateQuaternionSphere();
+        };
+
         // ===============================================================================
-        // ENHANCED QUATERNION SPHERE VISUALIZATION WITH MATHEMATICAL ANALYSIS
+        // 3D QUATERNION SPHERE VISUALIZATION WITH GEODESIC ARC
         // ===============================================================================
         
-        const drawQuaternionSphere = () => {
+        const updateQuaternionSphere3D = () => {
+            if (!quaternionScene || !quaternionPoint) return;
+            
+            const [x, y, z, qw] = currentQuaternion;
+            
+            // Project quaternion to 3D sphere surface
+            // Since quaternions live on S³ (x²+y²+z²+w²=1), we need to project (x,y,z) to unit sphere
+            const xyz_norm = Math.sqrt(x*x + y*y + z*z);
+            
+            if (xyz_norm > 1e-10) { // Avoid division by zero
+                // Normalize (x,y,z) to unit length for sphere surface placement
+                const scale = 1.0 / xyz_norm;
+                quaternionPoint.position.set(x * scale, y * scale, z * scale);
+                
+                // Update antipodal point
+                if (showAntipodes) {
+                    antipodalPoint.visible = true;
+                    antipodalPoint.position.set(-x * scale, -y * scale, -z * scale);
+                } else {
+                    antipodalPoint.visible = false;
+                }
+            } else {
+                // Handle degenerate case where (x,y,z) ≈ (0,0,0) - place at north pole
+                quaternionPoint.position.set(0, 0, 1);
+                if (showAntipodes) {
+                    antipodalPoint.visible = true;
+                    antipodalPoint.position.set(0, 0, -1);
+                } else {
+                    antipodalPoint.visible = false;
+                }
+            }
+            
+            // Color and size based on w component magnitude
+            const wIntensity = Math.abs(qw);
+            quaternionPoint.material.emissiveIntensity = 0.3 + wIntensity * 0.7;
+            quaternionPoint.scale.setScalar(1 + wIntensity * 0.5);
+            
+            if (showAntipodes) {
+                antipodalPoint.material.emissiveIntensity = 0.3 + wIntensity * 0.7;
+                antipodalPoint.scale.setScalar(1 + wIntensity * 0.5);
+            }
+            
+            // Update geodesic arc
+            updateGeodesicArc3D();
+            
+            // Update quaternion display values
+            document.getElementById('quatX').textContent = x.toFixed(6);
+            document.getElementById('quatY').textContent = y.toFixed(6);
+            document.getElementById('quatZ').textContent = z.toFixed(6);
+            document.getElementById('quatW').textContent = qw.toFixed(6);
+        };
+
+        const updateGeodesicArc3D = () => {
+            console.log("updateGeodesicArc3D called, showGeodesicArc:", showGeodesicArc);
+            
+            // Remove existing geodesic curve
+            if (geodesicCurve) {
+                quaternionScene.remove(geodesicCurve);
+                geodesicCurve = null;
+            }
+            
+            if (!showGeodesicArc || !quaternionScene) return;
+            
+            const [x, y, z, qw] = currentQuaternion;
+            console.log("Current quaternion:", currentQuaternion);
+            
+            // Calculate the projected points on sphere surface
+            const xyz_norm = Math.sqrt(x*x + y*y + z*z);
+            let point1, point2;
+            
+            if (xyz_norm > 1e-10) {
+                const scale = 1.0 / xyz_norm;
+                point1 = new THREE.Vector3(x * scale, y * scale, z * scale);
+                point2 = new THREE.Vector3(-x * scale, -y * scale, -z * scale);
+            } else {
+                // Degenerate case
+                point1 = new THREE.Vector3(0, 0, 1);
+                point2 = new THREE.Vector3(0, 0, -1);
+            }
+            
+            console.log("Point1:", point1);
+            console.log("Point2:", point2);
+            
+            // Create a simple great circle arc using many points
+            const geodesicSteps = 50;
+            const points = [];
+            
+            // Calculate the rotation axis (cross product of point1 and point2)
+            const axis = new THREE.Vector3().crossVectors(point1, point2).normalize();
+            const angle = point1.angleTo(point2);
+            
+            console.log("Rotation axis:", axis);
+            console.log("Angle between points:", angle, "radians =", angle * 180 / Math.PI, "degrees");
+            
+            // If points are too close or opposite, create alternative path
+            if (angle < 0.01 || angle > 3.13) {
+                console.log("Points are too close or opposite, using alternative path");
+                // Create path through an intermediate point
+                const midPoint = new THREE.Vector3(1, 0, 0);
+                if (Math.abs(point1.dot(midPoint)) > 0.9) {
+                    midPoint.set(0, 1, 0);
+                }
+                
+                // First half: point1 to midPoint
+                for (let i = 0; i <= geodesicSteps/2; i++) {
+                    const t = i / (geodesicSteps/2);
+                    const interpolated = new THREE.Vector3().lerpVectors(point1, midPoint, t).normalize();
+                    points.push(interpolated);
+                }
+                
+                // Second half: midPoint to point2
+                for (let i = 1; i <= geodesicSteps/2; i++) {
+                    const t = i / (geodesicSteps/2);
+                    const interpolated = new THREE.Vector3().lerpVectors(midPoint, point2, t).normalize();
+                    points.push(interpolated);
+                }
+            } else {
+                // Normal case: rotate around axis
+                for (let i = 0; i <= geodesicSteps; i++) {
+                    const t = i / geodesicSteps;
+                    const rotationAngle = angle * t;
+                    
+                    const rotatedPoint = point1.clone();
+                    rotatedPoint.applyAxisAngle(axis, rotationAngle);
+                    points.push(rotatedPoint);
+                }
+            }
+            
+            console.log("Created", points.length, "points for geodesic");
+            
+            // Create line geometry instead of tube for better visibility
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+            const material = new THREE.LineBasicMaterial({
+                color: 0xFFD700,
+                linewidth: 5,
+                transparent: false
+            });
+            
+            geodesicCurve = new THREE.Line(geometry, material);
+            quaternionScene.add(geodesicCurve);
+            
+            console.log("Geodesic arc added to scene");
+        };
+
+        const resizeQuaternionSphere3D = () => {
+            if (!quaternionRenderer) return;
+            
             const canvas = document.getElementById('quaternionCanvas');
-            const ctx = quaternionCtx;
             const width = canvas.clientWidth;
             const height = canvas.clientHeight;
             
-            ctx.clearRect(0, 0, width, height);
-            ctx.save();
-            ctx.translate(width/2, height/2);
-            
-            const radius = Math.min(width, height) * 0.25; // Smaller to make room for analysis
-            
-            // Perform comprehensive mathematical analysis
-            const quaternionNorm = Math.sqrt(currentQuaternion[0]**2 + currentQuaternion[1]**2 +
-                                           currentQuaternion[2]**2 + currentQuaternion[3]**2);
-            const normalizationError = Math.abs(quaternionNorm - 1.0);
-            
-            // Verify SO(3) properties
-            const rotMatrix = qToMatrix(currentQuaternion);
-            const so3Analysis = verifySO3Properties(rotMatrix);
-            
-            // Analyze antipodal points
-            const antipodalAnalysis = analyzeAntipodalPoints(currentQuaternion);
-            
-            // Enhanced stereographic projection with error analysis
-            const stereoProjection = stereographicProjection(currentQuaternion, 'north');
-            
-            // Verify double cover property
-            const doubleCoverAnalysis = verifyDoubleCover(currentQuaternion);
-            
-            // Draw sphere wireframe with mathematical grid
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
-            ctx.lineWidth = 0.5;
-            
-            // Mathematical latitude lines (great circles)
-            for (let lat = -60; lat <= 60; lat += 20) {
-                const r = radius * Math.cos(deg2rad(lat));
-                const y = radius * Math.sin(deg2rad(lat));
-                ctx.beginPath();
-                ctx.arc(0, -y, r, 0, 2 * Math.PI);
-                ctx.stroke();
-            }
-            
-            // Mathematical longitude lines (geodesics)
-            for (let lon = 0; lon < 180; lon += 20) {
-                ctx.beginPath();
-                const ellipseRadius = Math.abs(radius * Math.cos(deg2rad(lon)));
-                ctx.ellipse(0, 0, ellipseRadius, radius, deg2rad(lon), 0, 2 * Math.PI);
-                ctx.stroke();
-            }
-            
-            // Draw mathematical coordinate system
-            ctx.strokeStyle = 'rgba(100, 255, 218, 0.3)';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(-radius*1.2, 0); ctx.lineTo(radius*1.2, 0); // X-axis
-            ctx.moveTo(0, -radius*1.2); ctx.lineTo(0, radius*1.2); // Y-axis
-            ctx.stroke();
-            
-            // Get quaternion components
-            const [x, y, z, qw] = currentQuaternion;
-            const [axis, angle] = qToAxisAngle(currentQuaternion);
-            
-            // Use consistent projection method for both q and -q
-            const projectionScale = radius * 0.8;
-            
-            // For consistency, use simple x,y projection that will work symmetrically
-            let projX = x * projectionScale;
-            let projY = -y * projectionScale; // Negative y for screen coordinates
-            
-            // Clamp to visible bounds
-            const maxDist = radius * 1.1;
-            const currentDist = Math.sqrt(projX*projX + projY*projY);
-            if (currentDist > maxDist) {
-                projX = (projX / currentDist) * maxDist;
-                projY = (projY / currentDist) * maxDist;
-            }
-            
-            const projectionValid = true; // Simple projection is always valid
-            
-            // Mathematical color encoding based on rotation angle
-            const angleNormalized = angle / Math.PI;
-            const hue = (1 - angleNormalized) * 120; // Green to Red
-            const ringSize = 6 + angleNormalized * 8;
-            
-            // Visualize unit constraint verification
-            const constraintColor = normalizationError < QUATERNION_TOLERANCE ? '#00ff00' : '#ff0000';
-            ctx.strokeStyle = constraintColor;
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.arc(projX, projY, ringSize * 1.5, 0, 2 * Math.PI);
-            ctx.stroke();
-            
-            // Draw main quaternion point
-            const gradient = ctx.createRadialGradient(projX, projY, 0, projX, projY, ringSize);
-            gradient.addColorStop(0, `hsl(${hue}, 100%, 60%)`);
-            gradient.addColorStop(1, `hsl(${hue}, 80%, 40%)`);
-            ctx.fillStyle = gradient;
-            ctx.beginPath();
-            ctx.arc(projX, projY, ringSize, 0, 2 * Math.PI);
-            ctx.fill();
-            
-            // Indicate SO(3) validity
-            ctx.strokeStyle = so3Analysis.isValidSO3 ? '#00ff00' : '#ff6600';
-            ctx.lineWidth = 1;
-            ctx.stroke();
-            
-            // Draw rotation axis visualization
-            if (angle > 1e-6) {
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(projX, projY);
-                const axisEndX = projX + axis[0] * ringSize * 2;
-                const axisEndY = projY - axis[1] * ringSize * 2;
-                ctx.lineTo(axisEndX, axisEndY);
-                ctx.stroke();
-                
-                // Arrow head
-                const arrowSize = 4;
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-                ctx.beginPath();
-                ctx.moveTo(axisEndX, axisEndY);
-                ctx.lineTo(axisEndX - arrowSize, axisEndY - arrowSize/2);
-                ctx.lineTo(axisEndX - arrowSize, axisEndY + arrowSize/2);
-                ctx.closePath();
-                ctx.fill();
-            }
-            
-            // Enhanced antipodal point visualization - ALWAYS show when requested
-            if (showAntipodes) {
-                // Calculate antipodal quaternion: -q = (-x, -y, -z, -w)
-                const antiQ = [-x, -y, -z, -qw];
-                
-                // Use same projection method as main quaternion for consistency
-                let finalAntiX = (-x) * projectionScale;
-                let finalAntiY = -(-y) * projectionScale; // Note: double negative for antipodal y
-                
-                // Clamp antipodal point to same bounds
-                const antiDist = Math.sqrt(finalAntiX*finalAntiX + finalAntiY*finalAntiY);
-                if (antiDist > maxDist) {
-                    finalAntiX = (finalAntiX / antiDist) * maxDist;
-                    finalAntiY = (finalAntiY / antiDist) * maxDist;
-                }
-                
-                // Draw antipodal point with contrasting color
-                const antiHue = (hue + 180) % 360;
-                const antiGradient = ctx.createRadialGradient(finalAntiX, finalAntiY, 0,
-                                                            finalAntiX, finalAntiY, ringSize * 0.8);
-                antiGradient.addColorStop(0, `hsla(${antiHue}, 80%, 60%, 0.9)`);
-                antiGradient.addColorStop(1, `hsla(${antiHue}, 70%, 40%, 0.7)`);
-                ctx.fillStyle = antiGradient;
-                ctx.beginPath();
-                ctx.arc(finalAntiX, finalAntiY, ringSize * 0.8, 0, 2 * Math.PI);
-                ctx.fill();
-                
-                // Border for antipodal point (always valid in symmetric projection)
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-                
-                // Draw geodesic connection between q and -q
-                ctx.strokeStyle = 'rgba(100, 255, 218, 0.6)';
-                ctx.lineWidth = 2;
-                ctx.setLineDash([4, 4]);
-                ctx.beginPath();
-                
-                // Safe geodesic path using NLERP to avoid recursion with antipodal quaternions
-                const geodesicSteps = 30;
-                let geodesicPoints = [];
-                
-                // Check if quaternions are antipodal to avoid infinite recursion
-                const dotProduct = currentQuaternion[0]*antiQ[0] + currentQuaternion[1]*antiQ[1] +
-                                 currentQuaternion[2]*antiQ[2] + currentQuaternion[3]*antiQ[3];
-                const isAntipodal = Math.abs(dotProduct) < 0.1; // Near antipodal
-                
-                for (let i = 0; i <= geodesicSteps; i++) {
-                    const t = i / geodesicSteps;
-                    let interpQ;
-                    
-                    if (isAntipodal) {
-                        // Use simple normalized linear interpolation for antipodal quaternions
-                        interpQ = qNorm([
-                            currentQuaternion[0] + t * (antiQ[0] - currentQuaternion[0]),
-                            currentQuaternion[1] + t * (antiQ[1] - currentQuaternion[1]),
-                            currentQuaternion[2] + t * (antiQ[2] - currentQuaternion[2]),
-                            currentQuaternion[3] + t * (antiQ[3] - currentQuaternion[3])
-                        ]);
-                    } else {
-                        // Use standard SLERP for non-antipodal quaternions
-                        // But implement it directly here to avoid recursion
-                        let [ax, ay, az, aw] = currentQuaternion;
-                        let [bx, by, bz, bw] = antiQ;
-                        
-                        let dot = ax*bx + ay*by + az*bz + aw*bw;
-                        if (dot < 0) {
-                            dot = -dot;
-                            bx = -bx; by = -by; bz = -bz; bw = -bw;
-                        }
-                        
-                        if (dot > 0.9995) {
-                            // Near parallel, use linear interpolation
-                            interpQ = qNorm([ax + t*(bx-ax), ay + t*(by-ay), az + t*(bz-az), aw + t*(bw-aw)]);
-                        } else {
-                            // Standard SLERP
-                            const theta = Math.acos(Math.min(1, dot));
-                            const sinTheta = Math.sin(theta);
-                            const aCoeff = Math.sin((1-t)*theta) / sinTheta;
-                            const bCoeff = Math.sin(t*theta) / sinTheta;
-                            interpQ = [ax*aCoeff + bx*bCoeff, ay*aCoeff + by*bCoeff,
-                                     az*aCoeff + bz*bCoeff, aw*aCoeff + bw*bCoeff];
-                        }
-                    }
-                    
-                    const interpStereo = stereographicProjection(interpQ, 'north');
-                    if (interpStereo.isValid) {
-                        const geodX = interpStereo.x * radius * 0.9 * 0.5;
-                        const geodY = interpStereo.y * radius * 0.9 * 0.5;
-                        geodesicPoints.push([geodX, geodY]);
-                    }
-                }
-                
-                // Draw the geodesic curve
-                if (geodesicPoints.length > 1) {
-                    ctx.moveTo(geodesicPoints[0][0], geodesicPoints[0][1]);
-                    for (let i = 1; i < geodesicPoints.length; i++) {
-                        ctx.lineTo(geodesicPoints[i][0], geodesicPoints[i][1]);
-                    }
-                }
-                ctx.stroke();
-                ctx.setLineDash([]);
-                
-                // Draw direct connection line (chord) for comparison - NOW CONSISTENT
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-                ctx.lineWidth = 2;
-                ctx.setLineDash([4, 4]);
-                ctx.beginPath();
-                ctx.moveTo(projX, projY); // Use consistent projX, projY
-                ctx.lineTo(finalAntiX, finalAntiY);
-                ctx.stroke();
-                ctx.setLineDash([]);
-                
-                // Draw symmetry axes to show the relationship
-                ctx.strokeStyle = 'rgba(100, 255, 218, 0.2)';
-                ctx.lineWidth = 1;
-                ctx.setLineDash([1, 3]);
-                ctx.beginPath();
-                ctx.moveTo(-radius, 0); ctx.lineTo(radius, 0); // Horizontal symmetry line
-                ctx.moveTo(0, -radius); ctx.lineTo(0, radius); // Vertical symmetry line
-                ctx.stroke();
-                ctx.setLineDash([]);
-                
-                // Mathematical labels and annotations - NOW CONSISTENT
-                ctx.fillStyle = '#ffffff';
-                ctx.font = '10px monospace';
-                ctx.fillText('q', projX + ringSize + 4, projY - 6);
-                ctx.fillText('-q', finalAntiX + ringSize + 4, finalAntiY - 6);
-                
-                // Show that both points represent the same rotation
-                ctx.fillStyle = '#64ffda';
-                ctx.font = '8px monospace';
-                const midX = (projX + finalAntiX) / 2;
-                const midY = (projY + finalAntiY) / 2;
-                ctx.fillText('same rotation', midX - 25, midY + 20);
-                
-                // Show symmetry relationship
-                ctx.fillStyle = '#ffaa00';
-                ctx.font = '7px monospace';
-                ctx.fillText('antipodal symmetry', -radius * 0.8, -radius - 25);
-                
-                // Display geodesic distance (should be π for true antipodal points)
-                const theoreticalDistance = Math.PI;
-                const actualDistance = antipodalAnalysis ? antipodalAnalysis.geodesicDistance : theoreticalDistance;
-                ctx.fillStyle = '#ffaa00';
-                ctx.font = '7px monospace';
-                ctx.fillText(`d(q,-q) = ${actualDistance.toFixed(3)} (π = ${theoreticalDistance.toFixed(3)})`,
-                           Math.min(projX, finalAntiX), Math.max(projY, finalAntiY) + 35);
-                
-                // Mathematical validity indicators
-                if (antipodalAnalysis) {
-                    const validityColor = antipodalAnalysis.isValidAntipodal ? '#00ff00' : '#ff6600';
-                    ctx.fillStyle = validityColor;
-                    ctx.font = '7px monospace';
-                    ctx.fillText(`Antipodal Valid: ${antipodalAnalysis.isValidAntipodal ? '✓' : '✗'}`,
-                               Math.min(projX, finalAntiX), Math.max(projY, finalAntiY) + 45);
-                    
-                    ctx.fillText(`Matrix Error: ${antipodalAnalysis.rotationMatrixError.toExponential(2)}`,
-                               Math.min(projX, finalAntiX), Math.max(projY, finalAntiY) + 55);
-                }
-            }
-            
-            // Draw SLERP geodesic arc between q and -q if enabled
-            if (showGeodesicArc) {
-                const [x, y, z, qw] = currentQuaternion;
-                const antipodalQ = [-x, -y, -z, -qw];
-                
-                // Draw geodesic arc using proper spherical interpolation
-                ctx.strokeStyle = '#FFD700'; // Bright gold color for geodesic
-                ctx.lineWidth = 3;
-                ctx.setLineDash([]);
-                
-                const geodesicSteps = 60;
-                
-                // For antipodal quaternions, create a great circle by using a perpendicular quaternion
-                // Find a quaternion perpendicular to the current one
-                let perpQ;
-                if (Math.abs(qw) < 0.9) {
-                    // If w component is not too large, use [0,0,0,1] as base
-                    perpQ = qNorm([0, 0, 0, 1]);
-                } else {
-                    // If w is large, use [1,0,0,0] as base
-                    perpQ = qNorm([1, 0, 0, 0]);
-                }
-                
-                // Make perpQ orthogonal to currentQuaternion using Gram-Schmidt
-                const dot = currentQuaternion[0]*perpQ[0] + currentQuaternion[1]*perpQ[1] +
-                           currentQuaternion[2]*perpQ[2] + currentQuaternion[3]*perpQ[3];
-                perpQ = qNorm([
-                    perpQ[0] - dot * currentQuaternion[0],
-                    perpQ[1] - dot * currentQuaternion[1],
-                    perpQ[2] - dot * currentQuaternion[2],
-                    perpQ[3] - dot * currentQuaternion[3]
-                ]);
-                
-                // Draw the geodesic curve using proper spherical interpolation
-                ctx.beginPath();
-                
-                for (let i = 0; i <= geodesicSteps; i++) {
-                    const theta = (i / geodesicSteps) * Math.PI; // 0 to π
-                    
-                    // Create point on great circle: q*cos(θ) + perp*sin(θ)
-                    const interpQ = qNorm([
-                        currentQuaternion[0] * Math.cos(theta) + perpQ[0] * Math.sin(theta),
-                        currentQuaternion[1] * Math.cos(theta) + perpQ[1] * Math.sin(theta),
-                        currentQuaternion[2] * Math.cos(theta) + perpQ[2] * Math.sin(theta),
-                        currentQuaternion[3] * Math.cos(theta) + perpQ[3] * Math.sin(theta)
-                    ]);
-                    
-                    // Project to 2D using same method as main quaternion
-                    let projX_geo = interpQ[0] * projectionScale;
-                    let projY_geo = -interpQ[1] * projectionScale;
-                    
-                    // Clamp to visible bounds if needed
-                    const currentDist_geo = Math.sqrt(projX_geo*projX_geo + projY_geo*projY_geo);
-                    if (currentDist_geo > maxDist) {
-                        projX_geo = (projX_geo / currentDist_geo) * maxDist;
-                        projY_geo = (projY_geo / currentDist_geo) * maxDist;
-                    }
-                    
-                    if (i === 0) {
-                        ctx.moveTo(projX_geo, projY_geo);
-                    } else {
-                        ctx.lineTo(projX_geo, projY_geo);
-                    }
-                }
-                
-                ctx.stroke();
-                
-                // Add mathematical annotation
-                ctx.fillStyle = '#FFD700';
-                ctx.font = '9px monospace';
-                ctx.fillText('Great Circle Geodesic: q ↔ -q', -radius*1.2, radius + 65);
-                ctx.fillText('Spherical interpolation on S³', -radius*1.2, radius + 75);
-            }
-            
-            // Mathematical analysis display
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 10px monospace';
-            ctx.fillText(`θ = ${(angle * 180 / Math.PI).toFixed(2)}°`, projX + ringSize + 5, projY - 8);
-            
-            // Show mathematical properties
-            ctx.font = '8px monospace';
-            ctx.fillStyle = normalizationError < QUATERNION_TOLERANCE ? '#00ff00' : '#ff6600';
-            ctx.fillText(`||q|| = ${quaternionNorm.toFixed(6)}`, -radius*1.2, radius + 15);
-            
-            ctx.fillStyle = so3Analysis.isValidSO3 ? '#00ff00' : '#ff6600';
-            ctx.fillText(`SO(3): ${so3Analysis.isValidSO3 ? '✓' : '✗'}`, -radius*1.2, radius + 25);
-            
-            ctx.fillStyle = doubleCoverAnalysis.isValid ? '#00ff00' : '#ff6600';
-            ctx.fillText(`Double Cover: ${doubleCoverAnalysis.isValid ? '✓' : '✗'}`, -radius*1.2, radius + 35);
-            
-            ctx.fillStyle = projectionValid ? '#00ff00' : '#ff6600';
-            ctx.fillText(`Projection: ${projectionValid ? '✓' : '✗'}`, -radius*1.2, radius + 45);
-            
-            // Quaternion components
-            ctx.fillStyle = '#64ffda';
-            ctx.font = '9px monospace';
-            const quatStr = `q = [${x.toFixed(4)}, ${y.toFixed(4)}, ${z.toFixed(4)}, ${qw.toFixed(4)}]`;
-            ctx.fillText(quatStr, -radius*1.2, -radius - 15);
-            
-            // Rotation axis and angle
-            ctx.fillStyle = '#ffaa00';
-            const axisStr = `axis = [${axis[0].toFixed(3)}, ${axis[1].toFixed(3)}, ${axis[2].toFixed(3)}]`;
-            ctx.fillText(axisStr, -radius*1.2, -radius - 5);
-            
-            ctx.restore();
-            
-            // Update mathematical analysis counters
-            mathAnalysis.frameCount++;
+            quaternionCamera.aspect = width / height;
+            quaternionCamera.updateProjectionMatrix();
+            quaternionRenderer.setSize(width, height);
         };
 
         // Simple, guaranteed-to-work approach focusing on visible results
@@ -2300,7 +2287,7 @@ tags: [physics, graphics, games, rotations, quaternions, so3]
             if (Math.abs(Math.cos(fixedPitch)) < 0.15) {
                 ctx.fillStyle = '#ffff00';
                 ctx.font = 'bold 16px sans-serif';
-                ctx.fillText('⚠️ NEAR SINGULARITY!', width/2 - 80, 25);
+                ctx.fillText('NEAR SINGULARITY!', width/2 - 80, 25);
             }
         };
 
@@ -2575,10 +2562,8 @@ tags: [physics, graphics, games, rotations, quaternions, so3]
             // Redraw visualizations with enhanced mathematical analysis
             drawGimbal();
             
-            // Update quaternion sphere visualization with mathematical insights
-            if (quaternionCtx) {
-                drawQuaternionSphere();
-            }
+            // Update 3D quaternion sphere visualization with mathematical insights
+            updateQuaternionSphere3D();
             
             // Update timestamp for next temporal analysis
             lastUpdateTime = currentTime;
@@ -2601,8 +2586,10 @@ tags: [physics, graphics, games, rotations, quaternions, so3]
             // Initialize Three.js for gimbal visualization
             initThreeJS();
             
-            // Initialize other canvas contexts
-            quaternionCtx = document.getElementById('quaternionCanvas').getContext('2d');
+            // Initialize 3D quaternion sphere visualization
+            initQuaternionSphere3D();
+            
+            // Initialize other canvas contexts (only 2D canvases)
             heatmapCtx = document.getElementById('heatmapCanvas').getContext('2d');
             slerpCtx = document.getElementById('slerpCanvas').getContext('2d');
             
@@ -2638,7 +2625,7 @@ tags: [physics, graphics, games, rotations, quaternions, so3]
                 drawSlerpComparison();
                 // Update geodesic arc to show current position
                 if (showGeodesicArc) {
-                    drawQuaternionSphere();
+                    updateQuaternionSphere3D();
                 }
             });
             
@@ -2646,14 +2633,14 @@ tags: [physics, graphics, games, rotations, quaternions, so3]
                 showAntipodes = !showAntipodes;
                 document.getElementById('showAntipodes').textContent =
                     showAntipodes ? 'Hide Antipodal Points' : 'Show Antipodal Points (±q)';
-                drawQuaternionSphere();
+                updateQuaternionSphere3D();
             });
             
             document.getElementById('showGeodesicArc').addEventListener('click', () => {
                 showGeodesicArc = !showGeodesicArc;
                 document.getElementById('showGeodesicArc').textContent =
                     showGeodesicArc ? 'Hide Antipodal Geodesic Arc' : 'Show Antipodal Geodesic Arc';
-                drawQuaternionSphere();
+                updateQuaternionSphere3D();
             });
             
             document.getElementById('setRandomOrientations').addEventListener('click', () => {
@@ -2663,7 +2650,7 @@ tags: [physics, graphics, games, rotations, quaternions, so3]
                 window.orientationA = orientationA;
                 window.orientationB = orientationB;
                 drawSlerpComparison();
-                drawQuaternionSphere(); // Redraw to show geodesic
+                updateQuaternionSphere3D(); // Redraw to show geodesic
             });
             
             let heatmapAnimating = false;
@@ -2737,6 +2724,7 @@ tags: [physics, graphics, games, rotations, quaternions, so3]
             setTimeout(() => {
                 resizeCanvases();
                 resizeThreeJS();
+                resizeQuaternionSphere3D();
                 updateFromSliders();
                 drawHeatmap();
                 drawSlerpComparison();
