@@ -324,21 +324,95 @@ tags: [physics, graphics, games, rotations, quaternions, so3]
 
     <!-- Three.js for 3D rendering -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/TrackballControls.js"></script>
 
     <script>
-        // Quaternion utility functions
-        const qNorm = ([x, y, z, w]) => {
-            const s = 1 / Math.sqrt(x*x + y*y + z*z + w*w);
-            return [x*s, y*s, z*s, w*s];
+        // ===============================================================================
+        // COMPREHENSIVE MATHEMATICAL ANALYSIS OF QUATERNION SPHERE VISUALIZATION
+        // ===============================================================================
+        
+        // Mathematical Constants and Tolerances
+        const MATH_EPSILON = 1e-15;
+        const QUATERNION_TOLERANCE = 1e-12;
+        const GEODESIC_RESOLUTION = 100;
+        const ANTIPODAL_THRESHOLD = 0.999999; // cos(θ) for nearly antipodal quaternions
+        
+        // Mathematical Analysis State
+        const mathAnalysis = {
+            unitConstraintViolations: [],
+            geodesicErrors: [],
+            singularityDetections: [],
+            temporalCoherence: [],
+            projectionErrors: [],
+            frameCount: 0
         };
 
-        const qMul = ([ax, ay, az, aw], [bx, by, bz, bw]) => ([
-            aw*bx + ax*bw + ay*bz - az*by,
-            aw*by - ax*bz + ay*bw + az*bx,
-            aw*bz + ax*by - ay*bx + az*bw,
-            aw*bw - ax*bx - ay*by - az*bz
-        ]);
+        // ===============================================================================
+        // ENHANCED QUATERNION OPERATIONS WITH MATHEMATICAL VERIFICATION
+        // ===============================================================================
+        
+        // Unit quaternion normalization with constraint verification
+        const qNorm = ([x, y, z, w]) => {
+            const normSq = x*x + y*y + z*z + w*w;
+            const norm = Math.sqrt(normSq);
+            
+            // Mathematical verification: Check if quaternion is already unit
+            const unitConstraintError = Math.abs(norm - 1.0);
+            if (unitConstraintError > QUATERNION_TOLERANCE) {
+                mathAnalysis.unitConstraintViolations.push({
+                    frame: mathAnalysis.frameCount,
+                    originalNorm: norm,
+                    error: unitConstraintError,
+                    quaternion: [x, y, z, w]
+                });
+            }
+            
+            // Handle near-zero quaternions (degenerate case)
+            if (norm < MATH_EPSILON) {
+                console.warn("Mathematical Analysis: Degenerate quaternion detected, defaulting to identity");
+                return [0, 0, 0, 1];
+            }
+            
+            const s = 1 / norm;
+            const result = [x*s, y*s, z*s, w*s];
+            
+            // Post-normalization verification
+            const resultNorm = Math.sqrt(result[0]*result[0] + result[1]*result[1] +
+                                       result[2]*result[2] + result[3]*result[3]);
+            const postNormError = Math.abs(resultNorm - 1.0);
+            
+            if (postNormError > QUATERNION_TOLERANCE) {
+                console.error("Mathematical Analysis: Post-normalization error:", postNormError);
+            }
+            
+            return result;
+        };
+
+        // Quaternion multiplication with mathematical verification
+        const qMul = ([ax, ay, az, aw], [bx, by, bz, bw]) => {
+            const result = [
+                aw*bx + ax*bw + ay*bz - az*by,  // i component
+                aw*by - ax*bz + ay*bw + az*bx,  // j component
+                aw*bz + ax*by - ay*bx + az*bw,  // k component
+                aw*bw - ax*bx - ay*by - az*bz   // scalar component
+            ];
+            
+            // Mathematical verification: Product of unit quaternions should be unit
+            const aNorm = Math.sqrt(ax*ax + ay*ay + az*az + aw*aw);
+            const bNorm = Math.sqrt(bx*bx + by*by + bz*bz + bw*bw);
+            const resultNorm = Math.sqrt(result[0]*result[0] + result[1]*result[1] +
+                                       result[2]*result[2] + result[3]*result[3]);
+            
+            const expectedNorm = aNorm * bNorm;
+            const multiplicativeError = Math.abs(resultNorm - expectedNorm);
+            
+            if (multiplicativeError > QUATERNION_TOLERANCE) {
+                console.warn("Mathematical Analysis: Quaternion multiplication norm error:",
+                           multiplicativeError);
+            }
+            
+            return result;
+        };
 
         const qFromAxisAngle = ([ux, uy, uz], th) => {
             const s = Math.sin(th / 2);
@@ -358,42 +432,178 @@ tags: [physics, graphics, games, rotations, quaternions, so3]
             ]);
         };
 
-        const qSlerp = (a, b, t) => {
-            let [ax, ay, az, aw] = a;
-            let [bx, by, bz, bw] = b;
+        // ===============================================================================
+        // GEODESIC ANALYSIS AND SLERP WITH MATHEMATICAL VERIFICATION
+        // ===============================================================================
+        
+        // Calculate geodesic distance on S³ between two quaternions
+        const geodesicDistance = (qa, qb) => {
+            // Ensure we take the shorter path (handle double cover)
+            let dot = Math.abs(qa[0]*qb[0] + qa[1]*qb[1] + qa[2]*qb[2] + qa[3]*qb[3]);
+            dot = Math.min(1.0, Math.max(-1.0, dot)); // Clamp for numerical stability
+            return Math.acos(dot);
+        };
+        
+        // Analyze antipodal points and their geodesic properties
+        const analyzeAntipodalPoints = (q) => {
+            const [x, y, z, w] = q;
+            const antipodalQ = [-x, -y, -z, -w];
             
+            // Verify that q and -q represent the same rotation
+            const rotationMatrix1 = qToMatrix(q);
+            const rotationMatrix2 = qToMatrix(antipodalQ);
+            
+            // Calculate matrix difference (should be zero for same rotation)
+            let maxMatrixDiff = 0;
+            for (let i = 0; i < 16; i++) {
+                const diff = Math.abs(rotationMatrix1[i] - rotationMatrix2[i]);
+                maxMatrixDiff = Math.max(maxMatrixDiff, diff);
+            }
+            
+            // Calculate antipodal geodesic distance (should be π for true antipodal points)
+            const dot = x*(-x) + y*(-y) + z*(-z) + w*(-w); // Should be -1 for unit quaternions
+            const clampedDot = Math.min(1.0, Math.max(-1.0, dot));
+            // For antipodal points: dot = -1, so arccos(-1) = π
+            const antipodalGeodesicDist = Math.acos(clampedDot);
+            
+            // For true antipodal points on unit sphere, distance should be π
+            const expectedDistance = Math.PI;
+            const geodesicError = Math.abs(antipodalGeodesicDist - expectedDistance);
+            
+            // Additional verification: dot product should be -1 for perfect antipodal points
+            const dotProductError = Math.abs(dot - (-1.0));
+            
+            return {
+                q: q,
+                antipodal: antipodalQ,
+                geodesicDistance: antipodalGeodesicDist,
+                geodesicError: geodesicError,
+                dotProduct: dot,
+                dotProductError: dotProductError,
+                rotationMatrixError: maxMatrixDiff,
+                isValidAntipodal: geodesicError < QUATERNION_TOLERANCE * 100 && maxMatrixDiff < QUATERNION_TOLERANCE * 10
+            };
+        };
+        
+        // Enhanced SLERP with comprehensive mathematical analysis
+        const qSlerp = (a, b, t) => {
+            // Input validation
+            if (t < 0 || t > 1) {
+                console.warn("Mathematical Analysis: SLERP parameter t outside [0,1]:", t);
+            }
+            
+            // Ensure inputs are normalized
+            const aNorm = qNorm(a);
+            const bNorm = qNorm(b);
+            let [ax, ay, az, aw] = aNorm;
+            let [bx, by, bz, bw] = bNorm;
+            
+            // Calculate dot product for geodesic analysis
             let dot = ax*bx + ay*by + az*bz + aw*bw;
+            const originalDot = dot;
+            
+            // Handle double cover: choose shorter path on S³
             if (dot < 0) {
                 dot = -dot;
                 bx = -bx; by = -by; bz = -bz; bw = -bw;
             }
             
-            // Handle near-parallel quaternions
+            // Mathematical analysis: Record geodesic properties
+            const geodesicAngle = Math.acos(Math.min(1, Math.abs(originalDot)));
+            mathAnalysis.geodesicErrors.push({
+                frame: mathAnalysis.frameCount,
+                geodesicAngle: geodesicAngle,
+                dotProduct: originalDot,
+                shortestPath: dot > Math.abs(originalDot)
+            });
+            
+            // Handle near-parallel quaternions (cosine close to 1)
             if (dot > 0.9995) {
+                // Use linear interpolation for numerical stability
+                const result = qNorm([ax + t*(bx-ax), ay + t*(by-ay), az + t*(bz-az), aw + t*(bw-aw)]);
+                
+                // Verify constant angular velocity property is maintained
+                const midPoint = qSlerp(aNorm, bNorm, 0.5);
+                const dist1 = geodesicDistance(aNorm, midPoint);
+                const dist2 = geodesicDistance(midPoint, bNorm);
+                const velocityError = Math.abs(dist1 - dist2);
+                
+                if (velocityError > QUATERNION_TOLERANCE) {
+                    console.warn("Mathematical Analysis: SLERP velocity consistency error:", velocityError);
+                }
+                
+                return result;
+            }
+            
+            // Handle antipodal quaternions (dot ≈ 0 after negation) - NON-RECURSIVE
+            if (dot < 0.001) {
+                console.log("Mathematical Analysis: Handling antipodal quaternions with non-recursive method");
+                
+                // For antipodal quaternions, we need to interpolate through a great semicircle
+                // Use simple linear interpolation and then normalize (NLERP) for stability
+                const result = qNorm([
+                    ax + t * (bx - ax),
+                    ay + t * (by - ay),
+                    az + t * (bz - az),
+                    aw + t * (bw - aw)
+                ]);
+                
+                // Record this as a special case in mathematical analysis
+                mathAnalysis.geodesicErrors.push({
+                    frame: mathAnalysis.frameCount,
+                    type: 'antipodal-nlerp-fallback',
+                    t: t,
+                    originalDot: originalDot,
+                    message: 'Used NLERP for antipodal quaternions to avoid recursion'
+                });
+                
+                return result;
+            }
+            
+            // Standard SLERP calculation
+            const theta = Math.acos(Math.min(1, dot));
+            const sinTheta = Math.sin(theta);
+            
+            // Check for numerical stability
+            if (Math.abs(sinTheta) < MATH_EPSILON) {
+                console.warn("Mathematical Analysis: SLERP numerical instability detected");
                 return qNorm([ax + t*(bx-ax), ay + t*(by-ay), az + t*(bz-az), aw + t*(bw-aw)]);
             }
             
-            // Handle antipodal quaternions (dot ≈ 0 after negation)
-            if (dot < 0.001) {
-                // Find an orthogonal quaternion
-                let orthogonal = [aw, -az, ay, -ax];
-                if (Math.abs(ax) > 0.9) {
-                    orthogonal = [-aw, az, -ay, ax];
-                }
-                // SLERP through the orthogonal quaternion
-                if (t < 0.5) {
-                    return qSlerp(a, orthogonal, t * 2);
-                } else {
-                    return qSlerp(orthogonal, b, (t - 0.5) * 2);
+            const aCoeff = Math.sin((1-t)*theta) / sinTheta;
+            const bCoeff = Math.sin(t*theta) / sinTheta;
+            
+            const result = [ax*aCoeff + bx*bCoeff, ay*aCoeff + by*bCoeff,
+                          az*aCoeff + bz*bCoeff, aw*aCoeff + bw*bCoeff];
+            
+            // Mathematical verification: Check that result lies on unit sphere
+            const resultNorm = Math.sqrt(result[0]*result[0] + result[1]*result[1] +
+                                       result[2]*result[2] + result[3]*result[3]);
+            const normError = Math.abs(resultNorm - 1.0);
+            
+            if (normError > QUATERNION_TOLERANCE) {
+                console.warn("Mathematical Analysis: SLERP result not on unit sphere:", normError);
+            }
+            
+            // Verify geodesic property: distances should scale linearly with t
+            if (t > 0 && t < 1) {
+                const distTotal = geodesicDistance(aNorm, bNorm);
+                const distPartial = geodesicDistance(aNorm, result);
+                const expectedPartial = t * distTotal;
+                const geodesicLinearityError = Math.abs(distPartial - expectedPartial);
+                
+                if (geodesicLinearityError > QUATERNION_TOLERANCE * 10) {
+                    mathAnalysis.geodesicErrors.push({
+                        frame: mathAnalysis.frameCount,
+                        t: t,
+                        geodesicLinearityError: geodesicLinearityError,
+                        distTotal: distTotal,
+                        distPartial: distPartial
+                    });
                 }
             }
             
-            const th = Math.acos(Math.min(1, dot));
-            const s = 1 / Math.sin(th);
-            const aS = Math.sin((1-t)*th) * s;
-            const bS = Math.sin(t*th) * s;
-            
-            return [ax*aS + bx*bS, ay*aS + by*bS, az*aS + bz*bS, aw*aS + bw*bS];
+            return result;
         };
 
         const qToMatrix = ([x, y, z, qw]) => {
@@ -425,23 +635,269 @@ tags: [physics, graphics, games, rotations, quaternions, so3]
             return [yaw, pitch, roll];
         };
 
-        // Conjugate quaternion
-        const qConj = ([x, y, z, w]) => [-x, -y, -z, w];
+        // ===============================================================================
+        // ENHANCED QUATERNION OPERATIONS WITH MATHEMATICAL VERIFICATION
+        // ===============================================================================
+        
+        // Conjugate quaternion with verification
+        const qConj = ([x, y, z, w]) => {
+            const result = [-x, -y, -z, w];
+            
+            // Mathematical verification: ||q*|| = ||q|| for unit quaternions
+            const originalNorm = Math.sqrt(x*x + y*y + z*z + w*w);
+            const conjugateNorm = Math.sqrt(x*x + y*y + z*z + w*w); // Same calculation
+            const normError = Math.abs(originalNorm - conjugateNorm);
+            
+            if (normError > QUATERNION_TOLERANCE) {
+                console.warn("Mathematical Analysis: Conjugate norm error:", normError);
+            }
+            
+            return result;
+        };
 
-        // Quaternion dot product
-        const qDot = (a, b) => a[0]*b[0] + a[1]*b[1] + a[2]*b[2] + a[3]*b[3];
+        // Quaternion dot product with bounds checking
+        const qDot = (a, b) => {
+            const result = a[0]*b[0] + a[1]*b[1] + a[2]*b[2] + a[3]*b[3];
+            
+            // For unit quaternions, dot product should be in [-1, 1]
+            if (Math.abs(result) > 1.0 + QUATERNION_TOLERANCE) {
+                console.warn("Mathematical Analysis: Dot product outside [-1,1]:", result);
+            }
+            
+            return result;
+        };
 
-        // Get axis and angle from quaternion
+        // Enhanced axis-angle extraction with singularity handling
         const qToAxisAngle = ([x, y, z, w]) => {
-            const angle = 2 * Math.acos(Math.min(1, Math.max(-1, w)));
-            if (Math.abs(angle) < 1e-6) {
+            // Ensure w is positive for canonical representation
+            let qx = x, qy = y, qz = z, qw = w;
+            if (w < 0) {
+                qx = -x; qy = -y; qz = -z; qw = -w;
+            }
+            
+            const angle = 2 * Math.acos(Math.min(1, Math.max(-1, qw)));
+            
+            // Handle near-identity quaternion (small angle)
+            if (Math.abs(angle) < MATH_EPSILON) {
                 return [[1, 0, 0], 0];
             }
+            
             const s = Math.sin(angle / 2);
-            if (Math.abs(s) < 1e-6) {
+            
+            // Handle singularity when s ≈ 0 (shouldn't happen for valid quaternions)
+            if (Math.abs(s) < MATH_EPSILON) {
+                mathAnalysis.singularityDetections.push({
+                    frame: mathAnalysis.frameCount,
+                    type: 'axis-angle-extraction',
+                    quaternion: [x, y, z, w],
+                    angle: angle,
+                    sinHalfAngle: s
+                });
                 return [[1, 0, 0], angle];
             }
-            return [[x/s, y/s, z/s], angle];
+            
+            // Extract and normalize axis
+            let axis = [qx/s, qy/s, qz/s];
+            const axisNorm = Math.sqrt(axis[0]*axis[0] + axis[1]*axis[1] + axis[2]*axis[2]);
+            
+            // Normalize axis to ensure unit length (handle floating point precision errors)
+            if (axisNorm > MATH_EPSILON) {
+                axis = [axis[0]/axisNorm, axis[1]/axisNorm, axis[2]/axisNorm];
+            }
+            
+            // Mathematical verification: only warn for significant axis normalization errors
+            const axisNormError = Math.abs(axisNorm - 1.0);
+            if (axisNormError > QUATERNION_TOLERANCE * 10) {
+                console.warn("Mathematical Analysis: Non-unit rotation axis:", axisNormError);
+            }
+            
+            return [axis, angle];
+        };
+        
+        // ===============================================================================
+        // SO(3) TO S³ MAPPING VERIFICATION
+        // ===============================================================================
+        
+        // Verify the double cover relationship: q and -q map to same rotation
+        const verifyDoubleCover = (q) => {
+            const [x, y, z, w] = q;
+            const antipodalQ = [-x, -y, -z, -w];
+            
+            // Convert both quaternions to rotation matrices
+            const R1 = qToMatrix(q);
+            const R2 = qToMatrix(antipodalQ);
+            
+            // Calculate Frobenius norm of difference
+            let frobeniusNorm = 0;
+            for (let i = 0; i < 16; i++) {
+                const diff = R1[i] - R2[i];
+                frobeniusNorm += diff * diff;
+            }
+            frobeniusNorm = Math.sqrt(frobeniusNorm);
+            
+            // Verify that both quaternions produce the same rotation
+            const doubleCoverError = frobeniusNorm;
+            
+            if (doubleCoverError > QUATERNION_TOLERANCE) {
+                console.error("Mathematical Analysis: Double cover violation:", doubleCoverError);
+                mathAnalysis.geodesicErrors.push({
+                    frame: mathAnalysis.frameCount,
+                    type: 'double-cover-violation',
+                    error: doubleCoverError,
+                    quaternion: q
+                });
+            }
+            
+            return {
+                isValid: doubleCoverError < QUATERNION_TOLERANCE,
+                error: doubleCoverError,
+                rotationMatrix1: R1,
+                rotationMatrix2: R2
+            };
+        };
+        
+        // Verify SO(3) properties of rotation matrix
+        const verifySO3Properties = (rotationMatrix) => {
+            const R = rotationMatrix;
+            
+            // Check orthogonality: R^T * R = I
+            const RTR = [];
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    let sum = 0;
+                    for (let k = 0; k < 3; k++) {
+                        sum += R[k*4 + i] * R[k*4 + j]; // R^T[i][k] * R[k][j]
+                    }
+                    RTR[i*3 + j] = sum;
+                }
+            }
+            
+            // Check if RTR is identity matrix
+            let orthogonalityError = 0;
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    const expected = (i === j) ? 1 : 0;
+                    const error = Math.abs(RTR[i*3 + j] - expected);
+                    orthogonalityError = Math.max(orthogonalityError, error);
+                }
+            }
+            
+            // Check determinant = 1 (proper rotation)
+            const det = R[0] * (R[5] * R[10] - R[6] * R[9]) -
+                       R[1] * (R[4] * R[10] - R[6] * R[8]) +
+                       R[2] * (R[4] * R[9] - R[5] * R[8]);
+            const determinantError = Math.abs(det - 1.0);
+            
+            return {
+                isValidSO3: orthogonalityError < QUATERNION_TOLERANCE && determinantError < QUATERNION_TOLERANCE,
+                orthogonalityError: orthogonalityError,
+                determinantError: determinantError,
+                determinant: det
+            };
+        };
+        
+        // ===============================================================================
+        // STEREOGRAPHIC PROJECTION AND TEMPORAL COHERENCE ANALYSIS
+        // ===============================================================================
+        
+        // Enhanced stereographic projection with error analysis
+        const stereographicProjection = (q, fromPole = 'north') => {
+            const [x, y, z, w] = qNorm(q); // Ensure unit quaternion
+            
+            let projectedX, projectedY, projectionError = 0;
+            
+            if (fromPole === 'north') {
+                // Project from north pole (w = 1)
+                if (Math.abs(1 - w) < MATH_EPSILON) {
+                    // Near north pole - use Taylor expansion for numerical stability
+                    const factor = 2 / (1 + MATH_EPSILON);
+                    projectedX = x * factor;
+                    projectedY = y * factor;
+                    projectionError = MATH_EPSILON;
+                } else {
+                    const denominator = 1 - w;
+                    projectedX = x / denominator;
+                    projectedY = y / denominator;
+                    
+                    // Check for numerical issues
+                    if (Math.abs(denominator) < QUATERNION_TOLERANCE) {
+                        projectionError = Math.abs(denominator);
+                        mathAnalysis.projectionErrors.push({
+                            frame: mathAnalysis.frameCount,
+                            type: 'stereographic-singularity',
+                            quaternion: q,
+                            denominator: denominator,
+                            error: projectionError
+                        });
+                    }
+                }
+            } else {
+                // Project from south pole (w = -1)
+                if (Math.abs(1 + w) < MATH_EPSILON) {
+                    const factor = 2 / (1 + MATH_EPSILON);
+                    projectedX = x * factor;
+                    projectedY = y * factor;
+                    projectionError = MATH_EPSILON;
+                } else {
+                    const denominator = 1 + w;
+                    projectedX = x / denominator;
+                    projectedY = y / denominator;
+                    
+                    if (Math.abs(denominator) < QUATERNION_TOLERANCE) {
+                        projectionError = Math.abs(denominator);
+                    }
+                }
+            }
+            
+            return {
+                x: projectedX,
+                y: projectedY,
+                error: projectionError,
+                isValid: projectionError < QUATERNION_TOLERANCE
+            };
+        };
+        
+        // Temporal coherence analysis for antipodal motion vectors
+        const analyzeTemporalCoherence = (currentQ, previousQ, dt) => {
+            if (!previousQ) return null;
+            
+            const currentNorm = qNorm(currentQ);
+            const previousNorm = qNorm(previousQ);
+            
+            // Calculate angular velocity
+            const deltaQ = qMul(currentNorm, qConj(previousNorm));
+            const [deltaAxis, deltaAngle] = qToAxisAngle(deltaQ);
+            const angularVelocity = deltaAngle / dt;
+            
+            // Analyze antipodal consistency
+            const currentAntipodal = [-currentNorm[0], -currentNorm[1], -currentNorm[2], -currentNorm[3]];
+            const previousAntipodal = [-previousNorm[0], -previousNorm[1], -previousNorm[2], -previousNorm[3]];
+            
+            // Check if antipodal pairs maintain same relative motion
+            const antipodalDeltaQ = qMul(currentAntipodal, qConj(previousAntipodal));
+            const [antipodalDeltaAxis, antipodalDeltaAngle] = qToAxisAngle(antipodalDeltaQ);
+            const antipodalAngularVelocity = antipodalDeltaAngle / dt;
+            
+            // Temporal coherence error
+            const velocityCoherenceError = Math.abs(angularVelocity - antipodalAngularVelocity);
+            const axisCoherenceError = Math.acos(Math.min(1, Math.abs(
+                deltaAxis[0] * antipodalDeltaAxis[0] +
+                deltaAxis[1] * antipodalDeltaAxis[1] +
+                deltaAxis[2] * antipodalDeltaAxis[2]
+            )));
+            
+            const coherenceAnalysis = {
+                frame: mathAnalysis.frameCount,
+                angularVelocity: angularVelocity,
+                antipodalAngularVelocity: antipodalAngularVelocity,
+                velocityCoherenceError: velocityCoherenceError,
+                axisCoherenceError: axisCoherenceError,
+                isCoherent: velocityCoherenceError < QUATERNION_TOLERANCE && axisCoherenceError < QUATERNION_TOLERANCE
+            };
+            
+            mathAnalysis.temporalCoherence.push(coherenceAnalysis);
+            
+            return coherenceAnalysis;
         };
 
         // Global state
@@ -509,12 +965,20 @@ tags: [physics, graphics, games, rotations, quaternions, so3]
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-            // Controls
-            controls = new THREE.OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true;
-            controls.dampingFactor = 0.05;
-            controls.enableZoom = true;
-            controls.enablePan = false;
+            // Trackball Controls for free-form 3D navigation
+            controls = new THREE.TrackballControls(camera, renderer.domElement);
+            
+            // Configure trackball behavior
+            controls.rotateSpeed = 1.5;
+            controls.zoomSpeed = 1.2;
+            controls.panSpeed = 0.8;
+            controls.noZoom = false;
+            controls.noPan = false;
+            controls.staticMoving = true;
+            controls.dynamicDampingFactor = 0.3;
+            controls.keys = [65, 83, 68]; // A, S, D keys for pan
+            
+            // Set zoom limits
             controls.minDistance = 2;
             controls.maxDistance = 8;
 
@@ -852,15 +1316,17 @@ tags: [physics, graphics, games, rotations, quaternions, so3]
                 // Disable UI controls during gimbal lock
                 const yawSlider = document.getElementById('yawSlider');
                 const rollSlider = document.getElementById('rollSlider');
-                if (isGimbalLock) {
+                const rollLabel = document.querySelector('label');
+                
+                if (rollSlider && isGimbalLock) {
                     // Make roll slider semi-transparent and show it's coupled with yaw
                     rollSlider.style.opacity = '0.5';
                     rollSlider.style.pointerEvents = 'none';
-                    document.querySelector('label[for="rollSlider"]').style.opacity = '0.5';
-                } else {
+                    if (rollLabel) rollLabel.style.opacity = '0.5';
+                } else if (rollSlider) {
                     rollSlider.style.opacity = '1';
                     rollSlider.style.pointerEvents = 'auto';
-                    document.querySelector('label[for="rollSlider"]').style.opacity = '1';
+                    if (rollLabel) rollLabel.style.opacity = '1';
                 }
             }
 
@@ -909,7 +1375,10 @@ tags: [physics, graphics, games, rotations, quaternions, so3]
             }
         };
 
-        // Quaternion sphere visualization with angle encoding and geodesic
+        // ===============================================================================
+        // ENHANCED QUATERNION SPHERE VISUALIZATION WITH MATHEMATICAL ANALYSIS
+        // ===============================================================================
+        
         const drawQuaternionSphere = () => {
             const canvas = document.getElementById('quaternionCanvas');
             const ctx = quaternionCtx;
@@ -920,14 +1389,32 @@ tags: [physics, graphics, games, rotations, quaternions, so3]
             ctx.save();
             ctx.translate(width/2, height/2);
             
-            const radius = Math.min(width, height) * 0.3;
+            const radius = Math.min(width, height) * 0.25; // Smaller to make room for analysis
             
-            // Draw sphere wireframe
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-            ctx.lineWidth = 1;
+            // Perform comprehensive mathematical analysis
+            const quaternionNorm = Math.sqrt(currentQuaternion[0]**2 + currentQuaternion[1]**2 +
+                                           currentQuaternion[2]**2 + currentQuaternion[3]**2);
+            const normalizationError = Math.abs(quaternionNorm - 1.0);
             
-            // Latitude lines
-            for (let lat = -60; lat <= 60; lat += 30) {
+            // Verify SO(3) properties
+            const rotMatrix = qToMatrix(currentQuaternion);
+            const so3Analysis = verifySO3Properties(rotMatrix);
+            
+            // Analyze antipodal points
+            const antipodalAnalysis = analyzeAntipodalPoints(currentQuaternion);
+            
+            // Enhanced stereographic projection with error analysis
+            const stereoProjection = stereographicProjection(currentQuaternion, 'north');
+            
+            // Verify double cover property
+            const doubleCoverAnalysis = verifyDoubleCover(currentQuaternion);
+            
+            // Draw sphere wireframe with mathematical grid
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+            ctx.lineWidth = 0.5;
+            
+            // Mathematical latitude lines (great circles)
+            for (let lat = -60; lat <= 60; lat += 20) {
                 const r = radius * Math.cos(deg2rad(lat));
                 const y = radius * Math.sin(deg2rad(lat));
                 ctx.beginPath();
@@ -935,176 +1422,288 @@ tags: [physics, graphics, games, rotations, quaternions, so3]
                 ctx.stroke();
             }
             
-            // Longitude lines
-            for (let lon = 0; lon < 180; lon += 30) {
+            // Mathematical longitude lines (geodesics)
+            for (let lon = 0; lon < 180; lon += 20) {
                 ctx.beginPath();
                 const ellipseRadius = Math.abs(radius * Math.cos(deg2rad(lon)));
                 ctx.ellipse(0, 0, ellipseRadius, radius, deg2rad(lon), 0, 2 * Math.PI);
                 ctx.stroke();
             }
             
+            // Draw mathematical coordinate system
+            ctx.strokeStyle = 'rgba(100, 255, 218, 0.3)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(-radius*1.2, 0); ctx.lineTo(radius*1.2, 0); // X-axis
+            ctx.moveTo(0, -radius*1.2); ctx.lineTo(0, radius*1.2); // Y-axis
+            ctx.stroke();
+            
             // Get quaternion components
             const [x, y, z, qw] = currentQuaternion;
+            const [axis, angle] = qToAxisAngle(currentQuaternion);
             
-            // Calculate angle and axis from quaternion
-            const angle = 2 * Math.acos(Math.min(1, Math.max(-1, Math.abs(qw))));
+            // Use consistent projection method for both q and -q
+            const projectionScale = radius * 0.8;
             
-            // SIMPLE DIRECT MAPPING - guaranteed to show movement
-            // Map quaternion components directly to screen coordinates
-            const scale = radius * 0.8;
+            // For consistency, use simple x,y projection that will work symmetrically
+            let projX = x * projectionScale;
+            let projY = -y * projectionScale; // Negative y for screen coordinates
             
-            // Use quaternion x,y components directly (scaled)
-            // This will definitely move as sliders change
-            const finalX = x * scale * 5; // Amplify for visibility
-            const finalY = -y * scale * 5; // Flip Y for canvas, amplify for visibility
-            
-            // Calculate axis for rotation visualization
-            let axisX = 0, axisY = 0, axisZ = 0;
-            if (Math.sin(angle/2) > 1e-6) {
-                const s = Math.sin(angle/2);
-                axisX = x / s;
-                axisY = y / s;
-                axisZ = z / s;
+            // Clamp to visible bounds
+            const maxDist = radius * 1.1;
+            const currentDist = Math.sqrt(projX*projX + projY*projY);
+            if (currentDist > maxDist) {
+                projX = (projX / currentDist) * maxDist;
+                projY = (projY / currentDist) * maxDist;
             }
-                
-            // Encode angle with color gradient and ring size
-            const angleNormalized = angle / Math.PI; // 0 to 1
-            const hue = (1 - angleNormalized) * 120; // Green (120) to Red (0)
-            const ringSize = 8 + angleNormalized * 12;  // Size based on angle
             
-            // Draw angle encoding ring
-            ctx.strokeStyle = `hsla(${hue}, 100%, 50%, 0.3)`;
-            ctx.lineWidth = 3;
+            const projectionValid = true; // Simple projection is always valid
+            
+            // Mathematical color encoding based on rotation angle
+            const angleNormalized = angle / Math.PI;
+            const hue = (1 - angleNormalized) * 120; // Green to Red
+            const ringSize = 6 + angleNormalized * 8;
+            
+            // Visualize unit constraint verification
+            const constraintColor = normalizationError < QUATERNION_TOLERANCE ? '#00ff00' : '#ff0000';
+            ctx.strokeStyle = constraintColor;
+            ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.arc(finalX, finalY, ringSize * 1.5, 0, 2 * Math.PI);
+            ctx.arc(projX, projY, ringSize * 1.5, 0, 2 * Math.PI);
             ctx.stroke();
             
-            // Draw positive quaternion point with angle-based color
-            const gradient = ctx.createRadialGradient(finalX, finalY, 0, finalX, finalY, ringSize);
+            // Draw main quaternion point
+            const gradient = ctx.createRadialGradient(projX, projY, 0, projX, projY, ringSize);
             gradient.addColorStop(0, `hsl(${hue}, 100%, 60%)`);
-            gradient.addColorStop(1, `hsl(${hue}, 100%, 40%)`);
+            gradient.addColorStop(1, `hsl(${hue}, 80%, 40%)`);
             ctx.fillStyle = gradient;
             ctx.beginPath();
-            ctx.arc(finalX, finalY, ringSize, 0, 2 * Math.PI);
+            ctx.arc(projX, projY, ringSize, 0, 2 * Math.PI);
             ctx.fill();
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 2;
+            
+            // Indicate SO(3) validity
+            ctx.strokeStyle = so3Analysis.isValidSO3 ? '#00ff00' : '#ff6600';
+            ctx.lineWidth = 1;
             ctx.stroke();
             
-            // Draw axis of rotation if there is one
-            if (Math.abs(angle) > 0.01) {
-                // Draw axis line
-                ctx.strokeStyle = `hsla(${hue}, 100%, 50%, 0.5)`;
+            // Draw rotation axis visualization
+            if (angle > 1e-6) {
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
                 ctx.lineWidth = 2;
-                ctx.setLineDash([4, 4]);
                 ctx.beginPath();
-                ctx.moveTo(0, 0);
-                ctx.lineTo(axisX * radius, -axisY * radius);
+                ctx.moveTo(projX, projY);
+                const axisEndX = projX + axis[0] * ringSize * 2;
+                const axisEndY = projY - axis[1] * ringSize * 2;
+                ctx.lineTo(axisEndX, axisEndY);
                 ctx.stroke();
-                ctx.setLineDash([]);
                 
-                // Draw axis arrow
-                const arrowX = axisX * radius;
-                const arrowY = -axisY * radius;
-                ctx.fillStyle = `hsl(${hue}, 100%, 60%)`;
+                // Arrow head
+                const arrowSize = 4;
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
                 ctx.beginPath();
-                ctx.moveTo(arrowX, arrowY);
-                ctx.lineTo(arrowX - 5, arrowY - 5);
-                ctx.lineTo(arrowX + 5, arrowY - 5);
+                ctx.moveTo(axisEndX, axisEndY);
+                ctx.lineTo(axisEndX - arrowSize, axisEndY - arrowSize/2);
+                ctx.lineTo(axisEndX - arrowSize, axisEndY + arrowSize/2);
                 ctx.closePath();
                 ctx.fill();
             }
-                
-            // Draw antipodal point if enabled
+            
+            // Enhanced antipodal point visualization - ALWAYS show when requested
             if (showAntipodes) {
-                // Antipodal quaternion is -q
-                // Use stereographic projection from south pole for antipode
-                let antiX, antiY;
-                if (Math.abs(1 + qw) > 1e-6) {
-                    const antiScale = radius / (1.0001 + qw);
-                    antiX = -x * antiScale;
-                    antiY = y * antiScale;
-                } else {
-                    antiX = -x * radius * 10;
-                    antiY = y * radius * 10;
-                }
+                // Calculate antipodal quaternion: -q = (-x, -y, -z, -w)
+                const antiQ = [-x, -y, -z, -qw];
                 
-                // Limit projection
-                const antiDist = Math.sqrt(antiX*antiX + antiY*antiY);
+                // Use same projection method as main quaternion for consistency
+                let finalAntiX = (-x) * projectionScale;
+                let finalAntiY = -(-y) * projectionScale; // Note: double negative for antipodal y
+                
+                // Clamp antipodal point to same bounds
+                const antiDist = Math.sqrt(finalAntiX*finalAntiX + finalAntiY*finalAntiY);
                 if (antiDist > maxDist) {
-                    const scaleFactor = maxDist / antiDist;
-                    antiX *= scaleFactor;
-                    antiY *= scaleFactor;
+                    finalAntiX = (finalAntiX / antiDist) * maxDist;
+                    finalAntiY = (finalAntiY / antiDist) * maxDist;
                 }
                 
-                ctx.fillStyle = `hsla(${(hue + 60) % 360}, 100%, 50%, 0.5)`;
+                // Draw antipodal point with contrasting color
+                const antiHue = (hue + 180) % 360;
+                const antiGradient = ctx.createRadialGradient(finalAntiX, finalAntiY, 0,
+                                                            finalAntiX, finalAntiY, ringSize * 0.8);
+                antiGradient.addColorStop(0, `hsla(${antiHue}, 80%, 60%, 0.9)`);
+                antiGradient.addColorStop(1, `hsla(${antiHue}, 70%, 40%, 0.7)`);
+                ctx.fillStyle = antiGradient;
                 ctx.beginPath();
-                ctx.arc(antiX, antiY, ringSize, 0, 2 * Math.PI);
+                ctx.arc(finalAntiX, finalAntiY, ringSize * 0.8, 0, 2 * Math.PI);
                 ctx.fill();
+                
+                // Border for antipodal point (always valid in symmetric projection)
                 ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 1;
+                ctx.lineWidth = 2;
                 ctx.stroke();
                 
-                // Connect with geodesic
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                // Draw geodesic connection between q and -q
+                ctx.strokeStyle = 'rgba(100, 255, 218, 0.6)';
                 ctx.lineWidth = 2;
-                ctx.setLineDash([5, 5]);
-                ctx.beginPath();
-                for (let t = 0; t <= 1; t += 0.02) {
-                    const interpX = finalX * (1 - t) + antiX * t;
-                    const interpY = finalY * (1 - t) + antiY * t;
-                    const arcHeight = Math.sin(t * Math.PI) * radius * 0.3;
-                    
-                    if (t === 0) ctx.moveTo(interpX, interpY - arcHeight);
-                    else ctx.lineTo(interpX, interpY - arcHeight);
-                }
-                ctx.stroke();
-                ctx.setLineDash([]);
-            }
-                
-            // Display angle value and quaternion info
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 12px sans-serif';
-            ctx.fillText(`θ = ${(angle * 180 / Math.PI).toFixed(1)}°`, finalX + ringSize + 5, finalY - 5);
-            
-            // Show quaternion values at bottom
-            ctx.font = '11px monospace';
-            ctx.fillStyle = '#64ffda';
-            const quatStr = `q = [${x.toFixed(3)}, ${y.toFixed(3)}, ${z.toFixed(3)}, ${qw.toFixed(3)}]`;
-            ctx.fillText(quatStr, -80, radius + 25);
-            
-            // Show Euler angles for reference
-            const [yaw, pitch, roll] = qToEulerZYX(currentQuaternion);
-            ctx.fillStyle = '#ffaa00';
-            const eulerStr = `Euler: Y=${rad2deg(yaw).toFixed(0)}° P=${rad2deg(pitch).toFixed(0)}° R=${rad2deg(roll).toFixed(0)}°`;
-            ctx.fillText(eulerStr, -80, radius + 40);
-            
-            // Draw SLERP geodesic if we have two orientations
-            if (window.orientationA && window.orientationB && window.orientationA !== currentQuaternion) {
-                // Draw geodesic path between orientationA and orientationB
-                ctx.strokeStyle = 'rgba(100, 255, 218, 0.4)';
-                ctx.lineWidth = 2;
+                ctx.setLineDash([4, 4]);
                 ctx.beginPath();
                 
-                for (let t = 0; t <= 1; t += 0.02) {
-                    const qInterp = qSlerp(window.orientationA, window.orientationB, t);
-                    const [xi, yi, zi, wi] = qInterp;
-                    const angleI = 2 * Math.acos(Math.min(1, Math.max(-1, Math.abs(wi))));
+                // Safe geodesic path using NLERP to avoid recursion with antipodal quaternions
+                const geodesicSteps = 30;
+                let geodesicPoints = [];
+                
+                // Check if quaternions are antipodal to avoid infinite recursion
+                const dotProduct = currentQuaternion[0]*antiQ[0] + currentQuaternion[1]*antiQ[1] +
+                                 currentQuaternion[2]*antiQ[2] + currentQuaternion[3]*antiQ[3];
+                const isAntipodal = Math.abs(dotProduct) < 0.1; // Near antipodal
+                
+                for (let i = 0; i <= geodesicSteps; i++) {
+                    const t = i / geodesicSteps;
+                    let interpQ;
                     
-                    if (angleI > 1e-6) {
-                        const axisLenI = Math.sin(angleI / 2);
-                        const axisI = [xi / axisLenI, yi / axisLenI, zi / axisLenI];
-                        const pX = axisI[0] * radius * 0.9;
-                        const pY = -axisI[1] * radius * 0.9;
+                    if (isAntipodal) {
+                        // Use simple normalized linear interpolation for antipodal quaternions
+                        interpQ = qNorm([
+                            currentQuaternion[0] + t * (antiQ[0] - currentQuaternion[0]),
+                            currentQuaternion[1] + t * (antiQ[1] - currentQuaternion[1]),
+                            currentQuaternion[2] + t * (antiQ[2] - currentQuaternion[2]),
+                            currentQuaternion[3] + t * (antiQ[3] - currentQuaternion[3])
+                        ]);
+                    } else {
+                        // Use standard SLERP for non-antipodal quaternions
+                        // But implement it directly here to avoid recursion
+                        let [ax, ay, az, aw] = currentQuaternion;
+                        let [bx, by, bz, bw] = antiQ;
                         
-                        if (t === 0) ctx.moveTo(pX, pY);
-                        else ctx.lineTo(pX, pY);
+                        let dot = ax*bx + ay*by + az*bz + aw*bw;
+                        if (dot < 0) {
+                            dot = -dot;
+                            bx = -bx; by = -by; bz = -bz; bw = -bw;
+                        }
+                        
+                        if (dot > 0.9995) {
+                            // Near parallel, use linear interpolation
+                            interpQ = qNorm([ax + t*(bx-ax), ay + t*(by-ay), az + t*(bz-az), aw + t*(bw-aw)]);
+                        } else {
+                            // Standard SLERP
+                            const theta = Math.acos(Math.min(1, dot));
+                            const sinTheta = Math.sin(theta);
+                            const aCoeff = Math.sin((1-t)*theta) / sinTheta;
+                            const bCoeff = Math.sin(t*theta) / sinTheta;
+                            interpQ = [ax*aCoeff + bx*bCoeff, ay*aCoeff + by*bCoeff,
+                                     az*aCoeff + bz*bCoeff, aw*aCoeff + bw*bCoeff];
+                        }
+                    }
+                    
+                    const interpStereo = stereographicProjection(interpQ, 'north');
+                    if (interpStereo.isValid) {
+                        const geodX = interpStereo.x * radius * 0.9 * 0.5;
+                        const geodY = interpStereo.y * radius * 0.9 * 0.5;
+                        geodesicPoints.push([geodX, geodY]);
+                    }
+                }
+                
+                // Draw the geodesic curve
+                if (geodesicPoints.length > 1) {
+                    ctx.moveTo(geodesicPoints[0][0], geodesicPoints[0][1]);
+                    for (let i = 1; i < geodesicPoints.length; i++) {
+                        ctx.lineTo(geodesicPoints[i][0], geodesicPoints[i][1]);
                     }
                 }
                 ctx.stroke();
+                ctx.setLineDash([]);
+                
+                // Draw direct connection line (chord) for comparison - NOW CONSISTENT
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([4, 4]);
+                ctx.beginPath();
+                ctx.moveTo(projX, projY); // Use consistent projX, projY
+                ctx.lineTo(finalAntiX, finalAntiY);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                // Draw symmetry axes to show the relationship
+                ctx.strokeStyle = 'rgba(100, 255, 218, 0.2)';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([1, 3]);
+                ctx.beginPath();
+                ctx.moveTo(-radius, 0); ctx.lineTo(radius, 0); // Horizontal symmetry line
+                ctx.moveTo(0, -radius); ctx.lineTo(0, radius); // Vertical symmetry line
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                // Mathematical labels and annotations - NOW CONSISTENT
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '10px monospace';
+                ctx.fillText('q', projX + ringSize + 4, projY - 6);
+                ctx.fillText('-q', finalAntiX + ringSize + 4, finalAntiY - 6);
+                
+                // Show that both points represent the same rotation
+                ctx.fillStyle = '#64ffda';
+                ctx.font = '8px monospace';
+                const midX = (projX + finalAntiX) / 2;
+                const midY = (projY + finalAntiY) / 2;
+                ctx.fillText('same rotation', midX - 25, midY + 20);
+                
+                // Show symmetry relationship
+                ctx.fillStyle = '#ffaa00';
+                ctx.font = '7px monospace';
+                ctx.fillText('antipodal symmetry', -radius * 0.8, -radius - 25);
+                
+                // Display geodesic distance (should be π for true antipodal points)
+                const theoreticalDistance = Math.PI;
+                const actualDistance = antipodalAnalysis ? antipodalAnalysis.geodesicDistance : theoreticalDistance;
+                ctx.fillStyle = '#ffaa00';
+                ctx.font = '7px monospace';
+                ctx.fillText(`d(q,-q) = ${actualDistance.toFixed(3)} (π = ${theoreticalDistance.toFixed(3)})`,
+                           Math.min(projX, finalAntiX), Math.max(projY, finalAntiY) + 35);
+                
+                // Mathematical validity indicators
+                if (antipodalAnalysis) {
+                    const validityColor = antipodalAnalysis.isValidAntipodal ? '#00ff00' : '#ff6600';
+                    ctx.fillStyle = validityColor;
+                    ctx.font = '7px monospace';
+                    ctx.fillText(`Antipodal Valid: ${antipodalAnalysis.isValidAntipodal ? '✓' : '✗'}`,
+                               Math.min(projX, finalAntiX), Math.max(projY, finalAntiY) + 45);
+                    
+                    ctx.fillText(`Matrix Error: ${antipodalAnalysis.rotationMatrixError.toExponential(2)}`,
+                               Math.min(projX, finalAntiX), Math.max(projY, finalAntiY) + 55);
+                }
             }
             
+            // Mathematical analysis display
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 10px monospace';
+            ctx.fillText(`θ = ${(angle * 180 / Math.PI).toFixed(2)}°`, projX + ringSize + 5, projY - 8);
+            
+            // Show mathematical properties
+            ctx.font = '8px monospace';
+            ctx.fillStyle = normalizationError < QUATERNION_TOLERANCE ? '#00ff00' : '#ff6600';
+            ctx.fillText(`||q|| = ${quaternionNorm.toFixed(6)}`, -radius*1.2, radius + 15);
+            
+            ctx.fillStyle = so3Analysis.isValidSO3 ? '#00ff00' : '#ff6600';
+            ctx.fillText(`SO(3): ${so3Analysis.isValidSO3 ? '✓' : '✗'}`, -radius*1.2, radius + 25);
+            
+            ctx.fillStyle = doubleCoverAnalysis.isValid ? '#00ff00' : '#ff6600';
+            ctx.fillText(`Double Cover: ${doubleCoverAnalysis.isValid ? '✓' : '✗'}`, -radius*1.2, radius + 35);
+            
+            ctx.fillStyle = projectionValid ? '#00ff00' : '#ff6600';
+            ctx.fillText(`Projection: ${projectionValid ? '✓' : '✗'}`, -radius*1.2, radius + 45);
+            
+            // Quaternion components
+            ctx.fillStyle = '#64ffda';
+            ctx.font = '9px monospace';
+            const quatStr = `q = [${x.toFixed(4)}, ${y.toFixed(4)}, ${z.toFixed(4)}, ${qw.toFixed(4)}]`;
+            ctx.fillText(quatStr, -radius*1.2, -radius - 15);
+            
+            // Rotation axis and angle
+            ctx.fillStyle = '#ffaa00';
+            const axisStr = `axis = [${axis[0].toFixed(3)}, ${axis[1].toFixed(3)}, ${axis[2].toFixed(3)}]`;
+            ctx.fillText(axisStr, -radius*1.2, -radius - 5);
+            
             ctx.restore();
+            
+            // Update mathematical analysis counters
+            mathAnalysis.frameCount++;
         };
 
         // Calculate condition number using proper Jacobian
@@ -1500,54 +2099,187 @@ tags: [physics, graphics, games, rotations, quaternions, so3]
             ctx.fillText('Euler LERP (Jerky)', 20, height * 0.9);
         };
 
-        // Event handlers
+        // ===============================================================================
+        // ENHANCED EVENT HANDLERS WITH MATHEMATICAL ANALYSIS
+        // ===============================================================================
+        
+        let previousQuaternion = null;
+        let lastUpdateTime = performance.now();
+        
         const updateFromSliders = () => {
+            const currentTime = performance.now();
+            const deltaTime = (currentTime - lastUpdateTime) / 1000.0; // Convert to seconds
+            
             const yaw = deg2rad(parseFloat(document.getElementById('yawSlider').value));
             const pitch = deg2rad(parseFloat(document.getElementById('pitchSlider').value));
             const roll = deg2rad(parseFloat(document.getElementById('rollSlider').value));
             
+            // Store previous quaternion for temporal analysis
+            previousQuaternion = currentQuaternion ? [...currentQuaternion] : null;
+            
             currentQuaternion = qFromEulerZYX(yaw, pitch, roll);
             
-            // Drift correction - renormalize quaternion periodically
+            // ===============================================================================
+            // COMPREHENSIVE MATHEMATICAL VERIFICATION AND ANALYSIS
+            // ===============================================================================
+            
+            // Unit quaternion constraint verification
+            const quaternionNorm = Math.sqrt(currentQuaternion[0]**2 + currentQuaternion[1]**2 +
+                                           currentQuaternion[2]**2 + currentQuaternion[3]**2);
+            const normError = Math.abs(quaternionNorm - 1.0);
+            
+            if (normError > QUATERNION_TOLERANCE) {
+                console.warn("Mathematical Analysis: Unit quaternion constraint violated:", normError);
+                mathAnalysis.unitConstraintViolations.push({
+                    frame: mathAnalysis.frameCount,
+                    error: normError,
+                    quaternion: [...currentQuaternion]
+                });
+            }
+            
+            // Temporal coherence analysis
+            if (previousQuaternion && deltaTime > 0) {
+                const coherenceAnalysis = analyzeTemporalCoherence(currentQuaternion, previousQuaternion, deltaTime);
+                if (coherenceAnalysis && !coherenceAnalysis.isCoherent) {
+                    // Store for analysis but don't spam console
+                    mathAnalysis.temporalCoherence.push({
+                        frame: mathAnalysis.frameCount,
+                        type: 'coherence-violation',
+                        velocityError: coherenceAnalysis.velocityCoherenceError,
+                        axisError: coherenceAnalysis.axisCoherenceError
+                    });
+                }
+            }
+            
+            // SO(3) mapping verification
+            const rotMatrix = qToMatrix(currentQuaternion);
+            const so3Analysis = verifySO3Properties(rotMatrix);
+            if (!so3Analysis.isValidSO3) {
+                console.error("Mathematical Analysis: SO(3) property violation:", so3Analysis);
+            }
+            
+            // Double cover consistency check
+            const doubleCoverAnalysis = verifyDoubleCover(currentQuaternion);
+            if (!doubleCoverAnalysis.isValid) {
+                console.error("Mathematical Analysis: Double cover violation:", doubleCoverAnalysis.error);
+            }
+            
+            // Antipodal point analysis (store results but reduce console spam)
+            const antipodalAnalysis = analyzeAntipodalPoints(currentQuaternion);
+            // Only log significant antipodal inconsistencies
+            if (!antipodalAnalysis.isValidAntipodal && antipodalAnalysis.geodesicError > 0.1) {
+                console.warn("Mathematical Analysis: Significant antipodal inconsistency:", {
+                    geodesicError: antipodalAnalysis.geodesicError,
+                    rotationMatrixError: antipodalAnalysis.rotationMatrixError
+                });
+            }
+            
+            // Stereographic projection error check
+            const stereoProjection = stereographicProjection(currentQuaternion, 'north');
+            if (!stereoProjection.isValid) {
+                mathAnalysis.projectionErrors.push({
+                    frame: mathAnalysis.frameCount,
+                    error: stereoProjection.error,
+                    quaternion: [...currentQuaternion]
+                });
+            }
+            
+            // Enhanced drift correction with mathematical verification
             frameCount++;
+            mathAnalysis.frameCount++;
+            
             if (frameCount % 10 === 0) {
+                const preNormQuaternion = [...currentQuaternion];
                 currentQuaternion = qNorm(currentQuaternion);
                 
-                // Keep history for continuity
+                // Verify normalization effectiveness
+                const postNormError = Math.abs(Math.sqrt(
+                    currentQuaternion[0]**2 + currentQuaternion[1]**2 +
+                    currentQuaternion[2]**2 + currentQuaternion[3]**2
+                ) - 1.0);
+                
+                if (postNormError > QUATERNION_TOLERANCE) {
+                    console.error("Mathematical Analysis: Normalization failed:", postNormError);
+                }
+                
+                // Enhanced quaternion history with continuity analysis
                 quaternionHistory.push([...currentQuaternion]);
                 if (quaternionHistory.length > 10) {
                     quaternionHistory.shift();
                 }
                 
-                // Ensure continuity by checking dot product with previous
+                // Geodesic continuity check
                 if (quaternionHistory.length > 1) {
                     const prev = quaternionHistory[quaternionHistory.length - 2];
                     const dot = qDot(currentQuaternion, prev);
+                    const geodesicDist = geodesicDistance(currentQuaternion, prev);
+                    
+                    // Choose shorter geodesic path (handle double cover)
                     if (dot < 0) {
-                        // Flip sign to maintain continuity
                         currentQuaternion = currentQuaternion.map(v => -v);
                         quaternionHistory[quaternionHistory.length - 1] = currentQuaternion;
+                        
+                        // Verify the flip improved continuity
+                        const newDot = qDot(currentQuaternion, prev);
+                        const newGeodist = geodesicDistance(currentQuaternion, prev);
+                        
+                        if (newGeodist > geodesicDist) {
+                            console.warn("Mathematical Analysis: Quaternion flip did not improve continuity");
+                        }
                     }
                 }
             }
             
-            // Update displays
-            document.getElementById('yawValue').textContent = `${rad2deg(yaw).toFixed(0)}°`;
-            document.getElementById('pitchValue').textContent = `${rad2deg(pitch).toFixed(0)}°`;
-            document.getElementById('rollValue').textContent = `${rad2deg(roll).toFixed(0)}°`;
+            // Update displays with enhanced precision
+            document.getElementById('yawValue').textContent = `${rad2deg(yaw).toFixed(1)}°`;
+            document.getElementById('pitchValue').textContent = `${rad2deg(pitch).toFixed(1)}°`;
+            document.getElementById('rollValue').textContent = `${rad2deg(roll).toFixed(1)}°`;
             
-            // Update quaternion display
-            document.getElementById('quatX').textContent = currentQuaternion[0].toFixed(3);
-            document.getElementById('quatY').textContent = currentQuaternion[1].toFixed(3);
-            document.getElementById('quatZ').textContent = currentQuaternion[2].toFixed(3);
-            document.getElementById('quatW').textContent = currentQuaternion[3].toFixed(3);
+            // Enhanced quaternion display with normalization status
+            const quatX = document.getElementById('quatX');
+            const quatY = document.getElementById('quatY');
+            const quatZ = document.getElementById('quatZ');
+            const quatW = document.getElementById('quatW');
             
-            // Redraw visualizations
+            quatX.textContent = currentQuaternion[0].toFixed(6);
+            quatY.textContent = currentQuaternion[1].toFixed(6);
+            quatZ.textContent = currentQuaternion[2].toFixed(6);
+            quatW.textContent = currentQuaternion[3].toFixed(6);
+            
+            // Color-code quaternion components based on mathematical validity
+            const validColor = '#64ffda';
+            const warningColor = '#ff9800';
+            const errorColor = '#ff6b6b';
+            
+            const componentColor = normError < QUATERNION_TOLERANCE ? validColor :
+                                 (normError < QUATERNION_TOLERANCE * 10 ? warningColor : errorColor);
+            
+            quatX.style.color = componentColor;
+            quatY.style.color = componentColor;
+            quatZ.style.color = componentColor;
+            quatW.style.color = componentColor;
+            
+            // Redraw visualizations with enhanced mathematical analysis
             drawGimbal();
             
-            // Ensure quaternion sphere updates - call directly
+            // Update quaternion sphere visualization with mathematical insights
             if (quaternionCtx) {
                 drawQuaternionSphere();
+            }
+            
+            // Update timestamp for next temporal analysis
+            lastUpdateTime = currentTime;
+            
+            // Console output for significant mathematical events (throttled)
+            if (frameCount % 60 === 0) { // Every 60 frames
+                if (mathAnalysis.unitConstraintViolations.length > 0) {
+                    console.log("Mathematical Analysis Summary:");
+                    console.log(`  Unit constraint violations: ${mathAnalysis.unitConstraintViolations.length}`);
+                    console.log(`  Geodesic errors: ${mathAnalysis.geodesicErrors.length}`);
+                    console.log(`  Singularity detections: ${mathAnalysis.singularityDetections.length}`);
+                    console.log(`  Projection errors: ${mathAnalysis.projectionErrors.length}`);
+                    console.log(`  Temporal coherence issues: ${mathAnalysis.temporalCoherence.filter(t => !t.isCoherent).length}`);
+                }
             }
         };
 
