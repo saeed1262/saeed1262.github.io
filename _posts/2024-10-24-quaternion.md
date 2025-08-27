@@ -5,112 +5,253 @@ description: "Why Euler angles hit singularities, how quaternions live on S³, a
 tags: [physics, graphics, games, rotations, quaternions, so3]
 ---
 
-# Why Your Camera Controls Die at 90° Pitch (And How Quaternions Save the Day)
+# Quaternion-Based 3D Rotation: Mathematical Analysis of Singularities and Optimal Interpolation
 
-Picture this: you're building a 3D application, everything's working perfectly, and then BAM! Your camera controls seize up when looking straight up or down. Users are filing bug reports. Your lead developer is asking questions. You're frantically googling "gimbal lock" at 2 AM.
+The parameterization of 3D rotations presents fundamental mathematical challenges that manifest prominently in computer graphics, robotics, and aerospace applications. Euler angle representations, while intuitive, suffer from inherent topological limitations that create computational singularities and discontinuities. This analysis examines these limitations and demonstrates how quaternion-based representations provide a mathematically superior framework.
 
-**This isn't a bug. It's mathematics.**
+## Mathematical Foundation: The Singularity Problem
 
-The problem isn't your code—it's that you're using **Euler angles** to represent 3D rotations, and Euler angles have a fundamental limitation that's been haunting 3D graphics since the dawn of computer animation.
+Three-dimensional rotations form the special orthogonal group SO(3), a 3-dimensional manifold that cannot be smoothly parameterized by any 3-parameter coordinate system without singularities. This is a direct consequence of the hairy ball theorem - any continuous tangent vector field on a 2-sphere must have at least one point where the vector field vanishes.
 
-## The Gimbal Lock Curse
+**Gimbal Lock Demonstration**: In the interactive visualization below, observe the Euler angle parameterization breakdown. When pitch approaches ±90°, the yaw and roll axes become parallel, causing a loss of one degree of freedom. This singularity is not a computational error but a fundamental topological constraint.
 
-Try this: set the pitch slider below to exactly +90° or -90° and then try to use the yaw and roll controls. Notice something weird?
-
-<div class="visualization-container">
-<!-- Interactive demos go here -->
+<div class="panel">
+    <h3>Gimbal Rig</h3>
+    <div class="canvas-container">
+        <canvas id="gimbalCanvas"></canvas>
+    </div>
+    <div class="controls">
+        <div class="control-group">
+            <label><span style="color: #64ffda;">Yaw (Z-axis)</span> <span class="value-display" id="yawValue">0°</span></label>
+            <input type="range" class="slider" id="yawSlider" min="-180" max="180" value="0" step="1">
+        </div>
+        <div class="control-group">
+            <label><span style="color: #4caf50;">Pitch (Y-axis)</span> <span class="value-display" id="pitchValue">0°</span></label>
+            <input type="range" class="slider" id="pitchSlider" min="-90" max="90" value="0" step="1">
+        </div>
+        <div class="control-group">
+            <label><span style="color: #ff9800;">Roll (X-axis)</span> <span class="value-display" id="rollValue">0°</span></label>
+            <input type="range" class="slider" id="rollSlider" min="-180" max="180" value="0" step="1">
+        </div>
+    </div>
+    <div class="warning" id="gimbalWarning">
+        GIMBAL LOCK! Yaw and Roll axes are aligned - you've lost a degree of freedom!
+    </div>
+    <div class="info-box">
+        <strong>Try this:</strong> Set pitch to ±90° and notice how yaw and roll controls do the same thing. This is gimbal lock - the curse of Euler angles!
+    </div>
 </div>
 
-*Yaw and roll do the exact same thing!* You've lost a degree of freedom. This is **gimbal lock** - the moment when two of your rotation axes align and you can no longer represent certain rotations smoothly.
+The degeneracy occurs because Euler angles represent rotations as a composition of rotations about fixed axes: R = R_z(ψ)R_y(θ)R_x(φ), where the middle rotation R_y(θ) at θ = ±π/2 aligns the first and third rotation axes.
 
-## It's Not a Bug, It's the Map
+<div class="panel">
+    <h3>Quaternion Sphere (S³)</h3>
+    <div class="canvas-container">
+        <canvas id="quaternionCanvas"></canvas>
+    </div>
+    <div class="quaternion-display">
+        <div class="quat-component">
+            <div class="label">x</div>
+            <div class="value" id="quatX">0.000</div>
+        </div>
+        <div class="quat-component">
+            <div class="label">y</div>
+            <div class="value" id="quatY">0.000</div>
+        </div>
+        <div class="quat-component">
+            <div class="label">z</div>
+            <div class="value" id="quatZ">0.000</div>
+        </div>
+        <div class="quat-component">
+            <div class="label">w</div>
+            <div class="value" id="quatW">1.000</div>
+        </div>
+    </div>
+    <div class="controls">
+        <button class="button" id="showAntipodes">Show Antipodal Points (±q)</button>
+        <button class="button" id="showGeodesicArc">Show Antipodal Geodesic Arc</button>
+    </div>
+    <div class="info-box">
+        Quaternions live on a 4D unit sphere. Each 3D rotation maps to TWO points: q and -q. This "double cover" eliminates singularities!
+    </div>
+</div>
 
-Think of Euler angles like latitude and longitude on Earth. They work great for most places, but what happens at the North Pole? Every direction is south! The coordinate system breaks down at the poles, just like Euler angles break down at ±90° pitch.
+## Quaternion Representation: S³ Double Cover of SO(3)
 
-This isn't a flaw in your implementation—it's a fundamental mathematical limitation. You can't represent the full space of 3D rotations smoothly using just three angles. Period.
+Quaternions resolve this limitation by embedding SO(3) into the 4-dimensional unit sphere $S^3$. Each unit quaternion $q = (x,y,z,w)$ with $\|\|q\|\| = 1$ represents a rotation, with the crucial property that both q and -q represent the same physical rotation.
 
-## Enter the Quaternion: Your Mathematical Superhero
+**Mathematical Properties**:
+- **Double Cover**: The mapping S³ → SO(3) is 2:1, eliminating singularities
+- **Lie Group Structure**: Quaternion multiplication corresponds to rotation composition
+- **Geodesic Interpolation**: Great circles on S³ provide optimal rotation paths
 
-Here's where quaternions come to the rescue. Instead of three angles, quaternions use **four numbers** to represent rotations. But here's the beautiful part: they live on a 4D sphere where **every point represents a valid rotation**.
+The quaternion sphere visualization above demonstrates this double coverage. The antipodal points ±q on S³ both map to the same rotation matrix in SO(3), providing redundancy that eliminates singular configurations.
 
-Look at the quaternion sphere visualization above. See those two dots? The cyan one is your current quaternion `q`, and the red one is its "antipodal" point `-q`. Here's the mind-bending part: **both points represent the exact same rotation**.
+## Comparative Analysis of Interpolation Methods
 
-This "double coverage" is what eliminates singularities. There's always a smooth path between any two rotations on the quaternion sphere.
+The quaternion framework enables superior interpolation techniques compared to naive Euler angle interpolation:
 
-## The Great Circle: Nature's Shortest Path
+**Spherical Linear Interpolation (SLERP)**:
+```
+q(t) = sin((1-t)θ)/sin(θ) * q₀ + sin(tθ)/sin(θ) * q₁
+```
+where θ = arccos(|q₀ · q₁|) is the geodesic angle between quaternions.
 
-When you need to interpolate between two rotations, quaternions give you something beautiful: **great circle interpolation** (SLERP). Click "Show Antipodal Geodesic Arc" to see the golden path connecting `q` and `-q`.
-
-This isn't just mathematically elegant—it's **physically correct**. SLERP maintains constant angular velocity, just like a gyroscope spinning in free space.
-
-## Show, Don't Tell: Watch Mathematics in Action
-
-Now for the fun part. Let's see these concepts in action:
-
-1. **Watch the Singularity Form**: Drag the pitch slider toward ±90°. See how the sensitivity map (the torus) glows increasingly red? That's the coordinate system screaming in mathematical agony.
-
-2. **Compare Interpolations**: Click "Set Random Orientations" and then animate the interpolation comparison. The blue SLERP path is smooth and natural. The red Euler LERP path? It's having an identity crisis.
-
-3. **See the Double Cover**: Toggle "Show Antipodal Points" and move the sliders. Watch how `q` and `-q` dance together, always representing the same rotation but from opposite points on the 4D sphere.
-
-## Your Quaternion Recipe Book
-
-Here's how to escape Euler angle hell:
-
-### **Storage Recipe**
-```javascript
-// Store rotations as normalized quaternions
-let orientation = [0, 0, 0, 1]; // x, y, z, w
-
-// Renormalize periodically to fight floating-point drift
-orientation = qNorm(orientation);
+**Euler Linear Interpolation (LERP)**:
+```
+euler(t) = (1-t) * euler₀ + t * euler₁
 ```
 
-### **Interpolation Recipe**
-```javascript
-// Always use SLERP for smooth rotation interpolation
-const interpolated = qSlerp(startQuat, endQuat, t);
+### Visualization Analysis
 
-// Pick the shorter path (handle the double cover)
-if (qDot(startQuat, endQuat) < 0) {
-    endQuat = [-endQuat[0], -endQuat[1], -endQuat[2], -endQuat[3]];
+**Panel 1 - Angular Velocity Profile**:
+This visualization quantifies the kinematic properties of both interpolation methods by computing the instantaneous angular velocity $ω(t) = ||log(q(t+dt) * q(t)⁻¹)||/dt$. SLERP maintains constant angular velocity $(σ ≈ 0)$, while Euler LERP exhibits significant velocity variations $(σ > 0)$, violating the principle of uniform motion.
+
+**Panel 2 - Geodesic Path Visualization**:
+The 3D sphere representation shows the actual rotation trajectories in quaternion space. SLERP follows great circle arcs (geodesics on $S^3$), representing the shortest path between rotations. Euler LERP produces curved, non-optimal paths that deviate from the geodesic, resulting in longer rotation distances and non-uniform motion.
+
+<div class="panel wide-panel">
+    <h3>Interpolation: Euler LERP vs SLERP</h3>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div class="canvas-container" style="height: 300px;">
+            <canvas id="slerpVelocityCanvas"></canvas>
+        </div>
+        <div class="canvas-container" style="height: 300px;">
+            <canvas id="slerpPathCanvas"></canvas>
+        </div>
+    </div>
+    <div class="controls">
+        <div class="control-group">
+            <label>Interpolation Parameter t <span class="value-display" id="tValue">0.0</span></label>
+            <input type="range" class="slider" id="tSlider" min="0" max="1" value="0" step="0.01">
+        </div>
+        <button class="button" id="animateInterp">Animate Interpolation</button>
+        <button class="button" id="setRandomOrientations">Set Random Orientations</button>
+    </div>
+    <div class="info-box">
+        <strong>Left Panel - Angular Velocity:</strong> Shows rotation speed over time (0 to 1)<br>
+        • <span style="color: #2196f3;">Blue (SLERP)</span>: Constant angular velocity - the line is flat! (σ ≈ 0)<br>
+        • <span style="color: #f44336;">Red (Euler LERP)</span>: Varying speed - speeds up and slows down (σ > 0)<br>
+        <br>
+        <strong>Right Panel - Quaternion Paths:</strong> Shows actual rotation paths on the unit sphere<br>
+        • <span style="color: #2196f3;">Blue path</span>: SLERP follows the shortest great circle arc<br>
+        • <span style="color: #f44336;">Red path</span>: Euler LERP takes a curved, non-optimal path<br>
+        <br>
+        <strong>Key Insight:</strong> SLERP provides smooth, constant-speed rotation (like a spinning gyroscope), while Euler LERP causes jerky, unnatural motion with varying speeds. This is why SLERP is essential for animation and robotics!
+    </div>
+</div>
+
+## Topological Insights: Euler Angle Sensitivity Analysis
+
+The sensitivity heatmap visualizes the condition number of the Euler angle Jacobian matrix across the rotation space, revealing regions of numerical instability and singularities.
+
+**Mathematical Framework**:
+The Jacobian J relates small changes in Euler angles to angular velocity:
+
+$$
+ω = J(ψ,θ,φ) * [dψ/dt, dθ/dt, dφ/dt]ᵀ
+$$  
+
+Near gimbal lock $(θ ≈ ±π/2)$, $J$ becomes singular $(det(J) → 0)$, causing numerical instabilities and loss of controllability.
+
+**Torus Topology Visualization**:
+The torus view represents the natural topology of the Euler angle space, where yaw and roll angles wrap at ±180°. This visualization clearly shows how singularities manifest as highly sensitive regions (red/yellow) that span entire meridians when pitch approaches ±90°.
+
+<div class="panel wide-panel">
+    <h3>Euler Angle Sensitivity Map (Torus Topology)</h3>
+    <div class="canvas-container" style="height: 500px;">
+        <canvas id="heatmapCanvas"></canvas>
+    </div>
+    <div class="controls">
+        <div class="control-group">
+            <label>Fixed Pitch Value <span class="value-display" id="heatmapPitchValue">0°</span></label>
+            <input type="range" class="slider" id="heatmapPitchSlider" min="-90" max="90" value="0" step="5">
+        </div>
+        <div class="control-group">
+            <label><span style="color: #64ffda;">Torus Yaw</span> <span class="value-display" id="torusYawValue">0°</span></label>
+            <input type="range" class="slider" id="torusYawSlider" min="-180" max="180" value="0" step="1">
+        </div>
+        <div class="control-group">
+            <label><span style="color: #ff9800;">Torus Roll</span> <span class="value-display" id="torusRollValue">0°</span></label>
+            <input type="range" class="slider" id="torusRollSlider" min="-180" max="180" value="0" step="1">
+        </div>
+        <button class="button" id="animateHeatmap">Animate Through Pitch Values</button>
+        <button class="button" id="toggleTorusView">Toggle Torus/Flat View</button>
+    </div>
+    <div class="info-box">
+        <strong>Color coding:</strong> <span style="color: #0066ff;">Blue</span> = stable, <span style="color: #00ff00;">Green</span> = sensitive, <span style="color: #ff0000;">Red</span> = highly singular, <span style="color: #ffff00;">Yellow</span> = gimbal lock!<br>
+        This map shows how sensitive the rotation is to small changes in yaw/roll for a given pitch. The torus topology reveals how yaw and roll wrap around at ±180°. As pitch approaches ±90°, the entire map turns red/yellow, showing that yaw and roll become coupled and the coordinate system becomes singular.
+    </div>
+</div>
+
+## Implementation Guidelines: Mathematical Best Practices
+
+### **Quaternion Storage and Normalization**
+```javascript
+// Maintain unit quaternion constraint: ||q||² = x² + y² + z² + w² = 1
+let orientation = [0, 0, 0, 1]; // Identity quaternion (x, y, z, w)
+
+// Periodic renormalization to counteract floating-point drift
+orientation = qNorm(orientation); // Project back onto S³
+```
+
+### **Optimal Interpolation Protocol**
+```javascript
+// SLERP implementation with double-cover handling
+const interpolated = qSlerp(q0, q1, t);
+
+// Choose shorter geodesic path (handle antipodal ambiguity)
+if (qDot(q0, q1) < 0) {
+    q1 = qNegate(q1); // Use -q₁ instead for shorter arc
 }
 ```
 
-### **UI Layer Recipe**
+### **Interface Layer Conversion**
 ```javascript
-// Only convert to Euler angles at the UI layer
+// Euler angles only for human-readable interfaces
 const [yaw, pitch, roll] = qToEulerZYX(orientation);
 
-// Never store or interpolate Euler angles!
+// Critical: Never interpolate or integrate Euler angles directly
+// Always work in quaternion space for internal computations
 ```
 
-### **Integration Recipe**
+### **Angular Velocity Integration**
 ```javascript
-// Integrate angular velocity using quaternions
-const deltaQ = qFromAxisAngle(angularVelocity, deltaTime);
-orientation = qMul(orientation, deltaQ);
+// Exponential map for angular velocity integration
+const deltaQ = qFromAxisAngle(ω, Δt); // ω is angular velocity vector
+orientation = qMul(orientation, deltaQ); // Right-multiplication for body frame
 ```
 
-## The Deeper Truth: Topology Matters
+## Geometric and Topological Insights
 
-The real insight here isn't just about avoiding gimbal lock—it's about understanding the **topology** of rotation space. 3D rotations naturally live on a 3-dimensional manifold, but that manifold can't be smoothly parameterized by three coordinates everywhere.
+The fundamental advantage of quaternions stems from their natural geometric properties:
 
-Quaternions work because they embed this 3D rotation manifold into a 4D space where everything becomes linear and smooth. You're not just avoiding a technical problem; you're choosing the right mathematical tool for the job.
+**Lie Group Structure**: Unit quaternions form a Lie group isomorphic to $SU(2)$, with the exponential map providing a natural connection between the Lie algebra (3D angular velocity space) and the group manifold $(S^3)$.
 
-## The Takeaway
+**Minimal Representation**: While quaternions use four parameters to represent three degrees of freedom, this redundancy is precisely what eliminates singularities. The constraint $\|\|q\|\| = 1$ reduces the effective dimensionality to three while maintaining global validity.
 
-Next time someone asks why you're using quaternions instead of "simple" Euler angles, show them the pitch slider at 90°. Watch their face when the controls break. Then show them the smooth quaternion sphere, the great circle paths, and the mathematical elegance of SLERP.
+**Geodesic Optimality**: SLERP follows geodesics on $S^3$, which project to the shortest rotation paths in $SO(3)$. This ensures both mathematical optimality and physical realism in animation and control systems.
 
-**Mathematics doesn't care about your intuitions.** But when you align your code with the underlying mathematical reality, everything becomes not just more robust, but more beautiful.
+## Practical Applications and Performance Considerations
 
-Your camera controls will thank you. Your users will thank you. And somewhere, a mathematician will nod approvingly.
+The mathematical superiority of quaternions translates directly into practical benefits:
+
+- **Robust Control Systems**: Elimination of gimbal lock enables reliable attitude control in aerospace applications
+- **Smooth Animation**: Constant angular velocity interpolation produces natural-looking rotations in computer graphics
+- **Numerical Stability**: Better conditioning of rotation operations reduces accumulation of numerical errors
+- **Compact Representation**: Four parameters vs. nine for rotation matrices, with inherent orthogonality constraints
+
+## Conclusion: Mathematical Rigor in Computational Practice
+
+The choice between Euler angles and quaternions is not merely one of computational convenience—it reflects a deeper understanding of the mathematical structure underlying 3D rotations. While Euler angles offer intuitive parameterization for human interfaces, quaternions provide the mathematically principled foundation necessary for robust computational systems.
+
+The interactive visualizations demonstrate these theoretical principles through direct manipulation, revealing how mathematical abstractions manifest as concrete computational behaviors. This convergence of theory and practice exemplifies the power of choosing representations that align with the underlying mathematical reality.
 
 ---
 
-*Try the interactive demos above to build your intuition. Mathematics is best learned through play.*
+*Explore the interactive mathematical demonstrations above to develop geometric intuition for these abstract concepts.*
 
-<!DOCTYPE html>
+<!-- <!DOCTYPE html> -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -318,122 +459,6 @@ Your camera controls will thank you. Your users will thank you. And somewhere, a
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>3D Rotations: The Gimbal Lock Problem</h1>
-            <p>Explore why Euler angles fail at certain orientations and how quaternions provide a elegant solution</p>
-        </div>
-        
-        <div class="visualization-grid">
-            <!-- Gimbal Rig Visualization -->
-            <div class="panel">
-                <h3>Gimbal Rig</h3>
-                <div class="canvas-container">
-                    <canvas id="gimbalCanvas"></canvas>
-                </div>
-                <div class="controls">
-                    <div class="control-group">
-                        <label><span style="color: #64ffda;">Yaw (Z-axis)</span> <span class="value-display" id="yawValue">0°</span></label>
-                        <input type="range" class="slider" id="yawSlider" min="-180" max="180" value="0" step="1">
-                    </div>
-                    <div class="control-group">
-                        <label><span style="color: #4caf50;">Pitch (Y-axis)</span> <span class="value-display" id="pitchValue">0°</span></label>
-                        <input type="range" class="slider" id="pitchSlider" min="-90" max="90" value="0" step="1">
-                    </div>
-                    <div class="control-group">
-                        <label><span style="color: #ff9800;">Roll (X-axis)</span> <span class="value-display" id="rollValue">0°</span></label>
-                        <input type="range" class="slider" id="rollSlider" min="-180" max="180" value="0" step="1">
-                    </div>
-                </div>
-                <div class="warning" id="gimbalWarning">
-                    GIMBAL LOCK! Yaw and Roll axes are aligned - you've lost a degree of freedom!
-                </div>
-                <div class="info-box">
-                    <strong>Try this:</strong> Set pitch to ±90° and notice how yaw and roll controls do the same thing. This is gimbal lock - the curse of Euler angles!
-                </div>
-            </div>
-            
-            <!-- Quaternion Sphere -->
-            <div class="panel">
-                <h3>Quaternion Sphere (S³)</h3>
-                <div class="canvas-container">
-                    <canvas id="quaternionCanvas"></canvas>
-                </div>
-                <div class="quaternion-display">
-                    <div class="quat-component">
-                        <div class="label">x</div>
-                        <div class="value" id="quatX">0.000</div>
-                    </div>
-                    <div class="quat-component">
-                        <div class="label">y</div>
-                        <div class="value" id="quatY">0.000</div>
-                    </div>
-                    <div class="quat-component">
-                        <div class="label">z</div>
-                        <div class="value" id="quatZ">0.000</div>
-                    </div>
-                    <div class="quat-component">
-                        <div class="label">w</div>
-                        <div class="value" id="quatW">1.000</div>
-                    </div>
-                </div>
-                <div class="controls">
-                    <button class="button" id="showAntipodes">Show Antipodal Points (±q)</button>
-                    <button class="button" id="showGeodesicArc">Show Antipodal Geodesic Arc</button>
-                </div>
-                <div class="info-box">
-                    Quaternions live on a 4D unit sphere. Each 3D rotation maps to TWO points: q and -q. This "double cover" eliminates singularities!
-                </div>
-            </div>
-            
-            <!-- Euler Angle Heatmap -->
-            <div class="panel wide-panel">
-                <h3>Euler Angle Sensitivity Map (Torus Topology)</h3>
-                <div class="canvas-container" style="height: 500px;">
-                    <canvas id="heatmapCanvas"></canvas>
-                </div>
-                <div class="controls">
-                    <div class="control-group">
-                        <label>Fixed Pitch Value <span class="value-display" id="heatmapPitchValue">0°</span></label>
-                        <input type="range" class="slider" id="heatmapPitchSlider" min="-90" max="90" value="0" step="5">
-                    </div>
-                    <div class="control-group">
-                        <label><span style="color: #64ffda;">Torus Yaw</span> <span class="value-display" id="torusYawValue">0°</span></label>
-                        <input type="range" class="slider" id="torusYawSlider" min="-180" max="180" value="0" step="1">
-                    </div>
-                    <div class="control-group">
-                        <label><span style="color: #ff9800;">Torus Roll</span> <span class="value-display" id="torusRollValue">0°</span></label>
-                        <input type="range" class="slider" id="torusRollSlider" min="-180" max="180" value="0" step="1">
-                    </div>
-                    <button class="button" id="animateHeatmap">Animate Through Pitch Values</button>
-                    <button class="button" id="toggleTorusView">Toggle Torus/Flat View</button>
-                </div>
-                <div class="info-box">
-                    <strong>Color coding:</strong> <span style="color: #0066ff;">Blue</span> = stable, <span style="color: #00ff00;">Green</span> = sensitive, <span style="color: #ff0000;">Red</span> = highly singular, <span style="color: #ffff00;">Yellow</span> = gimbal lock!<br>
-                    This map shows how sensitive the rotation is to small changes in yaw/roll for a given pitch. The torus topology reveals how yaw and roll wrap around at ±180°. As pitch approaches ±90°, the entire map turns red/yellow, showing that yaw and roll become coupled and the coordinate system becomes singular.
-                </div>
-            </div>
-            
-            <!-- SLERP Comparison -->
-            <div class="panel wide-panel">
-                <h3>Interpolation: Euler LERP vs SLERP</h3>
-                <div class="canvas-container" style="height: 300px;">
-                    <canvas id="slerpCanvas"></canvas>
-                </div>
-                <div class="controls">
-                    <div class="control-group">
-                        <label>Interpolation Parameter t <span class="value-display" id="tValue">0.0</span></label>
-                        <input type="range" class="slider" id="tSlider" min="0" max="1" value="0" step="0.01">
-                    </div>
-                    <button class="button" id="animateInterp">Animate Interpolation</button>
-                    <button class="button" id="setRandomOrientations">Set Random Orientations</button>
-                </div>
-                <div class="info-box">
-                    <strong>Blue path:</strong> SLERP (quaternion) - smooth great circle on S³<br>
-                    <strong>Red path:</strong> Euler LERP - can be jerky, especially near singularities<br>
-                    Watch how SLERP maintains constant angular velocity while Euler LERP can speed up and slow down unpredictably.
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- Three.js for 3D rendering -->
@@ -1021,10 +1046,15 @@ Your camera controls will thank you. Your users will thank you. And somewhere, a
         let animating = false;
         let quaternionHistory = [[0, 0, 0, 1]]; // For drift correction
         let frameCount = 0;
-        let showTorusView = false;
+        let showTorusView = true;
 
         // Canvas contexts (will be initialized in init function)
-        let heatmapCtx, slerpCtx;
+        let heatmapCtx, slerpVelocityCtx;
+        
+        // Three.js for SLERP path visualization
+        let slerpScene, slerpCamera, slerpRenderer, slerpControls;
+        let slerpSphere, slerpPathLine, eulerPathLine;
+        let slerpCurrentPoint, eulerCurrentPoint;
 
         // Utility functions
         const deg2rad = (deg) => deg * Math.PI / 180;
@@ -1035,7 +1065,7 @@ Your camera controls will thank you. Your users will thank you. And somewhere, a
             const canvases = [
                 document.getElementById('quaternionCanvas'),
                 document.getElementById('heatmapCanvas'),
-                document.getElementById('slerpCanvas')
+                document.getElementById('slerpVelocityCanvas')
             ];
             
             canvases.forEach(canvas => {
@@ -1776,6 +1806,321 @@ Your camera controls will thank you. Your users will thank you. And somewhere, a
             quaternionCamera.updateProjectionMatrix();
             quaternionRenderer.setSize(width, height);
         };
+        
+        // ===============================================================================
+        // THREE.JS SLERP PATH VISUALIZATION
+        // ===============================================================================
+        
+        const initSlerpPath3D = () => {
+            const canvas = document.getElementById('slerpPathCanvas');
+            const width = canvas.clientWidth;
+            const height = canvas.clientHeight;
+            
+            // Scene - slightly brighter background
+            slerpScene = new THREE.Scene();
+            slerpScene.background = new THREE.Color(0x0a0a1a);
+            
+            // Camera - positioned to see blue SLERP arc better
+            slerpCamera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000);
+            slerpCamera.position.set(3.5, 2, 2.5);
+            slerpCamera.lookAt(0, 0, 0);
+            
+            // Renderer
+            slerpRenderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+            slerpRenderer.setSize(width, height);
+            slerpRenderer.setPixelRatio(window.devicePixelRatio);
+            
+            // Controls
+            slerpControls = new THREE.TrackballControls(slerpCamera, slerpRenderer.domElement);
+            slerpControls.rotateSpeed = 1.0;
+            slerpControls.zoomSpeed = 1.2;
+            slerpControls.panSpeed = 0.8;
+            slerpControls.minDistance = 1.5;
+            slerpControls.maxDistance = 5;
+            
+            // Enhanced lighting for better visibility
+            const ambientLight = new THREE.AmbientLight(0x606060, 0.8);
+            slerpScene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
+            directionalLight.position.set(3, 3, 3);
+            directionalLight.castShadow = true;
+            slerpScene.add(directionalLight);
+            
+            // Add another directional light from opposite side
+            const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.6);
+            directionalLight2.position.set(-3, 2, -3);
+            slerpScene.add(directionalLight2);
+            
+            // Add point lights for better sphere illumination
+            const pointLight1 = new THREE.PointLight(0x88ccff, 0.5, 100);
+            pointLight1.position.set(2, 3, 0);
+            slerpScene.add(pointLight1);
+            
+            const pointLight2 = new THREE.PointLight(0xffaa88, 0.5, 100);
+            pointLight2.position.set(-2, -1, 2);
+            slerpScene.add(pointLight2);
+            
+            // Create main sphere (wireframe) - more transparent for path visibility
+            const sphereGeometry = new THREE.SphereGeometry(1, 24, 24);
+            const sphereMaterial = new THREE.MeshPhongMaterial({
+                color: 0x666688,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.3,
+                depthWrite: false
+            });
+            slerpSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+            slerpSphere.renderOrder = 1;
+            slerpScene.add(slerpSphere);
+            
+            // Create solid sphere for depth - more transparent
+            const solidSphereMaterial = new THREE.MeshPhongMaterial({
+                color: 0x222244,
+                transparent: true,
+                opacity: 0.1,
+                shininess: 50,
+                depthWrite: false,
+                side: THREE.BackSide  // Render only back side to reduce occlusion
+            });
+            const solidSphere = new THREE.Mesh(sphereGeometry, solidSphereMaterial);
+            solidSphere.renderOrder = 0;
+            slerpScene.add(solidSphere);
+            
+            // Add coordinate axes for reference
+            const axesHelper = new THREE.AxesHelper(1.3);
+            slerpScene.add(axesHelper);
+            
+            // Create start and end points - make them bigger
+            const startGeometry = new THREE.SphereGeometry(0.06, 16, 16);
+            const startMaterial = new THREE.MeshPhongMaterial({
+                color: 0x4caf50,
+                emissive: 0x4caf50,
+                emissiveIntensity: 0.5
+            });
+            const startPoint = new THREE.Mesh(startGeometry, startMaterial);
+            slerpScene.add(startPoint);
+            
+            const endGeometry = new THREE.SphereGeometry(0.06, 16, 16);
+            const endMaterial = new THREE.MeshPhongMaterial({
+                color: 0xff9800,
+                emissive: 0xff9800,
+                emissiveIntensity: 0.5
+            });
+            const endPoint = new THREE.Mesh(endGeometry, endMaterial);
+            slerpScene.add(endPoint);
+            
+            // Create current position markers - make them bigger and more visible
+            const currentGeometry = new THREE.SphereGeometry(0.08, 16, 16);
+            
+            const slerpCurrentMaterial = new THREE.MeshPhongMaterial({
+                color: 0x2196f3,
+                emissive: 0x2196f3,
+                emissiveIntensity: 0.8
+            });
+            slerpCurrentPoint = new THREE.Mesh(currentGeometry, slerpCurrentMaterial);
+            slerpScene.add(slerpCurrentPoint);
+            
+            const eulerCurrentMaterial = new THREE.MeshPhongMaterial({
+                color: 0xf44336,
+                emissive: 0xf44336,
+                emissiveIntensity: 0.8
+            });
+            eulerCurrentPoint = new THREE.Mesh(currentGeometry, eulerCurrentMaterial);
+            slerpScene.add(eulerCurrentPoint);
+            
+            // Start animation loop
+            const animateSlerpPath = () => {
+                requestAnimationFrame(animateSlerpPath);
+                slerpControls.update();
+                updateSlerpPaths3D();
+                slerpRenderer.render(slerpScene, slerpCamera);
+            };
+            animateSlerpPath();
+        };
+        
+        const updateSlerpPaths3D = () => {
+            if (!slerpScene) return;
+            
+            const t = parseFloat(document.getElementById('tSlider').value);
+            
+            // Get Euler angles for start and end orientations
+            const eulerA = qToEulerZYX(orientationA);
+            const eulerB = qToEulerZYX(orientationB);
+            
+            // COMPREHENSIVE cleanup of all path-related objects
+            const toRemove = [];
+            slerpScene.children.forEach(child => {
+                // Remove tubes (both SLERP and Euler)
+                if (child.geometry && child.geometry.type === 'TubeGeometry') {
+                    toRemove.push(child);
+                }
+                // Remove lines (both SLERP and Euler paths)
+                if (child.geometry && child.geometry.type === 'BufferGeometry' && child.type === 'Line') {
+                    toRemove.push(child);
+                }
+                // Remove path marker spheres (but keep start/end points)
+                if (child.geometry && child.geometry.type === 'SphereGeometry' &&
+                    child.material && (
+                        child.material.color.getHex() === 0x64b5f6 || // SLERP path spheres
+                        child.material.color.getHex() === 0xff6655    // Euler path spheres
+                    )) {
+                    toRemove.push(child);
+                }
+            });
+            
+            // Dispose of all removed objects properly
+            toRemove.forEach(child => {
+                slerpScene.remove(child);
+                if (child.geometry) {
+                    child.geometry.dispose();
+                }
+                if (child.material) {
+                    if (child.material.map) child.material.map.dispose();
+                    child.material.dispose();
+                }
+            });
+            
+            // Generate SLERP path points
+            // Visualize by applying quaternion rotations to a reference vector
+            const slerpPoints = [];
+            const referenceVector = new THREE.Vector3(1, 0, 0); // Start with x-axis
+            
+            for (let i = 0; i <= 100; i++) {
+                const t_i = i / 100;
+                const q = qSlerp(orientationA, orientationB, t_i);
+                const [qx, qy, qz, qw] = qNorm(q);
+                
+                // Convert quaternion to Three.js quaternion
+                const threeQuat = new THREE.Quaternion(qx, qy, qz, qw);
+                
+                // Apply rotation to reference vector
+                const point = referenceVector.clone();
+                point.applyQuaternion(threeQuat);
+                
+                // Ensure point is on unit sphere (should already be, but just in case)
+                point.normalize();
+                
+                slerpPoints.push(point);
+            }
+            
+            // Create SLERP path - Thin and clean
+            const slerpGeometry = new THREE.BufferGeometry().setFromPoints(slerpPoints);
+            
+            // Add thin tube geometry for SLERP path
+            const slerpCurve = new THREE.CatmullRomCurve3(slerpPoints);
+            const slerpTubeGeometry = new THREE.TubeGeometry(slerpCurve, 100, 0.025, 8, false); // Much thinner
+            const slerpTubeMaterial = new THREE.MeshPhongMaterial({
+                color: 0x2196f3,
+                emissive: 0x1565c0,
+                emissiveIntensity: 0.3,
+                shininess: 100,
+                transparent: false,
+                depthTest: true
+            });
+            const slerpTube = new THREE.Mesh(slerpTubeGeometry, slerpTubeMaterial);
+            slerpTube.renderOrder = 5;
+            slerpScene.add(slerpTube);
+            
+            // Simple line for SLERP path
+            const slerpLineMaterial = new THREE.LineBasicMaterial({
+                color: 0x2196f3,
+                linewidth: 2,
+                transparent: false
+            });
+            slerpPathLine = new THREE.Line(slerpGeometry, slerpLineMaterial);
+            slerpPathLine.renderOrder = 4;
+            slerpScene.add(slerpPathLine);
+            
+            // Generate Euler LERP path points
+            const eulerPoints = [];
+            const refVector = new THREE.Vector3(1, 0, 0); // Use same reference vector approach
+            
+            for (let i = 0; i <= 100; i++) {
+                const t_i = i / 100;
+                const interpYaw = eulerA[0] + (eulerB[0] - eulerA[0]) * t_i;
+                const interpPitch = eulerA[1] + (eulerB[1] - eulerA[1]) * t_i;
+                const interpRoll = eulerA[2] + (eulerB[2] - eulerA[2]) * t_i;
+                const q = qFromEulerZYX(interpYaw, interpPitch, interpRoll);
+                const [qx, qy, qz, qw] = qNorm(q);
+                
+                // Convert quaternion to Three.js quaternion
+                const threeQuat = new THREE.Quaternion(qx, qy, qz, qw);
+                
+                // Apply rotation to reference vector
+                const point = refVector.clone();
+                point.applyQuaternion(threeQuat);
+                
+                // Ensure point is on unit sphere
+                point.normalize();
+                
+                eulerPoints.push(point);
+            }
+            
+            // Create Euler LERP path line - thicker and more visible
+            const eulerGeometry = new THREE.BufferGeometry().setFromPoints(eulerPoints);
+            const eulerMaterial = new THREE.LineBasicMaterial({
+                color: 0xff6655,
+                linewidth: 5,
+                transparent: false
+            });
+            eulerPathLine = new THREE.Line(eulerGeometry, eulerMaterial);
+            slerpScene.add(eulerPathLine);
+            
+            // Add tube geometry for Euler LERP - keep thinner than SLERP
+            const eulerCurve = new THREE.CatmullRomCurve3(eulerPoints);
+            const eulerTubeGeometry = new THREE.TubeGeometry(eulerCurve, 100, 0.03, 8, false);
+            const eulerTubeMaterial = new THREE.MeshPhongMaterial({
+                color: 0xff6655,
+                emissive: 0xff4433,
+                emissiveIntensity: 0.6,
+                shininess: 100,
+                transparent: false,
+                depthTest: true
+            });
+            const eulerTube = new THREE.Mesh(eulerTubeGeometry, eulerTubeMaterial);
+            eulerTube.renderOrder = 2;  // Lower than SLERP
+            slerpScene.add(eulerTube);
+            
+            // Update start and end points
+            const startPos = slerpPoints[0];
+            const endPos = slerpPoints[slerpPoints.length - 1];
+            
+            const startMarker = slerpScene.children.find(child =>
+                child.material && child.material.color &&
+                child.material.color.getHex() === 0x4caf50);
+            if (startMarker) {
+                startMarker.position.copy(startPos);
+            }
+            
+            const endMarker = slerpScene.children.find(child =>
+                child.material && child.material.color &&
+                child.material.color.getHex() === 0xff9800);
+            if (endMarker) {
+                endMarker.position.copy(endPos);
+            }
+            
+            // Update current positions
+            const currentIndex = Math.floor(t * (slerpPoints.length - 1));
+            if (slerpCurrentPoint && slerpPoints[currentIndex]) {
+                slerpCurrentPoint.position.copy(slerpPoints[currentIndex]);
+            }
+            if (eulerCurrentPoint && eulerPoints[currentIndex]) {
+                eulerCurrentPoint.position.copy(eulerPoints[currentIndex]);
+            }
+        };
+        
+        const resizeSlerpPath3D = () => {
+            if (!slerpRenderer) return;
+            
+            const canvas = document.getElementById('slerpPathCanvas');
+            const width = canvas.clientWidth;
+            const height = canvas.clientHeight;
+            
+            slerpCamera.aspect = width / height;
+            slerpCamera.updateProjectionMatrix();
+            slerpRenderer.setSize(width, height);
+        };
 
         // Simple, guaranteed-to-work approach focusing on visible results
         const eulerCondition = (yaw, pitch, roll) => {
@@ -2291,13 +2636,13 @@ Your camera controls will thank you. Your users will thank you. And somewhere, a
             }
         };
 
-        // SLERP comparison visualization
+        // SLERP comparison visualization - COMPLETELY REDESIGNED
         let orientationA = [0, 0, 0, 1];
         let orientationB = qFromEulerZYX(deg2rad(90), deg2rad(45), deg2rad(30));
 
-        const drawSlerpComparison = () => {
-            const canvas = document.getElementById('slerpCanvas');
-            const ctx = slerpCtx;
+        const drawSlerpVelocity = () => {
+            const canvas = document.getElementById('slerpVelocityCanvas');
+            const ctx = slerpVelocityCtx;
             const width = canvas.clientWidth;
             const height = canvas.clientHeight;
             
@@ -2309,94 +2654,159 @@ Your camera controls will thank you. Your users will thank you. And somewhere, a
             const eulerA = qToEulerZYX(orientationA);
             const eulerB = qToEulerZYX(orientationB);
             
-            // Draw interpolation paths
-            ctx.lineWidth = 2;
+            // =========================================================================
+            // Angular Velocity Comparison (Shows speed consistency)
+            // =========================================================================
             
-            // Collect path points
-            const slerpPath = [];
-            const eulerPath = [];
+            // Compute angular velocities for both methods
+            const slerpVelocities = [];
+            const eulerVelocities = [];
+            const slerpOrientations = [];
+            const eulerOrientations = [];
             
-            for (let i = 0; i <= 100; i++) {
-                const t_i = i / 100;
+            const numSamples = 100;
+            const dt = 1.0 / numSamples;
+            
+            for (let i = 0; i <= numSamples; i++) {
+                const t_i = i / numSamples;
                 
-                // SLERP path
+                // SLERP interpolation
                 const qSlerped = qSlerp(orientationA, orientationB, t_i);
-                const [axis, angle] = qToAxisAngle(qSlerped);
-                slerpPath.push(angle);
+                slerpOrientations.push(qSlerped);
                 
-                // Euler LERP path - actual Euler angle interpolation
+                // Euler LERP interpolation
                 const interpYaw = eulerA[0] + (eulerB[0] - eulerA[0]) * t_i;
                 const interpPitch = eulerA[1] + (eulerB[1] - eulerA[1]) * t_i;
                 const interpRoll = eulerA[2] + (eulerB[2] - eulerA[2]) * t_i;
                 const qEuler = qFromEulerZYX(interpYaw, interpPitch, interpRoll);
-                const [axisE, angleE] = qToAxisAngle(qEuler);
-                eulerPath.push(angleE);
+                eulerOrientations.push(qEuler);
+                
+                // Calculate angular velocities (skip first point)
+                if (i > 0) {
+                    // SLERP angular velocity
+                    const slerpDeltaQ = qMul(qSlerped, qConj(slerpOrientations[i-1]));
+                    const [slerpAxis, slerpAngle] = qToAxisAngle(slerpDeltaQ);
+                    const slerpVelocity = slerpAngle / dt;
+                    slerpVelocities.push(slerpVelocity);
+                    
+                    // Euler LERP angular velocity
+                    const eulerDeltaQ = qMul(qEuler, qConj(eulerOrientations[i-1]));
+                    const [eulerAxis, eulerAngle] = qToAxisAngle(eulerDeltaQ);
+                    const eulerVelocity = eulerAngle / dt;
+                    eulerVelocities.push(eulerVelocity);
+                }
             }
             
-            // Normalize paths for visualization
-            const maxAngle = Math.max(...slerpPath, ...eulerPath);
-            const minAngle = Math.min(...slerpPath, ...eulerPath);
-            const angleRange = maxAngle - minAngle || 1;
+            // Find max velocity for scaling
+            const maxVelocity = Math.max(...slerpVelocities, ...eulerVelocities);
+            const minVelocity = Math.min(...slerpVelocities, ...eulerVelocities);
+            const velocityRange = maxVelocity - minVelocity || 1;
             
-            // SLERP path (blue)
+            // Draw panel background
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.02)';
+            ctx.fillRect(0, 0, width, height);
+            
+            // Draw velocity graphs
+            const graphHeight = height * 0.7;
+            const graphY = height * 0.15;
+            
+            // Draw grid lines
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 4; i++) {
+                const y = graphY + (graphHeight * i / 4);
+                ctx.beginPath();
+                ctx.moveTo(10, y);
+                ctx.lineTo(width - 10, y);
+                ctx.stroke();
+            }
+            
+            // SLERP velocity (should be constant) - BLUE
             ctx.strokeStyle = '#2196f3';
+            ctx.lineWidth = 3;
             ctx.beginPath();
-            for (let i = 0; i <= 100; i++) {
-                const x = width * 0.1 + (width * 0.8) * (i / 100);
-                const normalizedAngle = (slerpPath[i] - minAngle) / angleRange;
-                const y = height * 0.4 - normalizedAngle * height * 0.25;
+            for (let i = 0; i < slerpVelocities.length; i++) {
+                const x = 10 + (width - 20) * (i / slerpVelocities.length);
+                const normalizedVel = (slerpVelocities[i] - minVelocity) / velocityRange;
+                const y = graphY + graphHeight - (normalizedVel * graphHeight);
                 
                 if (i === 0) ctx.moveTo(x, y);
                 else ctx.lineTo(x, y);
             }
             ctx.stroke();
             
-            // Euler LERP path (red) - shows actual interpolation issues
+            // Draw SLERP velocity value (should be nearly constant)
+            const avgSlerpVel = slerpVelocities.reduce((a, b) => a + b, 0) / slerpVelocities.length;
+            const slerpVariance = Math.sqrt(slerpVelocities.reduce((sum, v) => sum + Math.pow(v - avgSlerpVel, 2), 0) / slerpVelocities.length);
+            
+            // Euler LERP velocity (varies) - RED
             ctx.strokeStyle = '#f44336';
+            ctx.lineWidth = 3;
             ctx.beginPath();
-            for (let i = 0; i <= 100; i++) {
-                const x = width * 0.1 + (width * 0.8) * (i / 100);
-                const normalizedAngle = (eulerPath[i] - minAngle) / angleRange;
-                const y = height * 0.7 - normalizedAngle * height * 0.25;
+            for (let i = 0; i < eulerVelocities.length; i++) {
+                const x = 10 + (width - 20) * (i / eulerVelocities.length);
+                const normalizedVel = (eulerVelocities[i] - minVelocity) / velocityRange;
+                const y = graphY + graphHeight - (normalizedVel * graphHeight);
                 
                 if (i === 0) ctx.moveTo(x, y);
                 else ctx.lineTo(x, y);
             }
             ctx.stroke();
             
-            // Draw current position markers
-            const currentX = width * 0.1 + (width * 0.8) * t;
-            const currentIndex = Math.floor(t * 100);
+            // Calculate Euler velocity variance
+            const avgEulerVel = eulerVelocities.reduce((a, b) => a + b, 0) / eulerVelocities.length;
+            const eulerVariance = Math.sqrt(eulerVelocities.reduce((sum, v) => sum + Math.pow(v - avgEulerVel, 2), 0) / eulerVelocities.length);
             
-            // SLERP position
+            // Draw current position marker
+            const currentVelIndex = Math.min(Math.floor(t * (slerpVelocities.length - 1)), slerpVelocities.length - 1);
+            const markerX = 10 + (width - 20) * t;
+            
+            // Vertical line at current t
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([4, 2]);
+            ctx.beginPath();
+            ctx.moveTo(markerX, graphY);
+            ctx.lineTo(markerX, graphY + graphHeight);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // SLERP current point
+            const slerpNormVel = (slerpVelocities[currentVelIndex] - minVelocity) / velocityRange;
+            const slerpMarkerY = graphY + graphHeight - (slerpNormVel * graphHeight);
             ctx.fillStyle = '#2196f3';
             ctx.beginPath();
-            const slerpNormalized = (slerpPath[currentIndex] - minAngle) / angleRange;
-            const slerpY = height * 0.4 - slerpNormalized * height * 0.25;
-            ctx.arc(currentX, slerpY, 6, 0, 2 * Math.PI);
+            ctx.arc(markerX, slerpMarkerY, 5, 0, 2 * Math.PI);
             ctx.fill();
             
-            // Euler LERP position
+            // Euler current point
+            const eulerNormVel = (eulerVelocities[currentVelIndex] - minVelocity) / velocityRange;
+            const eulerMarkerY = graphY + graphHeight - (eulerNormVel * graphHeight);
             ctx.fillStyle = '#f44336';
             ctx.beginPath();
-            const eulerNormalized = (eulerPath[currentIndex] - minAngle) / angleRange;
-            const eulerY = height * 0.7 - eulerNormalized * height * 0.25;
-            ctx.arc(currentX, eulerY, 6, 0, 2 * Math.PI);
+            ctx.arc(markerX, eulerMarkerY, 5, 0, 2 * Math.PI);
             ctx.fill();
             
-            // Draw angle values
+            // Labels for panel
             ctx.fillStyle = '#ffffff';
-            ctx.font = '10px sans-serif';
-            ctx.fillText(`Angle: ${(slerpPath[currentIndex] * 180 / Math.PI).toFixed(1)}°`, currentX - 20, slerpY - 10);
-            ctx.fillText(`Angle: ${(eulerPath[currentIndex] * 180 / Math.PI).toFixed(1)}°`, currentX - 20, eulerY + 20);
+            ctx.font = 'bold 12px sans-serif';
+            ctx.fillText('Angular Velocity', width/2 - 45, 15);
             
-            // Labels
+            ctx.font = '10px sans-serif';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+            ctx.fillText('0', 5, graphY + graphHeight + 12);
+            ctx.fillText('t', width - 15, graphY + graphHeight + 12);
+            ctx.fillText('1', width - 10, graphY + graphHeight + 12);
+            
+            // Velocity stats
             ctx.fillStyle = '#2196f3';
-            ctx.font = '14px sans-serif';
-            ctx.fillText('SLERP (Smooth)', 20, height * 0.2);
+            ctx.font = 'bold 11px sans-serif';
+            ctx.fillText(`SLERP: σ=${slerpVariance.toFixed(3)}`, 15, height - 25);
+            ctx.fillText('(constant speed)', 15, height - 10);
             
             ctx.fillStyle = '#f44336';
-            ctx.fillText('Euler LERP (Jerky)', 20, height * 0.9);
+            ctx.fillText(`Euler: σ=${eulerVariance.toFixed(3)}`, 15, height - 55);
+            ctx.fillText('(varying speed)', 15, height - 40);
         };
 
         // ===============================================================================
@@ -2591,7 +3001,10 @@ Your camera controls will thank you. Your users will thank you. And somewhere, a
             
             // Initialize other canvas contexts (only 2D canvases)
             heatmapCtx = document.getElementById('heatmapCanvas').getContext('2d');
-            slerpCtx = document.getElementById('slerpCanvas').getContext('2d');
+            slerpVelocityCtx = document.getElementById('slerpVelocityCanvas').getContext('2d');
+            
+            // Initialize Three.js for SLERP path visualization
+            initSlerpPath3D();
             
             resizeCanvases();
             
@@ -2622,7 +3035,8 @@ Your camera controls will thank you. Your users will thank you. And somewhere, a
             document.getElementById('tSlider').addEventListener('input', () => {
                 const t = parseFloat(document.getElementById('tSlider').value);
                 document.getElementById('tValue').textContent = t.toFixed(2);
-                drawSlerpComparison();
+                drawSlerpVelocity();
+                updateSlerpPaths3D();
                 // Update geodesic arc to show current position
                 if (showGeodesicArc) {
                     updateQuaternionSphere3D();
@@ -2649,7 +3063,8 @@ Your camera controls will thank you. Your users will thank you. And somewhere, a
                 // Store globally for geodesic visualization
                 window.orientationA = orientationA;
                 window.orientationB = orientationB;
-                drawSlerpComparison();
+                drawSlerpVelocity();
+                updateSlerpPaths3D();
                 updateQuaternionSphere3D(); // Redraw to show geodesic
             });
             
@@ -2681,6 +3096,9 @@ Your camera controls will thank you. Your users will thank you. And somewhere, a
                 drawHeatmap();
             });
             
+            // Set initial button text based on default state
+            document.getElementById('toggleTorusView').textContent = 'Switch to Flat View';
+            
             let interpAnimating = false;
             document.getElementById('animateInterp').addEventListener('click', () => {
                 if (interpAnimating) return;
@@ -2690,7 +3108,8 @@ Your camera controls will thank you. Your users will thank you. And somewhere, a
                 const animate = () => {
                     document.getElementById('tSlider').value = t;
                     document.getElementById('tValue').textContent = t.toFixed(2);
-                    drawSlerpComparison();
+                    drawSlerpVelocity();
+                    updateSlerpPaths3D();
                     
                     t += 0.01;
                     if (t <= 1) {
@@ -2702,7 +3121,8 @@ Your camera controls will thank you. Your users will thank you. And somewhere, a
                             t = 0;
                             document.getElementById('tSlider').value = t;
                             document.getElementById('tValue').textContent = t.toFixed(2);
-                            drawSlerpComparison();
+                            drawSlerpVelocity();
+                            updateSlerpPaths3D();
                         }, 500);
                     }
                 };
@@ -2716,7 +3136,8 @@ Your camera controls will thank you. Your users will thank you. And somewhere, a
             // Initial draw
             updateFromSliders();
             drawHeatmap();
-            drawSlerpComparison();
+            drawSlerpVelocity();
+            updateSlerpPaths3D();
         };
 
         // Handle window resize
@@ -2725,9 +3146,11 @@ Your camera controls will thank you. Your users will thank you. And somewhere, a
                 resizeCanvases();
                 resizeThreeJS();
                 resizeQuaternionSphere3D();
+                resizeSlerpPath3D();
                 updateFromSliders();
                 drawHeatmap();
-                drawSlerpComparison();
+                drawSlerpVelocity();
+                updateSlerpPaths3D();
             }, 100);
         });
 
