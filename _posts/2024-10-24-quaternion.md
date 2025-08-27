@@ -146,8 +146,7 @@ The degeneracy occurs because Euler angles represent rotations as a composition 
         </div>
     </div>
     <div class="controls">
-        <button class="button" id="showAntipodes">Show Antipodal Points (±q)</button>
-        <button class="button" id="showGeodesicArc">Show Antipodal Geodesic Arc</button>
+        <button class="button" id="showQuaternionFeatures">Show Antipodal Points & Geodesic Arc</button>
     </div>
     <div class="info-box">
         Quaternions live on a 4D unit sphere. Each 3D rotation maps to TWO points: q and -q. This "double cover" eliminates singularities!
@@ -2010,20 +2009,17 @@ The interactive visualizations demonstrate these theoretical principles through 
                     }
                 });
 
-                // Disable UI controls during gimbal lock
-                const yawSlider = document.getElementById('yawSlider');
+                // Keep controls active during gimbal lock so users can experience it
+                // Just visually indicate the gimbal lock state without disabling controls
                 const rollSlider = document.getElementById('rollSlider');
-                const rollLabel = document.querySelector('label');
                 
                 if (rollSlider && isGimbalLock) {
-                    // Make roll slider semi-transparent and show it's coupled with yaw
-                    rollSlider.style.opacity = '0.5';
-                    rollSlider.style.pointerEvents = 'none';
-                    if (rollLabel) rollLabel.style.opacity = '0.5';
+                    // Visual indication of gimbal lock without disabling
+                    rollSlider.style.borderColor = '#ff6b6b';
+                    rollSlider.style.boxShadow = '0 0 5px rgba(255, 107, 107, 0.5)';
                 } else if (rollSlider) {
-                    rollSlider.style.opacity = '1';
-                    rollSlider.style.pointerEvents = 'auto';
-                    if (rollLabel) rollLabel.style.opacity = '1';
+                    rollSlider.style.borderColor = '';
+                    rollSlider.style.boxShadow = '';
                 }
             }
 
@@ -2121,10 +2117,10 @@ The interactive visualizations demonstrate these theoretical principles through 
             // Create main quaternion sphere (wireframe)
             const sphereGeometry = new THREE.SphereGeometry(1, 32, 32);
             const sphereMaterial = new THREE.MeshPhongMaterial({
-                color: 0x333333,
+                color: 0xaaaaaa,
                 wireframe: true,
                 transparent: true,
-                opacity: 0.3
+                opacity: 0.6
             });
             quaternionSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
             quaternionScene.add(quaternionSphere);
@@ -3589,17 +3585,13 @@ The interactive visualizations demonstrate these theoretical principles through 
                 }
             });
             
-            document.getElementById('showAntipodes').addEventListener('click', () => {
+            document.getElementById('showQuaternionFeatures').addEventListener('click', () => {
+                // Toggle both features together
                 showAntipodes = !showAntipodes;
-                document.getElementById('showAntipodes').textContent =
-                    showAntipodes ? 'Hide Antipodal Points' : 'Show Antipodal Points (±q)';
-                updateQuaternionSphere3D();
-            });
-            
-            document.getElementById('showGeodesicArc').addEventListener('click', () => {
-                showGeodesicArc = !showGeodesicArc;
-                document.getElementById('showGeodesicArc').textContent =
-                    showGeodesicArc ? 'Hide Antipodal Geodesic Arc' : 'Show Antipodal Geodesic Arc';
+                showGeodesicArc = showAntipodes; // Keep them in sync
+                
+                document.getElementById('showQuaternionFeatures').textContent =
+                    showAntipodes ? 'Hide Antipodal Points & Geodesic Arc' : 'Show Antipodal Points & Geodesic Arc';
                 updateQuaternionSphere3D();
             });
             
