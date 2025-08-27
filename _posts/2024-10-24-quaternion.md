@@ -146,10 +146,130 @@ The degeneracy occurs because Euler angles represent rotations as a composition 
         </div>
     </div>
     <div class="controls">
+        <div class="control-group">
+            <label><span style="color: #64ffda;">Sphere Yaw</span> <span class="value-display" id="sphereYawValue">0°</span></label>
+            <input type="range" class="slider" id="sphereYawSlider" min="-180" max="180" value="0" step="1">
+        </div>
+        <div class="control-group">
+            <label><span style="color: #4caf50;">Sphere Pitch</span> <span class="value-display" id="spherePitchValue">0°</span></label>
+            <input type="range" class="slider" id="spherePitchSlider" min="-90" max="90" value="0" step="1">
+        </div>
+        <div class="control-group">
+            <label><span style="color: #ff9800;">Sphere Roll</span> <span class="value-display" id="sphereRollValue">0°</span></label>
+            <input type="range" class="slider" id="sphereRollSlider" min="-180" max="180" value="0" step="1">
+        </div>
+    </div>
+    <div class="controls">
+        <div class="control-group">
+            <label><span style="color: #e91e63;">Quaternion X</span> <span class="value-display" id="quatXValue">0.000</span></label>
+            <input type="range" class="slider" id="quatXSlider" min="-1" max="1" value="0" step="0.001">
+        </div>
+        <div class="control-group">
+            <label><span style="color: #9c27b0;">Quaternion Y</span> <span class="value-display" id="quatYValue">0.000</span></label>
+            <input type="range" class="slider" id="quatYSlider" min="-1" max="1" value="0" step="0.001">
+        </div>
+        <div class="control-group">
+            <label><span style="color: #3f51b5;">Quaternion Z</span> <span class="value-display" id="quatZValue">0.000</span></label>
+            <input type="range" class="slider" id="quatZSlider" min="-1" max="1" value="0" step="0.001">
+        </div>
+        <div class="control-group">
+            <label><span style="color: #009688;">Quaternion W</span> <span class="value-display" id="quatWValue">1.000</span></label>
+            <input type="range" class="slider" id="quatWSlider" min="-1" max="1" value="1" step="0.001">
+        </div>
+    </div>
+    <div class="controls">
         <button class="button" id="showQuaternionFeatures">Show Antipodal Points & Geodesic Arc</button>
     </div>
     <div class="info-box">
-        Quaternions live on a 4D unit sphere. Each 3D rotation maps to TWO points: q and -q. This "double cover" eliminates singularities!
+        <strong>Independent Controls:</strong> This quaternion sphere has its own Euler angle and quaternion component sliders. Changes in one automatically update the other while maintaining unit length through automatic normalization. All updates are real-time and bidirectional.
+    </div>
+</div>
+
+## The Hopf Fibration: Understanding Quaternion Geometry
+
+Before diving into the quaternion solution, it's worth understanding one of the most beautiful mathematical structures that explains *why* quaternions work so elegantly: the **Hopf fibration**.
+
+### What Is the Hopf Fibration?
+
+The Hopf fibration is a mathematical mapping discovered by Heinz Hopf in 1931 that reveals the deep geometric structure underlying quaternions. Think of it as a way of organizing the 4D quaternion space that makes 3D rotations naturally emerge.
+
+**The Basic Setup:**
+- **Total Space**: The 3-sphere (S³) - where unit quaternions live
+- **Base Space**: The 2-sphere (S²) - representing all possible 3D rotation axes
+- **Fiber**: Circles (S¹) - representing rotations around each axis
+
+### The Intuitive Picture
+
+Imagine you're holding a globe (the 2-sphere S²). Each point on this globe represents a possible rotation axis in 3D space - north pole might be the Z-axis, equator points represent X-Y plane axes, and so on.
+
+Now, for each point on this globe, imagine a circle floating above it in 4D space. This circle represents all the different amounts you can rotate around that particular axis - 0°, 90°, 180°, 270°, back to 0°. These circles are the "fibers" of the Hopf fibration.
+
+The remarkable thing is that these circles never intersect, even though they fill up the entire 4D space of the 3-sphere. It's like having infinite circles, each dedicated to one rotation axis, perfectly organized in 4D space without any collisions.
+
+### Why This Matters for Quaternions
+
+This structure explains several key properties of quaternions:
+
+**1. No Singularities**: Unlike Euler angles, which break down at certain orientations (gimbal lock), the Hopf fibration shows that every possible 3D rotation corresponds to a smooth path on the 3-sphere. There are no "holes" or "edges" where the math breaks down.
+
+**2. Double Coverage**: Each 3D rotation corresponds to exactly two antipodal points on S³ (q and -q represent the same rotation). The Hopf fibration reveals this as a natural consequence of the fiber structure - each fiber maps to the same rotation axis, but parameterized twice around the circle.
+
+**3. Smooth Interpolation**: SLERP works perfectly because it follows great circle arcs on S³, which project down to the shortest rotation paths on the rotation group SO(3). The Hopf fibration guarantees these paths exist and are unique.
+
+### The Mathematical Beauty
+
+The Hopf fibration can be written elegantly using complex numbers. If we represent a unit quaternion as two complex numbers (z₁, z₂) where |z₁|² + |z₂|² = 1, then the Hopf map is:
+
+**Hopf map**: (z₁, z₂) → (z₁z̄₂, |z₁|² - |z₂|²)
+
+This simple formula encodes the entire relationship between 4D quaternion space and 3D rotation space. The first component gives the rotation axis, while the second component relates to the rotation angle.
+
+### Real-World Implications
+
+Understanding the Hopf fibration helps explain why:
+- **Flight simulators** use quaternions internally, even if they display Euler angles to pilots
+- **Robot control systems** can achieve smoother, more predictable motion with quaternions
+- **3D animation software** can avoid gimbal lock artifacts in character rigs
+- **Spacecraft attitude control** becomes more reliable and efficient
+
+The Hopf fibration isn't just abstract mathematics - it's the geometric reason why quaternions provide such a robust, singularity-free way to handle 3D rotations in practice.
+
+<div class="panel">
+    <h3>Hopf Fibration: The True S³ → S² Mapping</h3>
+    <div class="canvas-container" style="height: 500px;">
+        <canvas id="hopfCanvas"></canvas>
+    </div>
+    <div class="hopf-info-panel">
+        <h4>Mathematical Structure</h4>
+        <p><strong>Base Space:</strong> 2-sphere (S²)</p>
+        <p><strong>Total Space:</strong> 3-sphere (S³)</p>
+        <p><strong>Fiber:</strong> Circle (S¹)</p>
+        <p>Each point on S² corresponds to a circle on S³. The visualization shows fibers as colored curves using stereographic projection from the 4D quaternion sphere.</p>
+    </div>
+    <div class="controls">
+        <div class="control-group">
+            <label>Rotation Speed <span class="value-display" id="hopfRotationSpeedValue">0.5</span></label>
+            <input type="range" class="slider" id="hopfRotationSpeed" min="0" max="2" value="0.5" step="0.1">
+        </div>
+        <div class="control-group">
+            <label>Fiber Count <span class="value-display" id="hopfFiberCountValue">16</span></label>
+            <input type="range" class="slider" id="hopfFiberCount" min="8" max="32" value="16" step="2">
+        </div>
+        <div class="control-group">
+            <label>Animation Phase <span class="value-display" id="hopfAnimationPhaseValue">0.00</span></label>
+            <input type="range" class="slider" id="hopfAnimationPhase" min="0" max="6.28" value="0" step="0.1">
+        </div>
+        <div class="control-group">
+            <label>Base Sphere Size <span class="value-display" id="hopfBaseSphereValue">1.0</span></label>
+            <input type="range" class="slider" id="hopfBaseSphere" min="0.5" max="2" value="1" step="0.1">
+        </div>
+    </div>
+    <div class="controls">
+        <button class="button" id="hopfToggleAnimation">Pause</button>
+        <button class="button" id="hopfResetView">Reset View</button>
+    </div>
+    <div class="info-box">
+        <strong>Advanced Hopf Fibration:</strong> This visualization uses proper complex number representation and stereographic projection to show the true S³ → S² → S¹ fiber bundle structure. Each colored fiber represents a great circle on the 4D quaternion sphere that projects to a single point on the 2D base sphere. The mathematical elegance of this structure is what makes quaternions so powerful for representing rotations!
     </div>
 </div>
 
@@ -1000,6 +1120,27 @@ The interactive visualizations demonstrate these theoretical principles through 
             font-weight: bold;
             color: #64ffda;
         }
+        
+        .hopf-info-panel {
+            background: rgba(100, 255, 218, 0.1);
+            border: 1px solid rgba(100, 255, 218, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        .hopf-info-panel h4 {
+            margin: 0 0 10px 0;
+            font-size: 1.1rem;
+            color: #64ffda;
+        }
+        
+        .hopf-info-panel p {
+            margin: 5px 0;
+            color: #e0e0e0;
+        }
     </style>
 </head>
 <body>
@@ -1586,12 +1727,15 @@ The interactive visualizations demonstrate these theoretical principles through 
 
         // Global state
         let currentQuaternion = [0, 0, 0, 1];
+        let sphereQuaternion = [0, 0, 0, 1]; // Independent quaternion for sphere visualization
+        let sphereEuler = [0, 0, 0]; // Independent Euler angles for sphere
         let showAntipodes = false;
         let showGeodesicArc = false;
         let animating = false;
         let quaternionHistory = [[0, 0, 0, 1]]; // For drift correction
         let frameCount = 0;
         let showTorusView = true;
+        let updatingFromSlider = false; // Prevent circular updates
 
         // Canvas contexts (will be initialized in init function)
         let heatmapCtx, slerpVelocityCtx;
@@ -2190,32 +2334,324 @@ The interactive visualizations demonstrate these theoretical principles through 
         };
 
         // ===============================================================================
+        // ENHANCED HOPF FIBRATION VISUALIZATION: TRUE S³ → S² MAPPING
+        // ===============================================================================
+        
+        // Hopf visualization global variables
+        let hopfScene, hopfCamera, hopfRenderer;
+        let hopfBaseSphere, hopfFibers = [];
+        let hopfAnimationId, hopfIsAnimating = true;
+        let hopfTime = 0;
+        
+        // Hopf parameters with superior mathematical representation
+        let hopfParams = {
+            rotationSpeed: 0.5,
+            fiberCount: 16,
+            animationPhase: 0,
+            baseSphereSize: 1.0
+        };
+        
+        // Initialize superior Hopf Fibration 3D visualization
+        const initHopfFibration3D = () => {
+            const canvas = document.getElementById('hopfCanvas');
+            const width = canvas.clientWidth;
+            const height = canvas.clientHeight;
+            
+            // Scene setup with elegant background
+            hopfScene = new THREE.Scene();
+            hopfScene.background = new THREE.Color(0x000000);
+            
+            // Camera with optimal positioning
+            hopfCamera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+            hopfCamera.position.set(5, 3, 5);
+            hopfCamera.lookAt(0, 0, 0);
+            
+            // Enhanced renderer setup
+            hopfRenderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+            hopfRenderer.setSize(width, height);
+            hopfRenderer.setPixelRatio(window.devicePixelRatio);
+            hopfRenderer.shadowMap.enabled = true;
+            hopfRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            
+            // Sophisticated lighting setup
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.3);
+            hopfScene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(5, 5, 5);
+            directionalLight.castShadow = true;
+            hopfScene.add(directionalLight);
+            
+            const pointLight1 = new THREE.PointLight(0x4a9eff, 0.6);
+            pointLight1.position.set(-5, 3, 2);
+            hopfScene.add(pointLight1);
+            
+            const pointLight2 = new THREE.PointLight(0x00d4ff, 0.4);
+            pointLight2.position.set(5, -3, -2);
+            hopfScene.add(pointLight2);
+            
+            // Create base sphere and fibers
+            createHopfBaseSphere();
+            createHopfFibers();
+            
+            // Setup mouse controls
+            setupHopfMouseControls();
+            
+            // Start animation loop
+            animateHopfFibration();
+        };
+        
+        function createHopfBaseSphere() {
+            const geometry = new THREE.SphereGeometry(hopfParams.baseSphereSize, 32, 32);
+            const material = new THREE.MeshPhongMaterial({
+                color: 0x2196F3,
+                transparent: true,
+                opacity: 0.3,
+                wireframe: false
+            });
+            
+            if (hopfBaseSphere) hopfScene.remove(hopfBaseSphere);
+            hopfBaseSphere = new THREE.Mesh(geometry, material);
+            hopfScene.add(hopfBaseSphere);
+            
+            // Add wireframe overlay for mathematical clarity
+            const wireframeGeometry = new THREE.SphereGeometry(hopfParams.baseSphereSize, 16, 16);
+            const wireframeMaterial = new THREE.MeshBasicMaterial({
+                color: 0x4a9eff,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.6
+            });
+            const wireframe = new THREE.Mesh(wireframeGeometry, wireframeMaterial);
+            hopfBaseSphere.add(wireframe);
+        }
+        
+        function createHopfFibers() {
+            // Clear existing fibers with proper disposal
+            hopfFibers.forEach(fiber => {
+                hopfScene.remove(fiber);
+                if (fiber.geometry) fiber.geometry.dispose();
+                if (fiber.material) fiber.material.dispose();
+            });
+            hopfFibers = [];
+            
+            const fiberCount = hopfParams.fiberCount;
+            
+            for (let i = 0; i < fiberCount; i++) {
+                const phi = (i / fiberCount) * Math.PI;
+                for (let j = 0; j < fiberCount; j++) {
+                    const theta = (j / fiberCount) * 2 * Math.PI;
+                    
+                    // Base point on S² using spherical coordinates
+                    const basePoint = {
+                        x: Math.sin(phi) * Math.cos(theta),
+                        y: Math.sin(phi) * Math.sin(theta),
+                        z: Math.cos(phi)
+                    };
+                    
+                    // Create mathematically accurate fiber curve
+                    const fiberCurve = createHopfFiberCurve(basePoint, i, j);
+                    hopfScene.add(fiberCurve);
+                    hopfFibers.push(fiberCurve);
+                }
+            }
+        }
+        
+        function createHopfFiberCurve(basePoint, i, j) {
+            const points = [];
+            const segments = 64;
+            
+            // Generate points for the Hopf fiber using proper complex representation
+            for (let t = 0; t <= segments; t++) {
+                const s = (t / segments) * 2 * Math.PI;
+                
+                // Hopf fibration mapping from S³ to S² with animation phase
+                const hopfPoint = hopfFibrationMapping(basePoint, s + hopfParams.animationPhase);
+                
+                // Stereographic projection from S³ to R³
+                const projectedPoint = stereographicProjectionHopf(hopfPoint);
+                points.push(new THREE.Vector3(projectedPoint.x, projectedPoint.y, projectedPoint.z));
+            }
+            
+            const curve = new THREE.CatmullRomCurve3(points, true);
+            const geometry = new THREE.TubeGeometry(curve, segments, 0.02, 8, true);
+            
+            // Elegant color scheme based on mathematical position
+            const hue = (i / hopfParams.fiberCount + j / hopfParams.fiberCount) * 0.5;
+            const color = new THREE.Color().setHSL(hue, 0.8, 0.6);
+            
+            const material = new THREE.MeshPhongMaterial({
+                color: color,
+                transparent: true,
+                opacity: 0.8,
+                emissive: color,
+                emissiveIntensity: 0.2
+            });
+            
+            return new THREE.Mesh(geometry, material);
+        }
+        
+        function hopfFibrationMapping(basePoint, t) {
+            // Mathematically accurate Hopf fibration using complex representation
+            const { x, y, z } = basePoint;
+            
+            // Convert to complex coordinates for proper S³ representation
+            const z1_real = Math.sqrt((1 + z) / 2) * Math.cos(t);
+            const z1_imag = Math.sqrt((1 + z) / 2) * Math.sin(t);
+            const z2_real = Math.sqrt((1 - z) / 2) * Math.cos(Math.atan2(y, x) + t);
+            const z2_imag = Math.sqrt((1 - z) / 2) * Math.sin(Math.atan2(y, x) + t);
+            
+            return { x: z1_real, y: z1_imag, z: z2_real, w: z2_imag };
+        }
+        
+        function stereographicProjectionHopf(point4D) {
+            // Enhanced stereographic projection from S³ to R³
+            const { x, y, z, w } = point4D;
+            const denom = 1 - w;
+            
+            // Handle the south pole singularity gracefully
+            if (Math.abs(denom) < 0.001) {
+                return { x: 0, y: 0, z: 0 };
+            }
+            
+            const scale = 2;
+            return {
+                x: scale * x / denom,
+                y: scale * y / denom,
+                z: scale * z / denom
+            };
+        }
+        
+        function setupHopfMouseControls() {
+            let mouseDown = false;
+            let mouseX = 0, mouseY = 0;
+            let cameraRadius = 8;
+            let cameraTheta = 0;
+            let cameraPhi = Math.PI / 4;
+            
+            hopfRenderer.domElement.addEventListener('mousedown', (e) => {
+                mouseDown = true;
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+            });
+            
+            hopfRenderer.domElement.addEventListener('mouseup', () => {
+                mouseDown = false;
+            });
+            
+            hopfRenderer.domElement.addEventListener('mousemove', (e) => {
+                if (!mouseDown) return;
+                
+                const deltaX = e.clientX - mouseX;
+                const deltaY = e.clientY - mouseY;
+                
+                cameraTheta -= deltaX * 0.01;
+                cameraPhi = Math.max(0.1, Math.min(Math.PI - 0.1, cameraPhi + deltaY * 0.01));
+                
+                hopfCamera.position.x = cameraRadius * Math.sin(cameraPhi) * Math.cos(cameraTheta);
+                hopfCamera.position.y = cameraRadius * Math.cos(cameraPhi);
+                hopfCamera.position.z = cameraRadius * Math.sin(cameraPhi) * Math.sin(cameraTheta);
+                hopfCamera.lookAt(0, 0, 0);
+                
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+            });
+            
+            hopfRenderer.domElement.addEventListener('wheel', (e) => {
+                cameraRadius = Math.max(2, Math.min(20, cameraRadius + e.deltaY * 0.01));
+                hopfCamera.position.x = cameraRadius * Math.sin(cameraPhi) * Math.cos(cameraTheta);
+                hopfCamera.position.y = cameraRadius * Math.cos(cameraPhi);
+                hopfCamera.position.z = cameraRadius * Math.sin(cameraPhi) * Math.sin(cameraTheta);
+                hopfCamera.lookAt(0, 0, 0);
+                e.preventDefault();
+            });
+        }
+        
+        function animateHopfFibration() {
+            hopfAnimationId = requestAnimationFrame(animateHopfFibration);
+            
+            if (hopfIsAnimating) {
+                hopfTime += 0.01 * hopfParams.rotationSpeed;
+                
+                // Elegant scene rotation
+                hopfScene.rotation.y = hopfTime * 0.3;
+                
+                // Update animation phase automatically for smooth fiber evolution
+                hopfParams.animationPhase = hopfTime * 2;
+                const phaseSlider = document.getElementById('hopfAnimationPhase');
+                const phaseValue = document.getElementById('hopfAnimationPhaseValue');
+                if (phaseSlider && phaseValue) {
+                    phaseSlider.value = hopfParams.animationPhase % (2 * Math.PI);
+                    phaseValue.textContent = (hopfParams.animationPhase % (2 * Math.PI)).toFixed(2);
+                }
+                
+                // Recreate fibers periodically for smooth animation (performance optimized)
+                if (Math.floor(hopfTime * 60) % 3 === 0) {
+                    createHopfFibers();
+                }
+            }
+            
+            hopfRenderer.render(hopfScene, hopfCamera);
+        }
+        
+        // Resize function for Hopf visualization
+        const resizeHopfVisualization = () => {
+            if (!hopfRenderer) return;
+            
+            const canvas = document.getElementById('hopfCanvas');
+            const width = canvas.clientWidth;
+            const height = canvas.clientHeight;
+            
+            hopfCamera.aspect = width / height;
+            hopfCamera.updateProjectionMatrix();
+            hopfRenderer.setSize(width, height);
+        };
+
+        // ===============================================================================
         // 3D QUATERNION SPHERE VISUALIZATION WITH GEODESIC ARC
         // ===============================================================================
         
         const updateQuaternionSphere3D = () => {
             if (!quaternionScene || !quaternionPoint) return;
             
-            const [x, y, z, qw] = currentQuaternion;
+            // Use independent sphere quaternion instead of currentQuaternion
+            const [x, y, z, qw] = sphereQuaternion;
             
-            // Project quaternion to 3D sphere surface
-            // Since quaternions live on S³ (x²+y²+z²+w²=1), we need to project (x,y,z) to unit sphere
-            const xyz_norm = Math.sqrt(x*x + y*y + z*z);
+            // SIMPLE & CLEAR: Direct quaternion visualization that makes W changes visible
+            // Maps quaternion (x,y,z,w) to 3D sphere position where all components affect position
             
-            if (xyz_norm > 1e-10) { // Avoid division by zero
-                // Normalize (x,y,z) to unit length for sphere surface placement
-                const scale = 1.0 / xyz_norm;
-                quaternionPoint.position.set(x * scale, y * scale, z * scale);
+            // Use a hybrid approach: mix the vector part (x,y,z) with W influence
+            // This ensures W changes are clearly visible while maintaining intuitive behavior
+            
+            let displayX = x;
+            let displayY = y;
+            let displayZ = z + qw * 0.3; // W component influences Z position directly
+            
+            // Handle the case where all components are near zero
+            const totalMagnitude = Math.sqrt(displayX*displayX + displayY*displayY + displayZ*displayZ);
+            
+            if (totalMagnitude > 1e-10) {
+                // Normalize to unit sphere for display
+                const scale = 1.0 / totalMagnitude;
+                quaternionPoint.position.set(
+                    displayX * scale,
+                    displayY * scale,
+                    displayZ * scale
+                );
                 
-                // Update antipodal point
+                // Update antipodal point (representing -q)
                 if (showAntipodes) {
                     antipodalPoint.visible = true;
-                    antipodalPoint.position.set(-x * scale, -y * scale, -z * scale);
+                    // Antipodal point: negate all components
+                    let antiX = -displayX * scale;
+                    let antiY = -displayY * scale;
+                    let antiZ = -displayZ * scale;
+                    antipodalPoint.position.set(antiX, antiY, antiZ);
                 } else {
                     antipodalPoint.visible = false;
                 }
             } else {
-                // Handle degenerate case where (x,y,z) ≈ (0,0,0) - place at north pole
+                // Degenerate case - place at default positions
                 quaternionPoint.position.set(0, 0, 1);
                 if (showAntipodes) {
                     antipodalPoint.visible = true;
@@ -2225,24 +2661,110 @@ The interactive visualizations demonstrate these theoretical principles through 
                 }
             }
             
-            // Color and size based on w component magnitude
-            const wIntensity = Math.abs(qw);
-            quaternionPoint.material.emissiveIntensity = 0.3 + wIntensity * 0.7;
-            quaternionPoint.scale.setScalar(1 + wIntensity * 0.5);
+            // Visual feedback - constant size now since position properly changes
+            quaternionPoint.material.emissiveIntensity = 0.6;
+            quaternionPoint.scale.setScalar(1.0);
             
             if (showAntipodes) {
-                antipodalPoint.material.emissiveIntensity = 0.3 + wIntensity * 0.7;
-                antipodalPoint.scale.setScalar(1 + wIntensity * 0.5);
+                antipodalPoint.material.emissiveIntensity = 0.6;
+                antipodalPoint.scale.setScalar(1.0);
             }
             
             // Update geodesic arc
             updateGeodesicArc3D();
             
-            // Update quaternion display values
+            // Update all quaternion display values (both sets)
             document.getElementById('quatX').textContent = x.toFixed(6);
             document.getElementById('quatY').textContent = y.toFixed(6);
             document.getElementById('quatZ').textContent = z.toFixed(6);
             document.getElementById('quatW').textContent = qw.toFixed(6);
+            
+            // Update slider values without triggering events
+            if (!updatingFromSlider) {
+                document.getElementById('quatXValue').textContent = x.toFixed(3);
+                document.getElementById('quatYValue').textContent = y.toFixed(3);
+                document.getElementById('quatZValue').textContent = z.toFixed(3);
+                document.getElementById('quatWValue').textContent = qw.toFixed(3);
+                document.getElementById('quatXSlider').value = x;
+                document.getElementById('quatYSlider').value = y;
+                document.getElementById('quatZSlider').value = z;
+                document.getElementById('quatWSlider').value = qw;
+            }
+        };
+        
+        // Update sphere quaternion from Euler angles - FIXED VERSION
+        const updateSphereFromEuler = () => {
+            if (updatingFromSlider) return;
+            updatingFromSlider = true;
+            
+            // Convert Euler to quaternion
+            const [yaw, pitch, roll] = sphereEuler;
+            sphereQuaternion = qNorm(qFromEulerZYX(yaw, pitch, roll)); // Auto-normalize
+            
+            // Update all displays
+            document.getElementById('sphereYawValue').textContent = `${rad2deg(yaw).toFixed(1)}°`;
+            document.getElementById('spherePitchValue').textContent = `${rad2deg(pitch).toFixed(1)}°`;
+            document.getElementById('sphereRollValue').textContent = `${rad2deg(roll).toFixed(1)}°`;
+            
+            // Update quaternion component sliders and displays
+            document.getElementById('quatXSlider').value = sphereQuaternion[0];
+            document.getElementById('quatYSlider').value = sphereQuaternion[1];
+            document.getElementById('quatZSlider').value = sphereQuaternion[2];
+            document.getElementById('quatWSlider').value = sphereQuaternion[3];
+            
+            document.getElementById('quatXValue').textContent = sphereQuaternion[0].toFixed(3);
+            document.getElementById('quatYValue').textContent = sphereQuaternion[1].toFixed(3);
+            document.getElementById('quatZValue').textContent = sphereQuaternion[2].toFixed(3);
+            document.getElementById('quatWValue').textContent = sphereQuaternion[3].toFixed(3);
+            
+            // Update 3D visualization - THIS WAS MISSING!
+            updateQuaternionSphere3D();
+            
+            // Update Hopf fibration visualization
+            updateHopfVisualization();
+            
+            updatingFromSlider = false;
+        };
+        
+        // Update sphere Euler angles from quaternion - FIXED VERSION
+        const updateEulerFromSphere = () => {
+            if (updatingFromSlider) return;
+            updatingFromSlider = true;
+            
+            // Auto-normalize quaternion first
+            sphereQuaternion = qNorm(sphereQuaternion);
+            
+            // Convert to Euler angles
+            sphereEuler = qToEulerZYX(sphereQuaternion);
+            
+            // Update Euler sliders and displays
+            document.getElementById('sphereYawSlider').value = rad2deg(sphereEuler[0]);
+            document.getElementById('spherePitchSlider').value = rad2deg(sphereEuler[1]);
+            document.getElementById('sphereRollSlider').value = rad2deg(sphereEuler[2]);
+            
+            document.getElementById('sphereYawValue').textContent = `${rad2deg(sphereEuler[0]).toFixed(1)}°`;
+            document.getElementById('spherePitchValue').textContent = `${rad2deg(sphereEuler[1]).toFixed(1)}°`;
+            document.getElementById('sphereRollValue').textContent = `${rad2deg(sphereEuler[2]).toFixed(1)}°`;
+            
+            // Update quaternion displays to reflect normalization
+            document.getElementById('quatXValue').textContent = sphereQuaternion[0].toFixed(3);
+            document.getElementById('quatYValue').textContent = sphereQuaternion[1].toFixed(3);
+            document.getElementById('quatZValue').textContent = sphereQuaternion[2].toFixed(3);
+            document.getElementById('quatWValue').textContent = sphereQuaternion[3].toFixed(3);
+            
+            // Update sliders to reflect normalization
+            document.getElementById('quatXSlider').value = sphereQuaternion[0];
+            document.getElementById('quatYSlider').value = sphereQuaternion[1];
+            document.getElementById('quatZSlider').value = sphereQuaternion[2];
+            document.getElementById('quatWSlider').value = sphereQuaternion[3];
+            
+            // Update 3D visualization - THIS WAS MISSING!
+            updateQuaternionSphere3D();
+            
+            // Update Hopf fibration visualization
+            updateHopfVisualization();
+            
+            updatingFromSlider = false;
         };
 
         const updateGeodesicArc3D = () => {
@@ -2256,8 +2778,8 @@ The interactive visualizations demonstrate these theoretical principles through 
             
             if (!showGeodesicArc || !quaternionScene) return;
             
-            const [x, y, z, qw] = currentQuaternion;
-            console.log("Current quaternion:", currentQuaternion);
+            const [x, y, z, qw] = sphereQuaternion; // Use sphere quaternion instead
+            console.log("Sphere quaternion:", sphereQuaternion);
             
             // Calculate the projected points on sphere surface
             const xyz_norm = Math.sqrt(x*x + y*y + z*z);
@@ -3541,6 +4063,9 @@ The interactive visualizations demonstrate these theoretical principles through 
             // Initialize 3D quaternion sphere visualization
             initQuaternionSphere3D();
             
+            // Initialize Hopf Fibration visualization
+            initHopfFibration3D();
+            
             // Initialize other canvas contexts (only 2D canvases)
             heatmapCtx = document.getElementById('heatmapCanvas').getContext('2d');
             slerpVelocityCtx = document.getElementById('slerpVelocityCanvas').getContext('2d');
@@ -3550,9 +4075,40 @@ The interactive visualizations demonstrate these theoretical principles through 
             
             resizeCanvases();
             
-            // Set up slider event listeners
+            // Set up slider event listeners for main gimbal
             ['yawSlider', 'pitchSlider', 'rollSlider'].forEach(id => {
                 document.getElementById(id).addEventListener('input', updateFromSliders);
+            });
+            
+            // Set up event listeners for independent sphere Euler angle sliders - FIXED
+            ['sphereYawSlider', 'spherePitchSlider', 'sphereRollSlider'].forEach((id, index) => {
+                document.getElementById(id).addEventListener('input', (e) => {
+                    if (updatingFromSlider) return;
+                    
+                    // Update sphere Euler state
+                    sphereEuler[index] = deg2rad(parseFloat(e.target.value));
+                    
+                    // Convert to quaternion and update everything
+                    updateSphereFromEuler();
+                });
+            });
+            
+            // Set up event listeners for quaternion component sliders - FIXED
+            ['quatXSlider', 'quatYSlider', 'quatZSlider', 'quatWSlider'].forEach((id, index) => {
+                document.getElementById(id).addEventListener('input', (e) => {
+                    if (updatingFromSlider) return;
+                    
+                    // Update quaternion component
+                    const value = parseFloat(e.target.value);
+                    sphereQuaternion[index] = value;
+                    
+                    // Update the corresponding value display immediately
+                    const componentNames = ['X', 'Y', 'Z', 'W'];
+                    document.getElementById(`quat${componentNames[index]}Value`).textContent = value.toFixed(3);
+                    
+                    // Always auto-normalize and update Euler angles
+                    updateEulerFromSphere();
+                });
             });
             
             document.getElementById('heatmapPitchSlider').addEventListener('input', () => {
@@ -3594,6 +4150,66 @@ The interactive visualizations demonstrate these theoretical principles through 
                     showAntipodes ? 'Hide Antipodal Points & Geodesic Arc' : 'Show Antipodal Points & Geodesic Arc';
                 updateQuaternionSphere3D();
             });
+            
+            // Hopf Fibration event listeners - FIXED INITIALIZATION
+            // Enhanced Hopf Fibration event listeners with null checks
+            const hopfRotationSpeedEl = document.getElementById('hopfRotationSpeed');
+            if (hopfRotationSpeedEl) {
+                hopfRotationSpeedEl.addEventListener('input', (e) => {
+                    hopfParams.rotationSpeed = parseFloat(e.target.value);
+                    const valueEl = document.getElementById('hopfRotationSpeedValue');
+                    if (valueEl) valueEl.textContent = hopfParams.rotationSpeed.toFixed(1);
+                });
+            }
+            
+            const hopfFiberCountEl = document.getElementById('hopfFiberCount');
+            if (hopfFiberCountEl) {
+                hopfFiberCountEl.addEventListener('input', (e) => {
+                    hopfParams.fiberCount = parseInt(e.target.value);
+                    const valueEl = document.getElementById('hopfFiberCountValue');
+                    if (valueEl) valueEl.textContent = hopfParams.fiberCount;
+                    if (typeof createHopfFibers === 'function') createHopfFibers();
+                });
+            }
+            
+            const hopfAnimationPhaseEl = document.getElementById('hopfAnimationPhase');
+            if (hopfAnimationPhaseEl) {
+                hopfAnimationPhaseEl.addEventListener('input', (e) => {
+                    hopfParams.animationPhase = parseFloat(e.target.value);
+                    const valueEl = document.getElementById('hopfAnimationPhaseValue');
+                    if (valueEl) valueEl.textContent = hopfParams.animationPhase.toFixed(2);
+                    if (typeof createHopfFibers === 'function') createHopfFibers();
+                });
+            }
+            
+            const hopfBaseSphereEl = document.getElementById('hopfBaseSphere');
+            if (hopfBaseSphereEl) {
+                hopfBaseSphereEl.addEventListener('input', (e) => {
+                    hopfParams.baseSphereSize = parseFloat(e.target.value);
+                    const valueEl = document.getElementById('hopfBaseSphereValue');
+                    if (valueEl) valueEl.textContent = hopfParams.baseSphereSize.toFixed(1);
+                    if (typeof createHopfBaseSphere === 'function') createHopfBaseSphere();
+                });
+            }
+            
+            const hopfToggleAnimationEl = document.getElementById('hopfToggleAnimation');
+            if (hopfToggleAnimationEl) {
+                hopfToggleAnimationEl.addEventListener('click', () => {
+                    hopfIsAnimating = !hopfIsAnimating;
+                    hopfToggleAnimationEl.textContent = hopfIsAnimating ? 'Pause' : 'Play';
+                });
+            }
+            
+            const hopfResetViewEl = document.getElementById('hopfResetView');
+            if (hopfResetViewEl) {
+                hopfResetViewEl.addEventListener('click', () => {
+                    if (hopfCamera) {
+                        hopfCamera.position.set(5, 3, 5);
+                        hopfCamera.lookAt(0, 0, 0);
+                        hopfTime = 0;
+                    }
+                });
+            }
             
             document.getElementById('setRandomOrientations').addEventListener('click', () => {
                 orientationA = qFromAxisAngle([Math.random()-0.5, Math.random()-0.5, Math.random()-0.5], Math.random() * Math.PI);
@@ -3671,11 +4287,41 @@ The interactive visualizations demonstrate these theoretical principles through 
             window.orientationA = orientationA;
             window.orientationB = orientationB;
             
-            // Initial draw
+            // Initialize sphere controls with default values
+            sphereQuaternion = [0, 0, 0, 1];
+            sphereEuler = [0, 0, 0];
+            
+            // Initialize sphere Euler displays
+            document.getElementById('sphereYawValue').textContent = '0°';
+            document.getElementById('spherePitchValue').textContent = '0°';
+            document.getElementById('sphereRollValue').textContent = '0°';
+            
+            // Initialize quaternion component displays
+            document.getElementById('quatXValue').textContent = '0.000';
+            document.getElementById('quatYValue').textContent = '0.000';
+            document.getElementById('quatZValue').textContent = '0.000';
+            document.getElementById('quatWValue').textContent = '1.000';
+            
+            // Initial draw with enhanced Hopf Fibration
             updateFromSliders();
+            updateQuaternionSphere3D(); // Initialize sphere visualization
             drawHeatmap();
             drawSlerpVelocity();
             updateSlerpPaths3D();
+            
+            // Initialize enhanced Hopf Fibration with proper parameters
+            setTimeout(() => {
+                console.log('Initializing enhanced Hopf Fibration...');
+                if (hopfFibers.length > 0) {
+                    console.log(`Hopf fibers successfully generated: ${hopfFibers.length}`);
+                }
+                
+                // Set initial UI values
+                document.getElementById('hopfRotationSpeedValue').textContent = hopfParams.rotationSpeed.toFixed(1);
+                document.getElementById('hopfFiberCountValue').textContent = hopfParams.fiberCount;
+                document.getElementById('hopfAnimationPhaseValue').textContent = hopfParams.animationPhase.toFixed(2);
+                document.getElementById('hopfBaseSphereValue').textContent = hopfParams.baseSphereSize.toFixed(1);
+            }, 100);
         };
 
         // Handle window resize
@@ -3684,6 +4330,7 @@ The interactive visualizations demonstrate these theoretical principles through 
                 resizeCanvases();
                 resizeThreeJS();
                 resizeQuaternionSphere3D();
+                resizeHopfVisualization();
                 resizeSlerpPath3D();
                 updateFromSliders();
                 drawHeatmap();
