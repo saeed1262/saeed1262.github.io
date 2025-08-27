@@ -1,0 +1,97 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Gradients for 3D effect -->
+    <radialGradient id="sphereGradient" cx="0.3" cy="0.3">
+      <stop offset="0%" style="stop-color:#64ffda;stop-opacity:1"/>
+      <stop offset="70%" style="stop-color:#1e88e5;stop-opacity:0.9"/>
+      <stop offset="100%" style="stop-color:#0d47a1;stop-opacity:1"/>
+    </radialGradient>
+    
+    <linearGradient id="ringGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#64ffda;stop-opacity:0.9"/>
+      <stop offset="100%" style="stop-color:#4fc3f7;stop-opacity:0.7"/>
+    </linearGradient>
+    
+    <linearGradient id="ringGradient2" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#4caf50;stop-opacity:0.8"/>
+      <stop offset="100%" style="stop-color:#81c784;stop-opacity:0.6"/>
+    </linearGradient>
+    
+    <linearGradient id="ringGradient3" x1="0%" y1="50%" x2="100%" y2="50%">
+      <stop offset="0%" style="stop-color:#ff9800;stop-opacity:0.8"/>
+      <stop offset="100%" style="stop-color:#ffcc02;stop-opacity:0.6"/>
+    </linearGradient>
+    
+    <!-- Glow effect -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <!-- Shadow effect -->
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="2" dy="2" stdDeviation="3" flood-color="rgba(0,0,0,0.3)"/>
+    </filter>
+  </defs>
+  
+  <!-- Background circle with subtle gradient -->
+  <circle cx="100" cy="100" r="95" fill="url(#sphereGradient)" opacity="0.1" filter="url(#shadow)"/>
+  
+  <!-- Main quaternion sphere (S³) -->
+  <circle cx="100" cy="100" r="55" fill="url(#sphereGradient)" stroke="#64ffda" stroke-width="2" opacity="0.9"/>
+  
+  <!-- Gimbal rings representing Euler angle constraints -->
+  <!-- Outer ring (Yaw - Z axis) -->
+  <ellipse cx="100" cy="100" rx="70" ry="70" fill="none" stroke="url(#ringGradient1)" stroke-width="4" opacity="0.8" transform="rotate(20 100 100)"/>
+  
+  <!-- Middle ring (Pitch - Y axis) -->
+  <ellipse cx="100" cy="100" rx="65" ry="35" fill="none" stroke="url(#ringGradient2)" stroke-width="3.5" opacity="0.85" transform="rotate(-30 100 100)"/>
+  
+  <!-- Inner ring (Roll - X axis) -->
+  <ellipse cx="100" cy="100" rx="30" ry="60" fill="none" stroke="url(#ringGradient3)" stroke-width="3" opacity="0.9" transform="rotate(60 100 100)"/>
+  
+  <!-- Coordinate axes -->
+  <line x1="45" y1="100" x2="155" y2="100" stroke="#ff6b6b" stroke-width="2" opacity="0.7"/>
+  <line x1="100" y1="45" x2="100" y2="155" stroke="#4caf50" stroke-width="2" opacity="0.7"/>
+  
+  <!-- Quaternion points on sphere representing rotation states -->
+  <circle cx="85" cy="70" r="4" fill="#64ffda" opacity="1" filter="url(#glow)">
+    <animate attributeName="opacity" values="1;0.5;1" dur="4s" repeatCount="indefinite"/>
+  </circle>
+  
+  <circle cx="125" cy="115" r="3.5" fill="#ff6b6b" opacity="0.8">
+    <animate attributeName="opacity" values="0.8;0.3;0.8" dur="3.5s" repeatCount="indefinite"/>
+  </circle>
+  
+  <circle cx="75" cy="130" r="3" fill="#4caf50" opacity="0.9">
+    <animate attributeName="opacity" values="0.9;0.4;0.9" dur="5s" repeatCount="indefinite"/>
+  </circle>
+  
+  <!-- SLERP geodesic arc -->
+  <path d="M 85 70 Q 105 50 125 115" stroke="#ffd700" stroke-width="2.5" fill="none" opacity="0.9" stroke-dasharray="6,3" filter="url(#glow)"/>
+  
+  <!-- Mathematical notation -->
+  <text x="30" y="35" font-family="serif" font-size="18" font-weight="bold" fill="#64ffda" opacity="0.8">S³</text>
+  <text x="155" y="185" font-family="serif" font-size="14" font-weight="bold" fill="#ff9800" opacity="0.8">SO(3)</text>
+  
+  <!-- Quaternion component indicators in corners -->
+  <g opacity="0.7">
+    <circle cx="25" cy="175" r="3" fill="#64ffda"/>
+    <text x="32" y="179" font-family="monospace" font-size="12" font-weight="bold" fill="#64ffda">i</text>
+    
+    <circle cx="50" cy="175" r="3" fill="#4caf50"/>
+    <text x="57" y="179" font-family="monospace" font-size="12" font-weight="bold" fill="#4caf50">j</text>
+    
+    <circle cx="75" cy="175" r="3" fill="#ff9800"/>
+    <text x="82" y="179" font-family="monospace" font-size="12" font-weight="bold" fill="#ff9800">k</text>
+    
+    <circle cx="100" cy="175" r="3" fill="#e91e63"/>
+    <text x="107" y="179" font-family="monospace" font-size="12" font-weight="bold" fill="#e91e63">w</text>
+  </g>
+  
+  <!-- Title text -->
+  <text x="100" y="25" font-family="serif" font-size="14" font-weight="bold" fill="#64ffda" text-anchor="middle" opacity="0.9">Quaternions &amp; SO(3)</text>
+</svg>

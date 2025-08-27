@@ -71,6 +71,18 @@ pagination:
                   {% assign post_color = '#ef4444' %}
                   {% assign icon_found = true %}
                   {% break %}
+                {% when 'quaternions' %}
+                  {% assign post_icon = 'custom-image' %}
+                  {% assign post_icon_src = '/assets/img/Quaternion.png' %}
+                  {% assign post_color = '#7c4dff' %}
+                  {% assign icon_found = true %}
+                  {% break %}
+                {% when 'so3' %}
+                  {% assign post_icon = 'custom-image' %}
+                  {% assign post_icon_src = '/assets/img/Quaternion.png' %}
+                  {% assign post_color = '#7c4dff' %}
+                  {% assign icon_found = true %}
+                  {% break %}
               {% endcase %}
             {% endfor %}
           {% endunless %}
