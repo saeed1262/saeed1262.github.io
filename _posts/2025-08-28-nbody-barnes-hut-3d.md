@@ -2,8 +2,10 @@
 layout: post
 title: "Interactive 3D N-Body Gravity Simulation with Barnes-Hut Optimization"
 description: "Explore the dynamics of gravitational systems with this interactive 3D simulation featuring both Barnes-Hut (O(N log N)) and direct-sum (O(N²)) methods."
-date: 2024-11-10
+date: 2025-08-28
 categories: physics simulation
+tags: [n-body, barnes-hut, galaxy, gravitational, astrophysics]
+img: /assets/img/galaxy.png
 ---
 
 ## Introduction

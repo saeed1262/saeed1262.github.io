@@ -61,6 +61,18 @@ pagination:
                   {% assign post_color = '#8b5cf6' %}
                   {% assign icon_found = true %}
                   {% break %}
+                {% when 'n-body' %}
+                  {% assign post_icon = 'custom-image' %}
+                  {% assign post_icon_src = '/assets/img/galaxy.png' %}
+                  {% assign post_color = '#10b981' %}
+                  {% assign icon_found = true %}
+                  {% break %}
+                {% when 'barnes-hut' %}
+                  {% assign post_icon = 'custom-image' %}
+                  {% assign post_icon_src = '/assets/img/galaxy.png' %}
+                  {% assign post_color = '#10b981' %}
+                  {% assign icon_found = true %}
+                  {% break %}
                 {% when 'symplectic-integrators' %}
                   {% assign post_icon = 'fas fa-infinity' %}
                   {% assign post_color = '#06b6d4' %}
