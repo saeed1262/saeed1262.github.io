@@ -337,6 +337,30 @@ select {
   text-align: center;
   padding: 2rem;
 }
+
+#error-container {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+  text-align: center;
+}
+
+#error-container h3 {
+  color: #fff;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+#error-display {
+  font-family: monospace;
+  font-size: 0.9rem;
+  color: #8cf;
+  padding: 0.5rem;
+  background: #0a0a0a;
+  border-radius: 4px;
+}
 </style>
 
 <div id="container">
@@ -345,6 +369,7 @@ select {
       <button id="play-pause">Pause</button>
       <button id="reset">Reset</button>
       <button id="reseed">Re-seed</button>
+      <button id="error-meter">Error Meter</button>
     </div>
     
     <div class="control-group">
@@ -352,6 +377,22 @@ select {
       <select id="mode">
         <option value="barnes-hut">Barnes–Hut (O(N log N))</option>
         <option value="direct">Direct (O(N²))</option>
+      </select>
+    </div>
+    
+    <div class="control-group">
+      <label for="seed-type">Setup:</label>
+      <select id="seed-type">
+        <option value="single">Single Disc</option>
+        <option value="merger">Galaxy Merger</option>
+      </select>
+    </div>
+    
+    <div class="control-group">
+      <label for="render-mode">Render:</label>
+      <select id="render-mode">
+        <option value="shader">Custom Shader</option>
+        <option value="halo">Soft Halo</option>
       </select>
     </div>
     
@@ -390,6 +431,11 @@ select {
     <h3>Energy Drift</h3>
     <canvas id="energy" width="800" height="120"></canvas>
   </div>
+  
+  <div id="error-container" style="display: none;">
+    <h3>Barnes-Hut vs Direct Force Error</h3>
+    <div id="error-display">Click "Error Meter" to compute accuracy...</div>
+  </div>
 </div>
 
 <script type="importmap">
@@ -418,7 +464,9 @@ let params = {
   eps: 0.01,
   N: 3000,
   mode: 'barnes-hut',
-  playing: true
+  playing: true,
+  seedType: 'single',
+  renderMode: 'shader'
 };
 
 // Simulation state
@@ -474,8 +522,17 @@ function initArrays(n) {
   speeds = new Float32Array(n);
 }
 
-// Seed the system - rotating disc
+// Seed the system - rotating disc or galaxy merger
 function seedSystem() {
+  if (params.seedType === 'single') {
+    seedSingleDisc();
+  } else {
+    seedGalaxyMerger();
+  }
+}
+
+// Seed single rotating disc
+function seedSingleDisc() {
   const n = params.N;
   const Rmax = 2.2;
   const totalMass = 1.0;
@@ -503,6 +560,61 @@ function seedSystem() {
     
     vx[i] = -vcirc * Math.sin(phi) * (1 + shear) + gaussianRandom() * 0.01;
     vy[i] = vcirc * Math.cos(phi) * (1 + shear) + gaussianRandom() * 0.01;
+    vz[i] = gaussianRandom() * 0.01;
+  }
+}
+
+// Seed galaxy merger - two offset discs with different spins
+function seedGalaxyMerger() {
+  const n = params.N;
+  const n1 = Math.floor(n * 0.6); // First galaxy gets 60% of particles
+  const n2 = n - n1; // Second galaxy gets 40%
+  
+  const Rmax1 = 1.8;
+  const Rmax2 = 1.4;
+  const totalMass = 1.0;
+  
+  // Galaxy 1 - larger, positioned at (-1.5, 0, 0), counter-clockwise rotation
+  for (let i = 0; i < n1; i++) {
+    const r = Rmax1 * Math.sqrt(Math.random());
+    const phi = Math.random() * 2 * Math.PI;
+    
+    // Position - offset left
+    x[i] = -1.5 + r * Math.cos(phi);
+    y[i] = r * Math.sin(phi);
+    z[i] = gaussianRandom() * 0.05;
+    
+    // Mass
+    m[i] = totalMass * 0.6 / n1;
+    
+    // Velocity - counter-clockwise
+    const Menc = totalMass * 0.6 * (r / Rmax1) * (r / Rmax1);
+    const vcirc = Math.sqrt(Menc / Math.max(r, 0.1));
+    
+    vx[i] = -vcirc * Math.sin(phi) + gaussianRandom() * 0.02 + 0.3; // Approach velocity
+    vy[i] = vcirc * Math.cos(phi) + gaussianRandom() * 0.02;
+    vz[i] = gaussianRandom() * 0.01;
+  }
+  
+  // Galaxy 2 - smaller, positioned at (1.5, 0, 0), clockwise rotation
+  for (let i = n1; i < n; i++) {
+    const r = Rmax2 * Math.sqrt(Math.random());
+    const phi = Math.random() * 2 * Math.PI;
+    
+    // Position - offset right
+    x[i] = 1.5 + r * Math.cos(phi);
+    y[i] = r * Math.sin(phi);
+    z[i] = gaussianRandom() * 0.04;
+    
+    // Mass
+    m[i] = totalMass * 0.4 / n2;
+    
+    // Velocity - clockwise (opposite rotation)
+    const Menc = totalMass * 0.4 * (r / Rmax2) * (r / Rmax2);
+    const vcirc = Math.sqrt(Menc / Math.max(r, 0.1));
+    
+    vx[i] = vcirc * Math.sin(phi) + gaussianRandom() * 0.02 - 0.3; // Approach velocity
+    vy[i] = -vcirc * Math.cos(phi) + gaussianRandom() * 0.02;
     vz[i] = gaussianRandom() * 0.01;
   }
 }
@@ -728,6 +840,102 @@ function computeEnergy() {
   return K + U;
 }
 
+// Error Meter: Compare Barnes-Hut vs Direct forces for random sample
+function computeErrorMeter() {
+  const n = params.N;
+  const sampleSize = Math.min(100, n);
+  const eps2 = params.eps * params.eps;
+  const theta = params.theta;
+  
+  // Build octree for BH forces
+  const root = buildOctree();
+  
+  // Sample random particles
+  const sampleIndices = [];
+  const usedIndices = new Set();
+  while (sampleIndices.length < sampleSize) {
+    const idx = Math.floor(Math.random() * n);
+    if (!usedIndices.has(idx)) {
+      sampleIndices.push(idx);
+      usedIndices.add(idx);
+    }
+  }
+  
+  let totalError = 0;
+  let maxError = 0;
+  
+  for (const i of sampleIndices) {
+    // Compute direct force
+    let directAx = 0, directAy = 0, directAz = 0;
+    for (let j = 0; j < n; j++) {
+      if (i === j) continue;
+      
+      const dx = x[j] - x[i];
+      const dy = y[j] - y[i];
+      const dz = z[j] - z[i];
+      const dist2 = dx * dx + dy * dy + dz * dz + eps2;
+      const dist = Math.sqrt(dist2);
+      const f = m[j] / (dist2 * dist);
+      
+      directAx += f * dx;
+      directAy += f * dy;
+      directAz += f * dz;
+    }
+    
+    // Compute Barnes-Hut force
+    let bhAx = 0, bhAy = 0, bhAz = 0;
+    const stack = [root];
+    
+    while (stack.length > 0) {
+      const node = stack.pop();
+      if (node.m === 0) continue;
+      if (node.body === i) continue;
+      
+      const dx = node.comx - x[i];
+      const dy = node.comy - y[i];
+      const dz = node.comz - z[i];
+      const dist2 = dx * dx + dy * dy + dz * dz + eps2;
+      const dist = Math.sqrt(dist2);
+      
+      if (node.children === null || (2 * node.hs) / dist < theta) {
+        const f = node.m / (dist2 * dist);
+        bhAx += f * dx;
+        bhAy += f * dy;
+        bhAz += f * dz;
+      } else {
+        for (let j = 0; j < 8; j++) {
+          if (node.children[j].m > 0) {
+            stack.push(node.children[j]);
+          }
+        }
+      }
+    }
+    
+    // Compute relative error
+    const directMag = Math.sqrt(directAx * directAx + directAy * directAy + directAz * directAz);
+    const bhMag = Math.sqrt(bhAx * bhAx + bhAy * bhAy + bhAz * bhAz);
+    const errorMag = Math.sqrt((directAx - bhAx) ** 2 + (directAy - bhAy) ** 2 + (directAz - bhAz) ** 2);
+    
+    const relativeError = directMag > 1e-10 ? errorMag / directMag : 0;
+    totalError += relativeError;
+    maxError = Math.max(maxError, relativeError);
+  }
+  
+  const avgError = totalError / sampleSize;
+  
+  // Display results
+  const errorContainer = document.getElementById('error-container');
+  const errorDisplay = document.getElementById('error-display');
+  
+  errorContainer.style.display = 'block';
+  errorDisplay.innerHTML = `
+    <strong>Accuracy Analysis (θ=${theta.toFixed(2)}, ${sampleSize} particles)</strong><br>
+    Mean Relative Error: <span style="color: ${avgError < 0.01 ? '#4f4' : avgError < 0.05 ? '#ff4' : '#f44'}">${(avgError * 100).toFixed(3)}%</span><br>
+    Max Relative Error: <span style="color: ${maxError < 0.05 ? '#4f4' : maxError < 0.2 ? '#ff4' : '#f44'}">${(maxError * 100).toFixed(2)}%</span><br>
+    <small>Green: Excellent, Yellow: Good, Red: Poor accuracy</small>
+  `;
+}
+
 // Leapfrog integration step
 function step() {
   const n = params.N;
@@ -893,6 +1101,25 @@ function updateStatus() {
   document.getElementById('status').textContent = status;
 }
 
+// Create halo texture for soft particles
+function createHaloTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 64;
+  canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+  
+  const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  gradient.addColorStop(0, 'rgba(255,255,255,1)');
+  gradient.addColorStop(0.3, 'rgba(255,255,255,0.8)');
+  gradient.addColorStop(0.7, 'rgba(255,255,255,0.2)');
+  gradient.addColorStop(1, 'rgba(255,255,255,0)');
+  
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, 64, 64);
+  
+  return new THREE.CanvasTexture(canvas);
+}
+
 // Initialize Three.js
 function initThree() {
   const container = document.getElementById('viz');
@@ -928,7 +1155,25 @@ function initThree() {
   geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
   geometry.setAttribute('speed', new THREE.BufferAttribute(speeds, 1));
   
-  // Shader material
+  // Create materials for both render modes
+  createPointsMaterials();
+  
+  // Mark attributes as dynamic
+  geometry.attributes.position.setUsage(THREE.DynamicDrawUsage);
+  geometry.attributes.speed.setUsage(THREE.DynamicDrawUsage);
+  
+  // Handle resize
+  const resizeObserver = new ResizeObserver(() => {
+    camera.aspect = container.clientWidth / container.clientHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(container.clientWidth, container.clientHeight);
+  });
+  resizeObserver.observe(container);
+}
+
+// Create materials for different render modes
+function createPointsMaterials() {
+  // Custom shader material
   const vertexShader = `
     attribute float speed;
     varying float vSpeed;
@@ -971,7 +1216,7 @@ function initThree() {
     }
   `;
   
-  const material = new THREE.ShaderMaterial({
+  const shaderMaterial = new THREE.ShaderMaterial({
     uniforms: {
       uSize: { value: 20.0 },
       uDevicePixelRatio: { value: Math.min(window.devicePixelRatio, 2) }
@@ -983,20 +1228,82 @@ function initThree() {
     transparent: true
   });
   
-  points = new THREE.Points(geometry, material);
+  // Enhanced halo shader with texture and speed-based coloring
+  const haloVertexShader = `
+    attribute float speed;
+    varying float vSpeed;
+    uniform float uSize;
+    uniform float uDevicePixelRatio;
+    
+    void main() {
+      vSpeed = speed;
+      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+      gl_Position = projectionMatrix * mvPosition;
+      gl_PointSize = uSize * 1.5 * uDevicePixelRatio * (1.0 / -mvPosition.z);
+    }
+  `;
+  
+  const haloFragmentShader = `
+    varying float vSpeed;
+    uniform sampler2D uTexture;
+    
+    void main() {
+      vec4 texColor = texture2D(uTexture, gl_PointCoord);
+      
+      // Color by speed with enhanced vibrancy
+      float t = clamp(vSpeed * 1.5, 0.0, 1.0);
+      vec3 cool = vec3(0.3, 0.7, 1.0);
+      vec3 white = vec3(1.0, 1.0, 1.0);
+      vec3 warm = vec3(1.0, 0.6, 0.2);
+      
+      vec3 color;
+      if (t < 0.5) {
+        color = mix(cool, white, t * 2.0);
+      } else {
+        color = mix(white, warm, (t - 0.5) * 2.0);
+      }
+      
+      // Enhanced glow effect
+      float glow = texColor.a * (0.8 + 0.4 * sin(vSpeed * 10.0));
+      gl_FragColor = vec4(color * glow, glow * 0.7);
+    }
+  `;
+  
+  const haloTexture = createHaloTexture();
+  const haloMaterial = new THREE.ShaderMaterial({
+    uniforms: {
+      uSize: { value: 25.0 },
+      uDevicePixelRatio: { value: Math.min(window.devicePixelRatio, 2) },
+      uTexture: { value: haloTexture }
+    },
+    vertexShader: haloVertexShader,
+    fragmentShader: haloFragmentShader,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    transparent: true
+  });
+  
+  // Create points with current material
+  const currentMaterial = params.renderMode === 'halo' ? haloMaterial : shaderMaterial;
+  points = new THREE.Points(geometry, currentMaterial);
   scene.add(points);
   
-  // Mark attributes as dynamic
-  geometry.attributes.position.setUsage(THREE.DynamicDrawUsage);
-  geometry.attributes.speed.setUsage(THREE.DynamicDrawUsage);
+  // Store materials for switching
+  points.userData = {
+    shaderMaterial,
+    haloMaterial
+  };
+}
+
+// Switch render mode
+function switchRenderMode() {
+  if (!points || !points.userData) return;
   
-  // Handle resize
-  const resizeObserver = new ResizeObserver(() => {
-    camera.aspect = container.clientWidth / container.clientHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(container.clientWidth, container.clientHeight);
-  });
-  resizeObserver.observe(container);
+  const newMaterial = params.renderMode === 'halo'
+    ? points.userData.haloMaterial
+    : points.userData.shaderMaterial;
+    
+  points.material = newMaterial;
 }
 
 // Initialize simulation
@@ -1090,6 +1397,25 @@ document.getElementById('npart').addEventListener('input', (e) => {
     
     reset();
   }
+});
+
+// New stretch goal event handlers
+document.getElementById('error-meter').addEventListener('click', () => {
+  if (params.mode === 'direct') {
+    alert('Error meter requires Barnes-Hut mode to compare against direct forces.');
+    return;
+  }
+  computeErrorMeter();
+});
+
+document.getElementById('seed-type').addEventListener('change', (e) => {
+  params.seedType = e.target.value;
+  reset(); // Reseed with new configuration
+});
+
+document.getElementById('render-mode').addEventListener('change', (e) => {
+  params.renderMode = e.target.value;
+  switchRenderMode();
 });
 
 // Start
