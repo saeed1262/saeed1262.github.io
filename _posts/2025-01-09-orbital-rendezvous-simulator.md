@@ -8,11 +8,11 @@ tags: [orbital-mechanics, physics, simulation, aerospace, interactive, three-js]
 categories: blog
 ---
 
-## Why Speeding Up Can Make You Drop
+## Why “Speeding Up” Can Make You Fall Behind
 
-Here's one of the most counter-intuitive facts about orbital mechanics: **if you're in orbit and fire your engines to speed up, you'll actually end up going slower**. Not only that, but you might drop to a lower orbit entirely.
+Here’s one of the most counter-intuitive facts about orbital mechanics: **a short prograde burn (speeding up) makes you instantly faster at the burn point, but it raises the opposite side of your orbit**. That higher apoapsis means that **later** in the orbit—especially near apoapsis—you’ll be **moving more slowly** than before.
 
-This seems to defy common sense. On Earth, when you accelerate your car, you go faster and get ahead. But in orbit, the rules are fundamentally different, and understanding this paradox is key to mastering spacecraft rendezvous operations.
+On Earth, pressing the gas just makes you go faster. In orbit, impulsive burns reshape your **entire** path by changing energy and angular momentum, so the long-term effect can be the opposite of your gut feel. This is exactly why, to catch a target that’s ahead of you, the right move is often to **go to a lower orbit** (via a retrograde burn) so you lap faster and **phase** into position.
 
 Let me show you exactly what happens:
 
@@ -468,6 +468,16 @@ select:hover {
   40% { content: '..'; }
   60%, 100% { content: '...'; }
 }
+
+.units-legend {
+  margin: 0 0 1rem 0;
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.85);
+  background: linear-gradient(135deg, rgba(59,130,246,0.08) 0%, rgba(15,23,42,0.3) 100%);
+  border: 1px solid rgba(59,130,246,0.25);
+  border-radius: 10px;
+}
 </style>
 
 <div id="orbit-container">
@@ -516,6 +526,11 @@ select:hover {
         <button class="scenario-button" id="scenario-rendezvous">R-bar<br>Approach</button>
       </div>
     </div>
+  </div>
+  
+  <div class="units-legend">
+    <strong>Units:</strong> Earth radius R⊕ = 1, gravitational parameter μ = 1,
+    time unit TU satisfies \(T=2\pi\sqrt{a^3/\mu}\), and speeds are in VU from vis-viva.
   </div>
   
   <div id="orbit-viz-container">
@@ -733,10 +748,11 @@ This is why spacecraft approaching the ISS follow specific **R-bar** or **V-bar*
 This isn't just theoretical—every spacecraft rendezvous uses these principles:
 
 ### International Space Station (ISS)
-- **Cargo Dragon**: Approaches along V-bar from below
-- **Crew Dragon**: Similar approach profile with abort capabilities
-- **Progress/Soyuz**: Russian vehicles use automated rendezvous
-- **Cygnus**: Approaches from below, grappled by robotic arm
+- **Cargo Dragon**: Approaches along the **R-bar** (from below/radial) to a capture point near the station.
+- **Crew Dragon**: Similar R-bar profile with multiple hold points and built-in abort options.
+- **Progress/Soyuz**: Russian vehicles use largely automated rendezvous along established corridors.
+- **Cygnus**: Also follows an R-bar approach and is grappled by the robotic arm.
+
 
 ### Historical Missions
 - **Apollo**: Lunar Module rendezvous with Command Module
@@ -749,66 +765,149 @@ This isn't just theoretical—every spacecraft rendezvous uses these principles:
 - **On-orbit servicing**: Satellite refueling and repair
 - **Debris removal**: Active cleanup missions
 
-## Understanding the Simulation Scenarios
+## Why I Love Teaching This
 
-The simulator includes three key scenarios that demonstrate different aspects of orbital rendezvous. Each represents a real technique used in spaceflight operations:
+Here's the thing that absolutely blows my mind about orbital mechanics: it's completely backwards from everything we experience on Earth. I've spent countless hours watching spacecraft approach the ISS, and every single time I'm amazed by how they do it.
 
-### 1. Basic Phasing: The Catch-Up Game
+When I first learned about orbital rendezvous, I thought it would work like driving a car—speed up to catch up, right? **Wrong.** So incredibly wrong. And that's exactly why I built this simulation.
 
-**What it is:** Phasing maneuvers are used when two spacecraft are in the same orbital altitude but at different positions around their orbit. The goal is to "catch up" to the target.
+## The Stories Behind Each Scenario
 
-**The Setup:** Your chaser spacecraft starts 60° behind the target in the same circular orbit.
+I've included three different scenarios that represent real missions I've watched unfold. Each one teaches you something different about the beautiful, frustrating, counter-intuitive world of orbital mechanics.
 
-**The Counter-Intuitive Solution:**
-- **Don't** speed up to catch up! This will raise your apoapsis and make you slower on average.
-- **Instead**, execute a **retrograde burn (-V)** to slow down and drop to a lower orbit.
-- In the lower orbit, you'll move faster and gradually catch up to the target.
-- Once you're ahead of the target, execute a **prograde burn (+V)** to raise your orbit back to the target's altitude.
+### Scenario 1: "The Chase" (Basic Phasing)
 
-**Real-World Example:** This is exactly how SpaceX Dragon capsules catch up to the ISS after launch.
+**This is my favorite one to mess with people's heads.**
 
-### 2. Hohmann Transfer: The Classic Orbital Ballet
+Picture this: You're an astronaut in a spacecraft, and you can see your target—maybe the ISS—ahead of you in the same orbit. Your instinct? Fire the engines and speed up to catch it, obviously.
 
-**What it is:** The Hohmann transfer is the most fuel-efficient way to move between two circular orbits of different altitudes. It uses exactly two burns and follows an elliptical transfer orbit.
+**Here's what actually happens:** You speed up, which raises the back half of your orbit, which means you're now in a bigger orbit, which means you're actually going *slower* on average. The target pulls further ahead. Congratulations, you just made things worse.
 
-**The Setup:** Your chaser starts in a lower orbit while the target is in a higher orbit on the opposite side of Earth.
+**The mind-bending solution?** Slow down. Seriously. Hit that **-V button** and drop into a lower orbit. Now you're closer to Earth, moving faster, and you'll gradually catch up over the next few orbits. It's like taking the inside lane on a racetrack.
 
-**The Two-Burn Sequence:**
-1. **First Burn (+V):** Execute a prograde burn at your periapsis (lowest point) to raise your apoapsis to the target's orbital altitude.
-2. **Coast Phase:** Follow the elliptical transfer orbit for half an orbit until you reach apoapsis.
-3. **Second Burn (+V):** Execute another prograde burn at apoapsis to circularize your orbit and match the target's altitude.
+**Real talk:** This is exactly how every SpaceX Dragon mission catches up to the ISS. They launch into a lower orbit and spend about a day chasing the station from below. Every time I watch a launch, I think about how this breaks everyone's brain the first time they learn it.
 
-**Timing is Everything:** The burns must be timed so you arrive at the target's orbital altitude when the target is also there.
+### Scenario 2: "The Elegant Dance" (Hohmann Transfer)
 
-**Real-World Example:** This technique was used by Apollo spacecraft to reach the Moon and is still used for satellite deployments to different orbital altitudes.
+**This one is pure poetry in motion.**
 
-### 3. R-bar Approach: The Final Precision Phase
+Walter Hohmann figured this out in 1925—before we'd even put anything in orbit—and it's still the most elegant way to change altitudes in space. It's like orbital ballroom dancing: two perfectly timed moves, separated by a graceful coast through space.
 
-**What it is:** The R-bar approach is the final phase of rendezvous, used when you're very close to the target (within a few kilometers). "R-bar" refers to the radial direction—directly toward or away from Earth.
+**Here's how the dance works:**
+1. **First move (+V):** Burn prograde at your lowest point. This raises the top of your orbit to match your target's altitude.
+2. **The coast:** Follow your new elliptical path for exactly half an orbit. This is where patience pays off.
+3. **Second move (+V):** Another prograde burn at the high point to circularize. Now you're dancing at the same altitude.
 
-**The Setup:** Your chaser starts in a slightly elliptical orbit very close to the target, simulating the final approach phase.
+**The magic is in the timing.** You have to time that first burn so that when you arrive at the high point, your target is waiting there for you. Miss the timing, and you're playing cosmic tag in the worst possible way.
 
-**The Technique:**
-- Use small **radial-in burns (-R)** to gradually approach the target along the Earth-pointing direction.
-- The radial approach is safer because any errors won't cause you to collide with the target at high speed.
-- Radial burns create predictable, controlled relative motion patterns.
+**This blew my mind:** Apollo’s trans-lunar injection used a **Hohmann-like** transfer timed with the Moon’s motion; the same elegant, energy-efficient idea shows up everywhere in mission design.
 
-**Why R-bar is Safe:**
-- If you burn too much, you'll drop below the target rather than crash into it.
-- The relative motion follows predictable elliptical patterns described by the Clohessy-Wiltshire equations.
-- Ground controllers can easily abort by commanding opposite radial burns.
 
-**Real-World Example:** This is the exact approach corridor used by visiting vehicles to the International Space Station, including SpaceX Dragon, Boeing Starliner, and cargo ships.
+### Scenario 3: "The Final Approach" (R-bar Approach)
 
-## Try the Scenarios
+**This is where it gets really precise—and really nerve-wracking.**
 
-Now use the simulation to practice these real spaceflight techniques:
+Imagine you're the pilot of a cargo ship approaching the ISS. You're close now—maybe a few kilometers away. Every move you make could be your last if you mess it up. There are people inside that station, and you're carrying tons of supplies hurtling through space at 17,500 mph.
 
-1. **Basic Phasing**: Click the scenario, then try a **-V burn** to drop to a lower, faster orbit. Watch your phase angle change over several orbits until you catch up.
+**Why the R-bar approach is brilliant:**
+Instead of approaching directly (which would be terrifying), you approach along the "R-bar"—the imaginary line pointing straight down toward Earth. If something goes wrong, you don't crash into the station—you just drop away toward Earth.
 
-2. **Hohmann Transfer**: Click the scenario, then execute **+V burns** at the right orbital positions. Time your burns to intercept the target's orbit when it arrives there.
+**The technique:** Tiny **-R burns** that nudge you inward along this safe corridor. The relative motion follows these beautiful, predictable patterns that mathematicians call Clohessy-Wiltshire equations (don't worry about the math—just know it works).
 
-3. **R-bar Approach**: Click the scenario, then use small **-R burns** to approach along the radial corridor. Notice how the relative motion stays controlled and predictable.
+**I've watched this happen live:** During ISS approaches, NASA's mission control guides the spacecraft along this exact path. You can see it on their live streams—the slow, careful approach from directly below the station. It looks almost gentle, but it's the result of decades of learning how to do this safely.
+
+## Ready to Break Your Brain?
+
+Here's what I want you to try. Start with these scenarios and prepare to have your Earth-based intuition completely shattered:
+
+**Start with "The Chase":** Click Basic Phasing, then resist every instinct you have. When you see that target ahead of you, hit **-V** instead of +V. Watch the magic happen over several orbits. It feels wrong, but it works.
+
+**Try "The Dance":** Load up Hohmann Transfer and practice the two-burn sequence. Hit **+V** at the bottom of your orbit, coast patiently, then **+V** again at the top. Time it right and you'll intercept your target perfectly.
+
+**Master "The Approach":** R-bar Approach lets you practice the final phase that every ISS visitor uses. Small **-R burns** only. Watch how controlled and predictable everything stays.
+
+The first time I got these right, I felt like I'd unlocked some secret of the universe. Because in a way, I had.
+
+## "Wait, Why Does +V Sometimes Shrink My Orbit?"
+
+**This question breaks everyone's brain the first time.** You're not going crazy, and it's definitely not a bug. This is orbital mechanics being its beautifully weird self.
+
+Here's what's actually happening when you hit +V (prograde burn):
+
+### The Energy Distribution Dance
+
+When you fire prograde, you're adding energy to your orbit. But here's the kicker—**that energy doesn't just make you go faster where you are**. Instead, it gets distributed around your entire orbital path in a very specific way.
+
+**The fundamental rule:** A prograde burn raises the *opposite side* of your orbit from where you're currently located.
+
+### Why This Happens
+
+Think of your orbit like a rubber band around Earth. When you "stretch" one part by adding energy, the opposite part moves further out. So:
+
+- **Burn at the bottom of your orbit?** You raise the top
+- **Burn at the top of your orbit?** You raise the bottom
+- **Burn anywhere in between?** You raise the opposite side
+
+### What You're Actually Seeing
+
+The "Semi-major axis" in the HUD shows your orbit's average radius—and yes, +V *always* increases this. But here's where it gets weird:
+
+1. **Right after the burn:** Your current position might show a smaller radius if you were at a high point and the burn raised the opposite (low) point more than your current position
+2. **As you continue orbiting:** You'll see your altitude vary more dramatically because your orbit is now more elliptical
+
+### The Real-World Example
+
+This is exactly why the Apollo Command Module had to do **two** separate burns to reach the Moon:
+1. First burn raised their apoapsis to lunar distance
+2. But they were still at low altitude—they had to coast all the way around to that high point
+3. Second burn at the high point raised their periapsis to complete the transfer
+
+### Pro Tip for the Simulation
+
+Watch both the **semi-major axis** (average orbit size) and your **current altitude** as you orbit. The semi-major axis tells you the real story—it always increases with +V burns. The current radius changes as you move around your now-elliptical orbit.
+
+**This behavior is pure physics, not a bug—and it's exactly why orbital mechanics is so beautifully counter-intuitive!**
+
+## "Help! My Hohmann Transfer Went Crazy!"
+
+**You're discovering why rocket scientists do so much math before pressing buttons!**
+
+If your second +V burn in the Hohmann Transfer scenario is sending your orbit into the stratosphere, you're experiencing one of the most important lessons in spaceflight: **burn magnitude matters. A lot.**
+
+### What's Actually Happening
+
+The Hohmann transfer is incredibly sensitive to burn timing and magnitude. Here's what's going wrong:
+
+1. **Your first burn was probably too big**: This created a transfer orbit that's larger than intended
+2. **When you reached apoapsis**: You're now much higher than the target orbit
+3. **The second burn**: Instead of circularizing at the target altitude, it's adding energy to an already high orbit
+
+### The Real-World Parallel
+
+This is exactly why SpaceX and NASA spend months calculating precise burn values. Get it wrong by even a few meters per second, and you miss your target by thousands of kilometers.
+
+### How to Get It Right
+
+For the Hohmann Transfer scenario, try this:
+
+1. **Reduce your burn magnitude to ~0.02** using the slider
+2. **First burn**: One quick +V tap at your lowest point (periapsis)
+3. **Coast**: Wait exactly half an orbit until you're at the highest point
+4. **Second burn**: Another small +V tap to circularize
+
+### The Math Behind It
+
+In the real world, the exact burn values for a Hohmann transfer are calculated using:
+- First burn: ΔV₁ = √(μ/r₁) × (√(2r₂/(r₁+r₂)) - 1)
+- Second burn: ΔV₂ = √(μ/r₂) × (1 - √(2r₁/(r₁+r₂)))
+
+For our scenario (1.2 to 1.4 Earth radii), these work out to much smaller values than the default 0.05 burn magnitude.
+
+### Pro Tip
+
+**Watch the ghost trail!** After your first burn, you'll see a dashed line showing your predicted orbit. It should just barely touch the target's orbital altitude. If it goes way beyond, your burn was too big.
+
+**This is why orbital mechanics is both beautiful and terrifying—tiny changes have huge consequences!**
 
 ## The Counter-Intuitive Truth
 
@@ -1177,13 +1276,15 @@ function updateHUD() {
   
   // Closest approach prediction
   const ca = predictClosestApproach(chaserElements, targetElements);
-  document.getElementById('time-to-ca').textContent = ca.timeToCA > 0 ? `${ca.timeToCA.toFixed(1)} TU` : '-- TU';
-  document.getElementById('min-range').textContent = ca.minRange < 1 ? `${(ca.minRange * 1000).toFixed(1)} m` : `${ca.minRange.toFixed(3)} R⊕`;
-  
+  document.getElementById('time-to-ca').textContent =
+    ca.timeToCA > 0 ? `${ca.timeToCA.toFixed(1)} TU` : '-- TU';
+  // Always show normalized units consistently
+  document.getElementById('min-range').textContent = `${ca.minRange.toFixed(3)} R⊕`;
+
   // Status
   const mode = params.playing ? 'Running' : 'Paused';
-  document.getElementById('orbit-status').textContent = 
-    `${mode} | Time: ${time.toFixed(1)} TU | Range: ${(range * 1000).toFixed(1)} m`;
+  document.getElementById('orbit-status').textContent =
+    `${mode} | Time: ${time.toFixed(1)} TU | Range: ${range.toFixed(3)} R⊕`;
 }
 
 // Create starfield background
@@ -1674,7 +1775,7 @@ function executeBurn(direction) {
     `✓ ${burnNames[direction]} burn executed. ΔV: ${params.burnMagnitude.toFixed(3)} VU`;
   
   // Add UI feedback
-  const button = document.getElementById(`burn-${direction.replace('-', '-')}`);
+  const button = document.getElementById(`burn-${direction}`);
   if (button) {
     button.style.transform = 'scale(0.95)';
     setTimeout(() => {
@@ -1702,6 +1803,11 @@ function updateGhostTrail() {
   
   ghostTrailGeometry.setDrawRange(0, 200);
   ghostTrailGeometry.attributes.position.needsUpdate = true;
+  
+  // Recompute line distances so dashes render correctly after updates
+  if (ghostTrail && ghostTrail.computeLineDistances) {
+    ghostTrail.computeLineDistances();
+  }
 }
 
 // Animation loop
