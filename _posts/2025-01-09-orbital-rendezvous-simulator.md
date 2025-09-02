@@ -478,6 +478,170 @@ select:hover {
   border: 1px solid rgba(59,130,246,0.25);
   border-radius: 10px;
 }
+
+/* Toast messages for educational callouts */
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  max-width: 400px;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.95) 0%, rgba(30, 58, 138, 0.98) 100%);
+  border: 1px solid rgba(59, 130, 246, 0.8);
+  border-radius: 12px;
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 500;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4), 0 0 20px rgba(59, 130, 246, 0.6);
+  transform: translateX(450px);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.toast.show {
+  transform: translateX(0);
+}
+
+.toast .toast-icon {
+  display: inline-block;
+  margin-right: 0.5rem;
+  font-size: 1.1em;
+}
+
+/* --- Phase gauge panel --- */
+.phase-gauge {
+  background: linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(30,58,138,0.05) 100%);
+  border: 1px solid rgba(59,130,246,0.3);
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+.phase-gauge h4 {
+  color: #60a5fa;
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.75px;
+  border-bottom: 2px solid rgba(59,130,246,0.3);
+  padding-bottom: 0.5rem;
+}
+.phase-gauge .row {
+  display: flex; justify-content: space-between;
+  font-family: 'SF Mono','Monaco','Inconsolata','Roboto Mono',monospace;
+  font-size: 0.9rem; margin: 0.25rem 0;
+}
+.phase-bar {
+  position: relative; height: 10px; border-radius: 6px;
+  background: rgba(255,255,255,0.08); margin-top: 0.5rem; overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.15);
+}
+.phase-fill {
+  position: absolute; top:0; left:0; bottom:0; width:0%;
+  background: linear-gradient(90deg, rgba(34,197,94,0.8), rgba(59,130,246,0.8));
+}
+.phase-status {
+  margin-top: 0.5rem; text-align: center; font-weight: 700;
+}
+.phase-status.ready { color: #22c55e; }
+.phase-status.wait { color: #f59e0b; }
+.phase-status.na { color: rgba(255,255,255,0.6); }
+
+/* --- Optional: make marker labels a tad crisper --- */
+.sprite-label {
+  filter: drop-shadow(0 0 2px rgba(0,0,0,0.7));
+}
+
+/* Performance mode - reduced effects */
+body.performance-mode .burn-button {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+}
+body.performance-mode .hud-panel {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+}
+body.performance-mode .toast {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+  backdrop-filter: none !important;
+}
+body.performance-mode #orbit-container {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2) !important;
+  backdrop-filter: none !important;
+}
+
+/* Keyboard shortcuts helper */
+.keyboard-shortcuts {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 8px;
+  padding: 0.75rem;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.8);
+  max-width: 200px;
+  transform: translateY(200px);
+  transition: transform 0.3s ease;
+  z-index: 999;
+}
+.keyboard-shortcuts.show {
+  transform: translateY(0);
+}
+.keyboard-shortcuts h5 {
+  color: #60a5fa;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+.keyboard-shortcuts div {
+  margin: 0.25rem 0;
+}
+.keyboard-shortcuts kbd {
+  background: rgba(59, 130, 246, 0.2);
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  border-radius: 3px;
+  padding: 0.1rem 0.3rem;
+  font-size: 0.75rem;
+  margin-right: 0.5rem;
+}
+
+
+/* Keyboard shortcuts helper */
+.keyboard-shortcuts {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 8px;
+  padding: 0.75rem;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.8);
+  max-width: 200px;
+  transform: translateY(200px);
+  transition: transform 0.3s ease;
+  z-index: 999;
+}
+.keyboard-shortcuts.show {
+  transform: translateY(0);
+}
+.keyboard-shortcuts h5 {
+  color: #60a5fa;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+.keyboard-shortcuts div {
+  margin: 0.25rem 0;
+}
+.keyboard-shortcuts kbd {
+  background: rgba(59, 130, 246, 0.2);
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  border-radius: 3px;
+  padding: 0.1rem 0.3rem;
+  font-size: 0.75rem;
+  margin-right: 0.5rem;
+}
 </style>
 
 <div id="orbit-container">
@@ -593,7 +757,7 @@ select:hover {
         <span class="value" id="dv-budget">0.000 VU</span>
       </div>
       <div class="hud-value">
-        <span class="label">Time to CA:</span>
+        <span class="label">Time to closest approach:</span>
         <span class="value" id="time-to-ca">-- TU</span>
       </div>
       <div class="hud-value">
@@ -911,10 +1075,10 @@ For our scenario (1.2 to 1.4 Earth radii), these work out to much smaller values
 
 ## The Counter-Intuitive Truth
 
-Now you understand why "speeding up makes you drop": 
+Now you understand why "speeding up makes you drop":
 
 - A **prograde burn raises your apoapsis** but may put you in a less favorable position
-- **Lower orbits are faster**, so dropping down can help you catch up  
+- **Lower orbits are faster**, so dropping down can help you catch up
 - **Orbital mechanics is about energy and angular momentum**, not just instantaneous velocity
 
 This is the beautiful complexity of orbital mechanics—it requires thinking in terms of entire orbital paths, not just local motion. Every real spacecraft mission depends on these principles, from the smallest CubeSat to the largest space station.
@@ -934,8 +1098,10 @@ The next time you see a cargo ship approaching the ISS, you'll know exactly why 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-// Check WebGL support
-if (!WebGLRenderingContext) {
+// Check WebGL support with actual context creation
+const canvas = document.createElement('canvas');
+const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+if (!gl) {
   document.getElementById('orbit-viz').innerHTML = '<div class="no-webgl">WebGL is not supported in your browser</div>';
   throw new Error('WebGL not supported');
 }
@@ -952,8 +1118,14 @@ let params = {
   playing: true,
   timeScale: 1.0,
   burnMagnitude: 0.05,
-  dt: 0.01
+  dt: 0.01,
+  realWorldUnits: false
 };
+
+// Real-world unit conversions
+const EARTH_RADIUS_KM = 6371.0; // km
+const TU_TO_SECONDS = Math.sqrt(EARTH_RADIUS_KM * EARTH_RADIUS_KM * EARTH_RADIUS_KM / 398600.4418); // √(R³/μ_Earth)
+const VU_TO_KM_S = EARTH_RADIUS_KM / TU_TO_SECONDS; // km/s
 
 // Simulation state
 let time = 0;
@@ -971,6 +1143,9 @@ let chaserTrailGeometry, targetTrailGeometry, ghostTrailGeometry;
 let starField, ambientLight, directionalLight, pointLight;
 let particleSystem, burnParticles = [];
 let chaserGlow, targetGlow, earthGlow;
+
+// Markers for chaser periapsis/apoapsis
+let periMarker, apoMarker, periLabel, apoLabel;
 
 // Orbital mechanics functions
 function keplerSolve(M, e, tolerance = 1e-8) {
@@ -1028,19 +1203,19 @@ function stateToElements(position, velocity) {
   const energy = 0.5 * v * v - mu_r;
   const a = -MU / (2 * energy);
   
-  // Argument of periapsis
-  const omega = Math.atan2(e_vec.y, e_vec.x);
-  
-  // True anomaly
-  let nu;
+  // Argument of periapsis and true anomaly
+  let omega, nu;
   if (e < 1e-6) {
-    // Circular orbit case - calculate true anomaly directly from position
-    nu = Math.atan2(position.y, position.x) - omega;
+    // Circular orbit case - omega is undefined, set to 0 for consistency
+    omega = 0;
+    // True anomaly is just the position angle
+    nu = Math.atan2(position.y, position.x);
     // Normalize to [0, 2π]
     while (nu < 0) nu += 2 * Math.PI;
     while (nu > 2 * Math.PI) nu -= 2 * Math.PI;
   } else {
     // Elliptical orbit case
+    omega = Math.atan2(e_vec.y, e_vec.x);
     const cos_nu = e_vec.dot(position) / (e * r);
     const sin_nu = h_vec.dot(new THREE.Vector3().crossVectors(e_vec, position)) / (h * e * r);
     nu = Math.atan2(sin_nu, cos_nu);
@@ -1098,10 +1273,18 @@ function computePhaseAngle(chaserElements, targetElements) {
   return phase;
 }
 
-function predictClosestApproach(chaserElements, targetElements, maxTime = 10) {
+function predictClosestApproach(chaserElements, targetElements, maxTime = null) {
+  // Use scale-invariant prediction horizon based on chaser's period
+  if (maxTime === null) {
+    const [a] = chaserElements;
+    const P = 2 * Math.PI * Math.sqrt(a * a * a / MU);
+    maxTime = 1.5 * P;
+  }
+  
   let minRange = Infinity;
   let timeToCA = 0;
-  let minRangeTime = 0;
+  let chaserStateAtCA = null;
+  let targetStateAtCA = null;
   
   const dt = 0.01;
   const steps = Math.floor(maxTime / dt);
@@ -1118,6 +1301,8 @@ function predictClosestApproach(chaserElements, targetElements, maxTime = 10) {
     if (range < minRange) {
       minRange = range;
       timeToCA = i * dt;
+      chaserStateAtCA = { ...chaserState };
+      targetStateAtCA = { ...targetState };
     }
     
     // Propagate orbits
@@ -1125,7 +1310,12 @@ function predictClosestApproach(chaserElements, targetElements, maxTime = 10) {
     currentTargetElements = propagateOrbit(currentTargetElements, dt);
   }
   
-  return { minRange, timeToCA };
+  return {
+    minRange,
+    timeToCA,
+    chaserStateAtCA,
+    targetStateAtCA
+  };
 }
 
 function createTrailGeometry(maxPoints = 500) {
@@ -1172,11 +1362,30 @@ function getLVLHBasis(position, velocity) {
 // Add orbital collision detection and prevention
 function isOrbitValid(elements) {
   const [a, e] = elements;
+  
+  // Check for hyperbolic orbits (energy >= 0, a < 0)
+  if (a <= 0) {
+    return false; // Hyperbolic or parabolic orbit
+  }
+  
+  // Check periapsis against Earth intersection
   const periapsis = a * (1 - e);
   const EARTH_RADIUS = 1.0;
   const MIN_ALTITUDE = 0.01; // Minimum safe altitude above Earth
   
-  return periapsis > (EARTH_RADIUS + MIN_ALTITUDE);
+  if (periapsis <= (EARTH_RADIUS + MIN_ALTITUDE)) {
+    return false; // Would crash into Earth
+  }
+  
+  // Check apoapsis to avoid near-parabolic numerical weirdness
+  const apoapsis = a * (1 + e);
+  const MAX_APOAPSIS = 10.0; // Reasonable limit for simulation
+  
+  if (apoapsis > MAX_APOAPSIS) {
+    return false; // Orbit too large, numerical issues likely
+  }
+  
+  return true;
 }
 
 // Enhanced simulation step with visual effects
@@ -1238,6 +1447,22 @@ function step() {
   
   // Update HUD
   updateHUD();
+  
+  updatePAOMarkers();
+  updatePhaseGauge();
+  updateGhostBurnArrows();
+  
+  updatePAOMarkers();
+  updatePhaseGauge();
+  
+  updatePAOMarkers();
+  updatePhaseGauge();
+  
+  updatePAOMarkers();
+  updatePhaseGauge();
+  
+  updatePAOMarkers();
+  updatePhaseGauge();
 }
 
 function updateHUD() {
@@ -1248,20 +1473,31 @@ function updateHUD() {
   const [chaserA, chaserE] = chaserElements;
   const chaserPeriod = 2 * Math.PI * Math.sqrt(chaserA * chaserA * chaserA / MU);
   
-  document.getElementById('chaser-a').textContent = `${chaserA.toFixed(3)} R⊕`;
+  if (params.realWorldUnits) {
+    document.getElementById('chaser-a').textContent = `${(chaserA * EARTH_RADIUS_KM).toFixed(0)} km`;
+    document.getElementById('chaser-period').textContent = `${(chaserPeriod * TU_TO_SECONDS / 60).toFixed(1)} min`;
+    document.getElementById('chaser-speed').textContent = `${(chaserState.speed * VU_TO_KM_S).toFixed(2)} km/s`;
+  } else {
+    document.getElementById('chaser-a').textContent = `${chaserA.toFixed(3)} R⊕`;
+    document.getElementById('chaser-period').textContent = `${chaserPeriod.toFixed(2)} TU`;
+    document.getElementById('chaser-speed').textContent = `${chaserState.speed.toFixed(3)} VU`;
+  }
   document.getElementById('chaser-e').textContent = chaserE.toFixed(3);
-  document.getElementById('chaser-period').textContent = `${chaserPeriod.toFixed(2)} TU`;
-  document.getElementById('chaser-speed').textContent = `${chaserState.speed.toFixed(3)} VU`;
   
   // Target parameters
   const [targetA, targetE] = targetElements;
   const targetPeriod = 2 * Math.PI * Math.sqrt(targetA * targetA * targetA / MU);
   
-  document.getElementById('target-a').textContent = `${targetA.toFixed(3)} R⊕`;
+  if (params.realWorldUnits) {
+    document.getElementById('target-a').textContent = `${(targetA * EARTH_RADIUS_KM).toFixed(0)} km`;
+    document.getElementById('target-period').textContent = `${(targetPeriod * TU_TO_SECONDS / 60).toFixed(1)} min`;
+  } else {
+    document.getElementById('target-a').textContent = `${targetA.toFixed(3)} R⊕`;
+    document.getElementById('target-period').textContent = `${targetPeriod.toFixed(2)} TU`;
+  }
   document.getElementById('target-e').textContent = targetE.toFixed(3);
-  document.getElementById('target-period').textContent = `${targetPeriod.toFixed(2)} TU`;
   
-  // Phase angle
+  // Phase angle (same in both unit systems)
   const phaseAngle = computePhaseAngle(chaserElements, targetElements);
   document.getElementById('phase-angle').textContent = `${(phaseAngle * 180 / Math.PI).toFixed(1)}°`;
   
@@ -1270,21 +1506,37 @@ function updateHUD() {
   const relativeVel = new THREE.Vector3().subVectors(chaserState.velocity, targetState.velocity);
   const closingRate = -relativeVel.dot(new THREE.Vector3().subVectors(targetState.position, chaserState.position).normalize());
   
-  document.getElementById('relative-range').textContent = `${range.toFixed(3)} R⊕`;
-  document.getElementById('closing-rate').textContent = `${closingRate.toFixed(3)} VU`;
-  document.getElementById('dv-budget').textContent = `${dvBudget.toFixed(3)} VU`;
+  if (params.realWorldUnits) {
+    document.getElementById('relative-range').textContent = `${(range * EARTH_RADIUS_KM).toFixed(1)} km`;
+    document.getElementById('closing-rate').textContent = `${(closingRate * VU_TO_KM_S).toFixed(3)} km/s`;
+    document.getElementById('dv-budget').textContent = `${(dvBudget * VU_TO_KM_S).toFixed(2)} km/s`;
+  } else {
+    document.getElementById('relative-range').textContent = `${range.toFixed(3)} R⊕`;
+    document.getElementById('closing-rate').textContent = `${closingRate.toFixed(3)} VU`;
+    document.getElementById('dv-budget').textContent = `${dvBudget.toFixed(3)} VU`;
+  }
   
   // Closest approach prediction
   const ca = predictClosestApproach(chaserElements, targetElements);
-  document.getElementById('time-to-ca').textContent =
-    ca.timeToCA > 0 ? `${ca.timeToCA.toFixed(1)} TU` : '-- TU';
-  // Always show normalized units consistently
-  document.getElementById('min-range').textContent = `${ca.minRange.toFixed(3)} R⊕`;
+  if (params.realWorldUnits) {
+    document.getElementById('time-to-ca').textContent =
+      ca.timeToCA > 0 ? `${(ca.timeToCA * TU_TO_SECONDS / 60).toFixed(1)} min` : '-- min';
+    document.getElementById('min-range').textContent = `${(ca.minRange * EARTH_RADIUS_KM).toFixed(1)} km`;
+  } else {
+    document.getElementById('time-to-ca').textContent =
+      ca.timeToCA > 0 ? `${ca.timeToCA.toFixed(1)} TU` : '-- TU';
+    document.getElementById('min-range').textContent = `${ca.minRange.toFixed(3)} R⊕`;
+  }
 
   // Status
   const mode = params.playing ? 'Running' : 'Paused';
-  document.getElementById('orbit-status').textContent =
-    `${mode} | Time: ${time.toFixed(1)} TU | Range: ${range.toFixed(3)} R⊕`;
+  if (params.realWorldUnits) {
+    document.getElementById('orbit-status').textContent =
+      `${mode} | Time: ${(time * TU_TO_SECONDS / 60).toFixed(1)} min | Range: ${(range * EARTH_RADIUS_KM).toFixed(1)} km`;
+  } else {
+    document.getElementById('orbit-status').textContent =
+      `${mode} | Time: ${time.toFixed(1)} TU | Range: ${range.toFixed(3)} R⊕`;
+  }
 }
 
 // Create starfield background
@@ -1343,6 +1595,198 @@ function createGlow(color, size) {
     side: THREE.BackSide
   });
   return new THREE.Mesh(glowGeometry, glowMaterial);
+}
+
+// Create a small colored marker sphere
+function createMarker(color = 0x00e5ff, size = 0.035) {
+  const geo = new THREE.SphereGeometry(size, 16, 16);
+  const mat = new THREE.MeshPhongMaterial({ color, emissive: 0x000000, shininess: 80, specular: 0x444444 });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.castShadow = true;
+  return mesh;
+}
+
+// Make a simple text sprite (canvas-based) so it always faces camera
+function makeTextSprite(text, color = '#e5e7eb', fontSize = 48) {
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  const pad = 16;
+  ctx.font = `bold ${fontSize}px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto`;
+  const w = Math.ceil(ctx.measureText(text).width) + pad * 2;
+  const h = fontSize + pad * 2;
+  canvas.width = w; canvas.height = h;
+  // background glow
+  const grd = ctx.createLinearGradient(0,0,w,h);
+  grd.addColorStop(0, 'rgba(30,41,59,0.8)'); grd.addColorStop(1, 'rgba(15,23,42,0.8)');
+  ctx.fillStyle = grd; ctx.fillRect(0,0,w,h);
+  ctx.strokeStyle = 'rgba(59,130,246,0.6)'; ctx.lineWidth = 2; ctx.strokeRect(1,1,w-2,h-2);
+  // text
+  ctx.font = `bold ${fontSize}px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto`;
+  ctx.fillStyle = color; ctx.textBaseline = 'middle'; ctx.textAlign = 'center';
+  ctx.fillText(text, w/2, h/2);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.anisotropy = 4; texture.needsUpdate = true;
+  const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
+  const sprite = new THREE.Sprite(material);
+  const scale = 0.45; // world units scale
+  sprite.scale.set(canvas.width / 200 * scale, canvas.height / 200 * scale, 1);
+  sprite.userData.canvasTexture = texture;
+  sprite.renderOrder = 999;
+  return sprite;
+}
+
+// Position vector for a given (a, e, omega) at specified true anomaly nu (z=0 plane)
+function positionAtTrueAnomaly(a, e, omega, nu) {
+  const r = a * (1 - e * e) / (1 + e * Math.cos(nu));
+  const ang = omega + nu;
+  return new THREE.Vector3(r * Math.cos(ang), r * Math.sin(ang), 0);
+}
+
+// Create burn arrow indicator
+function createBurnArrow(color = 0x22c55e, size = 0.08) {
+  const group = new THREE.Group();
+  
+  // Arrow shaft
+  const shaftGeometry = new THREE.CylinderGeometry(0.008, 0.008, size, 8);
+  const shaftMaterial = new THREE.MeshPhongMaterial({ color, emissive: color, emissiveIntensity: 0.3 });
+  const shaft = new THREE.Mesh(shaftGeometry, shaftMaterial);
+  shaft.rotation.z = Math.PI / 2; // Point right initially
+  group.add(shaft);
+  
+  // Arrow head
+  const headGeometry = new THREE.ConeGeometry(0.02, 0.04, 8);
+  const head = new THREE.Mesh(headGeometry, shaftMaterial);
+  head.position.x = size / 2 + 0.02;
+  head.rotation.z = -Math.PI / 2; // Point right
+  group.add(head);
+  
+  return group;
+}
+
+// Update ghost burn arrows visibility and positioning
+function updateGhostBurnArrows() {
+  // Return early if arrows haven't been created yet
+  if (!periBurnArrow || !apoBurnArrow) return;
+  
+  const showArrows = (currentScenario === 'hohmann');
+  
+  periBurnArrow.visible = showArrows;
+  apoBurnArrow.visible = showArrows;
+  
+  if (showArrows) {
+    const [a, e, omega] = chaserElements;
+    
+    // Position arrows at periapsis and apoapsis
+    const periPos = positionAtTrueAnomaly(a, e, omega, 0);
+    const apoPos = positionAtTrueAnomaly(a, e, omega, Math.PI);
+    
+    periBurnArrow.position.copy(periPos);
+    apoBurnArrow.position.copy(apoPos);
+    
+    // Orient arrows tangentially (prograde direction)
+    const periTangent = Math.atan2(periPos.y, periPos.x) + Math.PI/2;
+    const apoTangent = Math.atan2(apoPos.y, apoPos.x) + Math.PI/2;
+    
+    periBurnArrow.rotation.z = periTangent;
+    apoBurnArrow.rotation.z = apoTangent;
+    
+    // Animate the arrows
+    const pulse = 0.8 + 0.2 * Math.sin(time * 4);
+    periBurnArrow.scale.setScalar(pulse);
+    apoBurnArrow.scale.setScalar(pulse);
+  }
+}
+
+// Update periapsis/apoapsis markers (for chaser)
+function updatePAOMarkers() {
+  const [a, e, omega] = chaserElements;
+  const periPos = positionAtTrueAnomaly(a, e, omega, 0);
+  const apoPos  = positionAtTrueAnomaly(a, e, omega, Math.PI);
+  periMarker.position.copy(periPos);
+  apoMarker.position.copy(apoPos);
+  // Offset labels slightly outward
+  periLabel.position.copy(periPos.clone().multiplyScalar(1.06));
+  apoLabel.position.copy(apoPos.clone().multiplyScalar(1.06));
+}
+
+// Wrap angle to [-π, π]
+function wrapPi(theta) {
+  while (theta > Math.PI) theta -= 2*Math.PI;
+  while (theta < -Math.PI) theta += 2*Math.PI;
+  return theta;
+}
+
+// Desired target lead angle (radians) for Hohmann-style transfer between *nearly circular* orbits
+// Positive = target ahead of chaser at departure
+function desiredPhaseHohmann(a1, a2) {
+  if (a1 <= 0 || a2 <= 0) return null;
+  // transfer time = π * sqrt( ((a1+a2)/2)^3 / μ ), μ = 1
+  const tTrans = Math.PI * Math.sqrt(Math.pow((a1 + a2)/2, 3));
+  const n2 = Math.sqrt(1 / Math.pow(a2, 3)); // mean motion of target
+  // Lower -> Higher: φ = π - n2*tTrans (target should lead by φ)
+  // Higher -> Lower: same formula still yields correct sign; interpret positive as "target ahead"
+  const phi = Math.PI - n2 * tTrans;
+  return wrapPi(phi);
+}
+
+// Update gauge UI; returns readiness boolean
+function updatePhaseGauge() {
+  const [a1, e1] = chaserElements;
+  const [a2, e2] = targetElements;
+
+  // Current phase (target relative to chaser)
+  const phase = computePhaseAngle(chaserElements, targetElements); // 0..2π
+  const phaseSigned = wrapPi(phase); // -π..π
+
+  // Show current
+  document.getElementById('phase-current').textContent = `${(phase * 180/Math.PI).toFixed(1)}°`;
+
+  // Only meaningful for near-circular orbits
+  if (e1 > 0.05 || e2 > 0.05) {
+    document.getElementById('phase-desired').textContent = '— (non-circular)';
+    document.getElementById('phase-error').textContent = '—';
+    document.getElementById('phase-status').textContent = 'N/A for eccentric orbits';
+    document.getElementById('phase-status').className = 'phase-status na';
+    document.getElementById('phase-fill').style.width = '0%';
+    return false;
+  }
+
+  const phi = desiredPhaseHohmann(a1, a2);
+  if (phi === null) {
+    document.getElementById('phase-desired').textContent = '—';
+    document.getElementById('phase-error').textContent = '—';
+    document.getElementById('phase-status').textContent = 'N/A';
+    document.getElementById('phase-status').className = 'phase-status na';
+    document.getElementById('phase-fill').style.width = '0%';
+    return false;
+  }
+
+  // desired lead (signed): positive = target ahead; negative = target behind
+  const desiredDeg = phi * 180/Math.PI;
+  document.getElementById('phase-desired').textContent =
+    `${desiredDeg >= 0 ? '' : '−'}${Math.abs(desiredDeg).toFixed(1)}° ${desiredDeg >= 0 ? '(ahead)' : '(behind)'}`;
+
+  // Error: difference between current phase and desired lead
+  const err = wrapPi(phaseSigned - phi);
+  const errDeg = err * 180/Math.PI;
+  document.getElementById('phase-error').textContent = `${errDeg >= 0 ? '' : '−'}${Math.abs(errDeg).toFixed(1)}°`;
+
+  // Bar shows "how close" (0° = full bar)
+  const tol = 5; // degrees
+  const closeness = Math.max(0, 1 - Math.min(Math.abs(errDeg)/90, 1)); // crude visualization
+  document.getElementById('phase-fill').style.width = `${(closeness*100).toFixed(0)}%`;
+
+  const ready = Math.abs(errDeg) <= tol;
+  const statusEl = document.getElementById('phase-status');
+  if (ready) {
+    statusEl.textContent = `READY (|error| ≤ ${tol}°)`;
+    statusEl.className = 'phase-status ready';
+  } else {
+    statusEl.textContent = `WAIT (need |error| ≤ ${tol}°)`;
+    statusEl.className = 'phase-status wait';
+  }
+  return ready;
 }
 
 // Initialize Three.js scene
@@ -1494,6 +1938,20 @@ function initThree() {
   targetGlow = createGlow(0x44ff44, 0.12);
   targetMesh.add(targetGlow);
   
+  // --- Periapsis / Apoapsis markers & labels for the chaser ---
+  periMarker = createMarker(0x3b82f6, 0.04);   // blue-ish
+  apoMarker  = createMarker(0xa855f7, 0.04);   // purple-ish
+  scene.add(periMarker, apoMarker);
+
+  periLabel = makeTextSprite('Periapsis', '#bfdbfe', 48);
+  apoLabel  = makeTextSprite('Apoapsis',  '#e9d5ff', 48);
+  periLabel.className = 'sprite-label';
+  apoLabel.className  = 'sprite-label';
+  scene.add(periLabel, apoLabel);
+
+  // Position them once at startup
+  updatePAOMarkers();
+  
   // Enhanced orbital trails with gradient
   chaserTrailGeometry = createTrailGeometry();
   const chaserTrailMaterial = new THREE.LineBasicMaterial({
@@ -1552,6 +2010,13 @@ function initThree() {
   });
   resizeObserver.observe(container);
   
+  // --- Ghost burn arrows for Hohmann guidance ---
+  periBurnArrow = createBurnArrow(0x22c55e, 0.12); // Green prograde arrow
+  apoBurnArrow = createBurnArrow(0x22c55e, 0.12);  // Green prograde arrow
+  periBurnArrow.visible = false; // Initially hidden
+  apoBurnArrow.visible = false;
+  scene.add(periBurnArrow, apoBurnArrow);
+  
   // Initial positions
   resetSimulation();
 }
@@ -1576,6 +2041,10 @@ function resetSimulation() {
   targetMesh.position.copy(targetState.position);
   
   updateHUD();
+  updatePAOMarkers();
+  updatePhaseGauge();
+  currentScenario = null; // Reset scenario
+  updateGhostBurnArrows();
 }
 
 // Scenario presets with detailed setups
@@ -1586,6 +2055,7 @@ function loadScenario(scenario) {
       // Goal: Use retrograde burn to lower orbit and catch up
       chaserElements = [1.3, 0.0, 0.0, -Math.PI/3]; // 60° behind
       targetElements = [1.3, 0.0, 0.0, 0.0];
+      currentScenario = 'basic';
       document.getElementById('orbit-status').textContent =
         'Basic Phasing: Try a -V burn to lower orbit and catch up to target';
       break;
@@ -1595,6 +2065,7 @@ function loadScenario(scenario) {
       // Goal: Execute two-burn transfer maneuver
       chaserElements = [1.2, 0.0, 0.0, 0.0]; // Lower orbit
       targetElements = [1.4, 0.0, 0.0, Math.PI]; // Higher orbit, opposite side
+      currentScenario = 'hohmann';
       document.getElementById('orbit-status').textContent =
         'Hohmann Transfer: Use +V at periapsis, then +V again at apoapsis to circularize';
       break;
@@ -1604,6 +2075,7 @@ function loadScenario(scenario) {
       // Goal: Use small radial burns for final approach
       chaserElements = [1.295, 0.02, 0.0, Math.PI + Math.PI/12]; // Slightly elliptical, near target
       targetElements = [1.3, 0.0, 0.0, 0.0];
+      currentScenario = 'rendezvous';
       document.getElementById('orbit-status').textContent =
         'R-bar Approach: Use small -R burns to approach target along radial corridor';
       break;
@@ -1625,6 +2097,9 @@ function loadScenario(scenario) {
   targetMesh.position.copy(targetState.position);
   
   updateHUD();
+  updatePAOMarkers();
+  updatePhaseGauge();
+  updateGhostBurnArrows();
 }
 
 // Create burn particle effect
@@ -1759,7 +2234,7 @@ function executeBurn(direction) {
   
   // Apply the burn (we know it's safe now)
   chaserElements = testElements;
-  dvBudget += params.burnMagnitude;
+  dvBudget += deltaV.length();
   
   // Update ghost trail with prediction
   updateGhostTrail();
@@ -1810,6 +2285,79 @@ function updateGhostTrail() {
   }
 }
 
+// Educational callouts for counter-intuitive moments
+function showEducationalCallout(direction, chaserState, elements) {
+  const [a, e, omega, nu] = elements;
+  const r = chaserState.r;
+  
+  // Determine orbital position relative to periapsis/apoapsis
+  const periapsisR = a * (1 - e);
+  const apoapsisR = a * (1 + e);
+  const nearPeriapsis = Math.abs(r - periapsisR) < 0.1 * a;
+  const nearApoapsis = Math.abs(r - apoapsisR) < 0.1 * a;
+  
+  let message = '';
+  
+  if (direction === 'prograde') {
+    if (nearPeriapsis) {
+      message = '🚀 Apoapsis ↑, current speed ↑ (instant), average speed ↓ after you reach apoapsis';
+    } else if (nearApoapsis) {
+      message = '🌍 Periapsis ↑, current speed ↑ (instant), you\'re now in a higher, slower orbit';
+    } else {
+      message = '⬆️ Prograde burn raises opposite side of orbit - energy increases but effects are delayed';
+    }
+  } else if (direction === 'retrograde') {
+    if (nearPeriapsis) {
+      message = '⬇️ Apoapsis ↓, current speed ↓ (instant), but you\'ll be faster on average in this lower orbit';
+    } else if (nearApoapsis) {
+      message = '🎯 Periapsis ↓, dropping to a lower, faster orbit - perfect for catching up';
+    } else {
+      message = '🔻 Retrograde burn lowers opposite side - less energy means faster average speed';
+    }
+  } else if (direction === 'radial-out') {
+    message = '📡 Radial-out burn: raising periapsis while lowering apoapsis - circularizing from below';
+  } else if (direction === 'radial-in') {
+    message = '🎯 Radial-in burn: lowering periapsis while raising apoapsis - circularizing from above';
+  }
+  
+  if (message) {
+    showToast(message);
+  }
+}
+
+// Show toast message
+let currentToast = null;
+function showToast(message) {
+  // Remove existing toast
+  if (currentToast) {
+    currentToast.remove();
+  }
+  
+  // Create new toast
+  currentToast = document.createElement('div');
+  currentToast.className = 'toast';
+  currentToast.innerHTML = `<span class="toast-icon">💡</span>${message}`;
+  document.body.appendChild(currentToast);
+  
+  // Show animation
+  setTimeout(() => {
+    currentToast.classList.add('show');
+  }, 50);
+  
+  // Auto-hide after 4 seconds
+  setTimeout(() => {
+    if (currentToast) {
+      currentToast.classList.remove('show');
+      setTimeout(() => {
+        if (currentToast) {
+          currentToast.remove();
+          currentToast = null;
+        }
+      }, 400);
+    }
+  }, 4000);
+}
+
 // Animation loop
 function animate() {
   requestAnimationFrame(animate);
@@ -1845,6 +2393,86 @@ document.getElementById('time-scale').addEventListener('input', (e) => {
 document.getElementById('scenario-basic').addEventListener('click', () => loadScenario('basic'));
 document.getElementById('scenario-hohmann').addEventListener('click', () => loadScenario('hohmann'));
 document.getElementById('scenario-rendezvous').addEventListener('click', () => loadScenario('rendezvous'));
+
+document.getElementById('real-world-units').addEventListener('change', (e) => {
+  params.realWorldUnits = e.target.checked;
+  updateHUD();
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+  // Don't interfere if user is typing in an input
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  
+  switch (e.key.toLowerCase()) {
+    case ' ':
+      e.preventDefault();
+      document.getElementById('orbit-play-pause').click();
+      break;
+    case '[':
+      e.preventDefault();
+      const timeScale = Math.max(0.1, params.timeScale - 0.1);
+      document.getElementById('time-scale').value = timeScale;
+      document.getElementById('time-scale').dispatchEvent(new Event('input'));
+      break;
+    case ']':
+      e.preventDefault();
+      const timeScaleUp = Math.min(10, params.timeScale + 0.1);
+      document.getElementById('time-scale').value = timeScaleUp;
+      document.getElementById('time-scale').dispatchEvent(new Event('input'));
+      break;
+    case 'z':
+      e.preventDefault();
+      executeBurn('prograde');
+      break;
+    case 'x':
+      e.preventDefault();
+      executeBurn('retrograde');
+      break;
+    case 'c':
+      e.preventDefault();
+      executeBurn('radial-out');
+      break;
+    case 'v':
+      e.preventDefault();
+      executeBurn('radial-in');
+      break;
+    case 'r':
+      e.preventDefault();
+      document.getElementById('orbit-reset').click();
+      break;
+    case '?':
+    case 'h':
+      e.preventDefault();
+      toggleKeyboardHelp();
+      break;
+  }
+});
+
+// Show/hide keyboard shortcuts help
+let keyboardHelpVisible = false;
+function toggleKeyboardHelp() {
+  const helpDiv = document.getElementById('keyboard-help');
+  if (helpDiv) {
+    keyboardHelpVisible = !keyboardHelpVisible;
+    helpDiv.classList.toggle('show', keyboardHelpVisible);
+  }
+}
+
+// Add keyboard shortcuts helper to page
+document.body.insertAdjacentHTML('beforeend', `
+<div id="keyboard-help" class="keyboard-shortcuts">
+  <h5>Keyboard Shortcuts</h5>
+  <div><kbd>Space</kbd>Play/Pause</div>
+  <div><kbd>[</kbd><kbd>]</kbd>Time Scale</div>
+  <div><kbd>Z</kbd>+V (Prograde)</div>
+  <div><kbd>X</kbd>-V (Retrograde)</div>
+  <div><kbd>C</kbd>+R (Radial Out)</div>
+  <div><kbd>V</kbd>-R (Radial In)</div>
+  <div><kbd>R</kbd>Reset</div>
+  <div><kbd>?</kbd>Toggle Help</div>
+</div>
+`);
 
 // Initialize
 initThree();
