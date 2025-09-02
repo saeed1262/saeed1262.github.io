@@ -607,41 +607,6 @@ body.performance-mode #orbit-container {
 }
 
 
-/* Keyboard shortcuts helper */
-.keyboard-shortcuts {
-  position: fixed;
-  bottom: 20px;
-  left: 20px;
-  background: rgba(15, 23, 42, 0.95);
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  border-radius: 8px;
-  padding: 0.75rem;
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.8);
-  max-width: 200px;
-  transform: translateY(200px);
-  transition: transform 0.3s ease;
-  z-index: 999;
-}
-.keyboard-shortcuts.show {
-  transform: translateY(0);
-}
-.keyboard-shortcuts h5 {
-  color: #60a5fa;
-  margin-bottom: 0.5rem;
-  font-size: 0.9rem;
-}
-.keyboard-shortcuts div {
-  margin: 0.25rem 0;
-}
-.keyboard-shortcuts kbd {
-  background: rgba(59, 130, 246, 0.2);
-  border: 1px solid rgba(59, 130, 246, 0.4);
-  border-radius: 3px;
-  padding: 0.1rem 0.3rem;
-  font-size: 0.75rem;
-  margin-right: 0.5rem;
-}
 </style>
 
 <div id="orbit-container">
@@ -764,6 +729,26 @@ body.performance-mode #orbit-container {
         <span class="label">Min range:</span>
         <span class="value" id="min-range">-- R⊕</span>
       </div>
+    </div>
+    
+    <div class="phase-gauge">
+      <h4>Phase Gauge</h4>
+      <div class="row">
+        <span>Current:</span>
+        <span id="phase-current">0.0°</span>
+      </div>
+      <div class="row">
+        <span>Desired:</span>
+        <span id="phase-desired">—</span>
+      </div>
+      <div class="row">
+        <span>Error:</span>
+        <span id="phase-error">—</span>
+      </div>
+      <div class="phase-bar">
+        <div class="phase-fill" id="phase-fill"></div>
+      </div>
+      <div class="phase-status na" id="phase-status">N/A</div>
     </div>
   </div>
   
@@ -1130,6 +1115,7 @@ const VU_TO_KM_S = EARTH_RADIUS_KM / TU_TO_SECONDS; // km/s
 // Simulation state
 let time = 0;
 let dvBudget = 0;
+let currentScenario = null;
 
 // Orbital elements for chaser and target [a, e, omega, nu]
 let chaserElements = [1.0, 0.0, 0.0, 0.0];
@@ -1146,6 +1132,9 @@ let chaserGlow, targetGlow, earthGlow;
 
 // Markers for chaser periapsis/apoapsis
 let periMarker, apoMarker, periLabel, apoLabel;
+
+// Ghost burn arrows for Hohmann guidance
+let periBurnArrow, apoBurnArrow;
 
 // Orbital mechanics functions
 function keplerSolve(M, e, tolerance = 1e-8) {
@@ -1700,6 +1689,8 @@ function updateGhostBurnArrows() {
 
 // Update periapsis/apoapsis markers (for chaser)
 function updatePAOMarkers() {
+  if (!periMarker || !apoMarker || !periLabel || !apoLabel) return;
+  
   const [a, e, omega] = chaserElements;
   const periPos = positionAtTrueAnomaly(a, e, omega, 0);
   const apoPos  = positionAtTrueAnomaly(a, e, omega, Math.PI);
@@ -2028,20 +2019,22 @@ function resetSimulation() {
   time = 0;
   dvBudget = 0;
   
-  // Clear trails
-  chaserTrailGeometry.setDrawRange(0, 0);
-  targetTrailGeometry.setDrawRange(0, 0);
-  ghostTrailGeometry.setDrawRange(0, 0);
+  // Clear trails (only if they exist)
+  if (chaserTrailGeometry) chaserTrailGeometry.setDrawRange(0, 0);
+  if (targetTrailGeometry) targetTrailGeometry.setDrawRange(0, 0);
+  if (ghostTrailGeometry) ghostTrailGeometry.setDrawRange(0, 0);
   
-  // Update positions
-  const chaserState = elementsToState(chaserElements);
-  const targetState = elementsToState(targetElements);
-  
-  chaserMesh.position.copy(chaserState.position);
-  targetMesh.position.copy(targetState.position);
+  // Update positions (only if meshes exist)
+  if (chaserMesh && targetMesh) {
+    const chaserState = elementsToState(chaserElements);
+    const targetState = elementsToState(targetElements);
+    
+    chaserMesh.position.copy(chaserState.position);
+    targetMesh.position.copy(targetState.position);
+  }
   
   updateHUD();
-  updatePAOMarkers();
+  if (periMarker && apoMarker) updatePAOMarkers();
   updatePhaseGauge();
   currentScenario = null; // Reset scenario
   updateGhostBurnArrows();
@@ -2081,23 +2074,25 @@ function loadScenario(scenario) {
       break;
   }
   
-  // Clear trails for new scenario
-  chaserTrailGeometry.setDrawRange(0, 0);
-  targetTrailGeometry.setDrawRange(0, 0);
-  ghostTrailGeometry.setDrawRange(0, 0);
+  // Clear trails for new scenario (only if they exist)
+  if (chaserTrailGeometry) chaserTrailGeometry.setDrawRange(0, 0);
+  if (targetTrailGeometry) targetTrailGeometry.setDrawRange(0, 0);
+  if (ghostTrailGeometry) ghostTrailGeometry.setDrawRange(0, 0);
   
   time = 0;
   dvBudget = 0;
   
-  // Update positions
-  const chaserState = elementsToState(chaserElements);
-  const targetState = elementsToState(targetElements);
-  
-  chaserMesh.position.copy(chaserState.position);
-  targetMesh.position.copy(targetState.position);
+  // Update positions (only if meshes exist)
+  if (chaserMesh && targetMesh) {
+    const chaserState = elementsToState(chaserElements);
+    const targetState = elementsToState(targetElements);
+    
+    chaserMesh.position.copy(chaserState.position);
+    targetMesh.position.copy(targetState.position);
+  }
   
   updateHUD();
-  updatePAOMarkers();
+  if (periMarker && apoMarker) updatePAOMarkers();
   updatePhaseGauge();
   updateGhostBurnArrows();
 }
@@ -2394,10 +2389,8 @@ document.getElementById('scenario-basic').addEventListener('click', () => loadSc
 document.getElementById('scenario-hohmann').addEventListener('click', () => loadScenario('hohmann'));
 document.getElementById('scenario-rendezvous').addEventListener('click', () => loadScenario('rendezvous'));
 
-document.getElementById('real-world-units').addEventListener('change', (e) => {
-  params.realWorldUnits = e.target.checked;
-  updateHUD();
-});
+// Real-world units toggle removed - no UI element exists for this feature
+// If needed in future, add a checkbox element with id="real-world-units"
 
 // Keyboard shortcuts
 document.addEventListener('keydown', (e) => {
