@@ -142,16 +142,18 @@ Inverse kinematics (IK) asks: given a desired end‑effector position, what join
 
 <style>
 .container {
-    max-width: 1400px;
+    max-width: 1200px;
     margin: 0 auto;
 }
 
 .post {
-    max-width: none;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 .post-content {
-    max-width: none;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 </style>
 
@@ -193,6 +195,23 @@ New tricks:
 - Add Rest Pose Bias and set/reset the current configuration as the preferred pose.
 - Drive the target along a Circle or Figure‑8 and tune the speed.
 - Show Metrics to plot the error over time in the top‑right.
+
+### Try These Presets
+
+- Many short links: set `Links=10`, `Link Length=40–60`, `Iterations=16+`; compare CCD vs. FABRIK convergence speed and smoothness.
+- Unreachable target: drag outside the reach circle; observe boundary behavior across solvers.
+- Tracking a path: enable Figure‑8 at moderate speed; compare lag/overshoot for JT vs. DLS while tuning `γ` and `λ`.
+- Joint limits: enable limits at ±60–90° and toggle “Show Limit Arcs”; note how each solver adapts.
+
+### Share a Setup
+
+The demo reads settings from the URL, so you can share a preset. Example:
+
+```text
+?algo=dls&n=6&L=80&it=16&la=3&d=0.7&rg=1&tr=1&mv=eight&sp=1.2
+```
+
+Parameters: `algo` (ccd|fabrik|jt|dls), `n` (links), `L` (link length), `it` (iterations/frame), `g` (JT γ), `la` (DLS λ), `d` (damping), `px` (pause 0/1), `rg` (reach circle 0/1), `tr` (trace 0/1), `lm` (limits 0/1), `ld` (limit degrees), `sl` (show limit arcs 0/1), `rb` (rest bias), `mv` (none|circle|eight), `sp` (target speed), `mx,my` (base), `tx,ty` (target).
 
 ### What To Look For
 
@@ -257,11 +276,40 @@ v = J u            // predicted end-effector motion
 θ ← θ + α u * damping
 ```
 
+### Jacobian for a Planar Chain (2D)
+
+- For joint i at position `p_i = (x_i, y_i)` and the end‑effector at `e = (x_e, y_e)`, the Jacobian column with respect to `θ_i` is `[−(y_e − y_i), (x_e − x_i)]`.
+- This geometric form (a perpendicular to the joint→end vector) is what the demo uses for both JT and DLS updates.
+
+### Damped Least Squares (DLS)
+
+- Idea: take a regularized least‑squares step `Δθ = J^T (J J^T + λ^2 I)^{-1} r` to temper ill‑conditioned directions near singularities.
+- Pros: very robust near straight chains and during fast motions; reduces oscillations.
+- Cons: requires tuning `λ` (too large = sluggish, too small = oscillation like plain LS).
+
+Pseudo‑step (2D task):
+
+```text
+A = J J^T + λ^2 I    // 2×2 in this demo
+y = A^{-1} r
+Δθ = J^T y
+θ ← θ + Δθ * damping
+```
+
+Tuning: raise `λ` for stability (less aggressive updates), lower it for responsiveness. Combine with global `Damping` for smooth paths.
+
 ### Reachability and Behavior at the Limits
 
 - If the target is outside the reach circle, all methods align the chain toward the target and settle on the boundary.
 - With very short link lengths and many segments, JT can take smaller steps—raise `iterations` or lower `γ` to avoid oscillations.
 - FABRIK quickly finds boundary solutions; CCD will crawl along the boundary as joints adjust.
+
+### Singularities & Stability
+
+- Near singular configurations (e.g., a straight chain), the Jacobian is ill‑conditioned and naive gradient steps can oscillate.
+- Jacobian‑Transpose here uses an adaptive step `α` clamped by `γ` (JT Step) to curb overshoot; lower `γ` or raise `Damping` if you see ringing.
+- DLS regularizes with `λ` inside `(J J^T + λ^2 I)^{-1}`; increase `λ` near singularities for stable tracking.
+- With moving targets, compare lag vs. robustness: JT with tuned `γ` reacts quickly; DLS trades a bit of lag for smoother motion.
 
 ### Practical Tips
 
@@ -289,3 +337,6 @@ v = J u            // predicted end-effector motion
 - Aristidou & Lasenby, “FABRIK: A fast, iterative solver for the Inverse Kinematics problem” (2011)
 - Buss, “Introduction to Inverse Kinematics with Jacobian Methods” (2004)
 - Tolani, Goswami, & Badler, “Real-Time Inverse Kinematics Techniques for Anthropomorphic Limbs” (2000)
+- Wampler, “Manipulator Inverse Kinematic Solutions Based on Vector Formulations and Damped Least‑Squares Methods” (1986)
+- Nakamura & Hanafusa, “Inverse kinematics solutions with singularity avoidance for robot manipulator control” (1986)
+- Maciejewski & Klein, “Obstacle avoidance for kinematically redundant manipulators in dynamically varying environments” (1985)
