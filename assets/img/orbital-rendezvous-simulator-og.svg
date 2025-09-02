@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="Orbital rendezvous: Earth with two orbits, chaser and target, periapsis/apoapsis markers">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0b1020"/>
+      <stop offset="100%" stop-color="#020409"/>
+    </linearGradient>
+    <radialGradient id="earthGlow" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#0a2a4a"/>
+      <stop offset="100%" stop-color="#0a2a4a" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Title -->
+  <g transform="translate(60,86)">
+    <text x="0" y="0" font-family="-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Helvetica,Arial,sans-serif" font-size="42" fill="#c7d2fe" font-weight="700">Interactive Orbital Rendezvous Simulator</text>
+    <text x="0" y="34" font-family="-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Helvetica,Arial,sans-serif" font-size="20" fill="#93c5fd" opacity="0.9">Speeding up can make you fall behind — see why.</text>
+  </g>
+
+  <!-- Earth -->
+  <g transform="translate(600,360)">
+    <circle r="110" fill="#0f2744"/>
+    <circle r="140" fill="url(#earthGlow)" opacity="0.6"/>
+    <circle r="110" fill="none" stroke="#60a5fa" stroke-opacity="0.35" stroke-width="2"/>
+  </g>
+
+  <!-- Orbits -->
+  <g transform="translate(600,360)">
+    <!-- Lower circular orbit (chaser) -->
+    <circle r="230" fill="none" stroke="#ef4444" stroke-width="3" stroke-opacity="0.85"/>
+    <!-- Higher circular orbit (target) -->
+    <circle r="300" fill="none" stroke="#22c55e" stroke-width="3" stroke-opacity="0.75"/>
+    <!-- Transfer ellipse -->
+    <ellipse rx="265" ry="230" fill="none" stroke="#e5e7eb" stroke-width="2" stroke-dasharray="10 8" stroke-opacity="0.7"/>
+  </g>
+
+  <!-- Markers and labels -->
+  <g transform="translate(600,360)" font-family="-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Helvetica,Arial,sans-serif" font-size="18">
+    <!-- Apoapsis on ellipse (right) -->
+    <circle cx="265" cy="0" r="7" fill="#a855f7" filter="url(#softGlow)"/>
+    <text x="275" y="-10" fill="#e9d5ff">Apoapsis</text>
+    <!-- Periapsis on ellipse (left) -->
+    <circle cx="-265" cy="0" r="7" fill="#3b82f6" filter="url(#softGlow)"/>
+    <text x="-350" y="-10" fill="#bfdbfe">Periapsis</text>
+
+    <!-- Chaser and Target on their orbits -->
+    <!-- Chaser at bottom of lower orbit -->
+    <circle cx="0" cy="230" r="9" fill="#ff4d4d" filter="url(#softGlow)"/>
+    <text x="14" y="230" fill="#fecaca">Chaser</text>
+    <!-- Target ahead on higher orbit (approx 60 deg) -->
+    <circle cx="150" cy="-260" r="9" fill="#66ff66" filter="url(#softGlow)"/>
+    <text x="164" y="-260" fill="#bbf7d0">Target</text>
+
+    <!-- Phase angle arc -->
+    <path d="M 0 -300 A 300 300 0 0 1 150 -260" fill="none" stroke="#f59e0b" stroke-width="3"/>
+    <text x="80" y="-320" fill="#fde68a">Phase angle φ</text>
+  </g>
+
+  <!-- Caption strip -->
+  <g transform="translate(60,560)">
+    <rect x="0" y="-30" width="1080" height="50" rx="10" ry="10" fill="rgba(30,41,59,0.6)" stroke="rgba(59,130,246,0.4)"/>
+    <text x="20" y="0" font-family="-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Helvetica,Arial,sans-serif" font-size="20" fill="#cbd5e1">
+      +V at periapsis raises apoapsis · -V at apoapsis lowers periapsis · Two-burn Hohmann transfer to rendezvous
+    </text>
+  </g>
+</svg>
+

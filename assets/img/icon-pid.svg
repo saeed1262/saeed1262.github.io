@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="PID controller icon">
+  <rect width="128" height="128" rx="16" fill="#0b1220"/>
+  <rect x="28" y="32" width="72" height="64" rx="10" fill="#111827" stroke="#8b5cf6" stroke-width="2"/>
+  <rect x="36" y="44" width="56" height="12" rx="6" fill="#7c3aed"/>
+  <rect x="36" y="60" width="56" height="12" rx="6" fill="#8b5cf6"/>
+  <rect x="36" y="76" width="56" height="12" rx="6" fill="#a78bfa"/>
+  <text x="40" y="53" font-family="system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="10" fill="#eae9ff">P</text>
+  <text x="40" y="69" font-family="system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="10" fill="#f5f3ff">I</text>
+  <text x="40" y="85" font-family="system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="10" fill="#f5f3ff">D</text>
+  <path d="M24 68h-4m4-8h-4m4 16h-4M108 68h4m-4-8h4m-4 16h4" stroke="#8b5cf6" stroke-linecap="round"/>
+</svg>
+

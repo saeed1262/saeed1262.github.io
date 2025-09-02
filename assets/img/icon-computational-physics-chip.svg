@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Computational physics icon">
+  <rect width="128" height="128" rx="16" fill="#0b1220"/>
+  <rect x="28" y="28" width="72" height="72" rx="10" fill="#111827" stroke="#06b6d4" stroke-width="2"/>
+  <g stroke="#06b6d4" stroke-linecap="round">
+    <path d="M24 44h8M24 64h8M24 84h8M96 44h8M96 64h8M96 84h8"/>
+    <path d="M44 24v8M64 24v8M84 24v8M44 96v8M64 96v8M84 96v8"/>
+  </g>
+  <path d="M40 72c8-12 24-12 32 0 8 12 16 12 24 0" fill="none" stroke="#a855f7" stroke-width="2.5"/>
+  <circle cx="48" cy="56" r="6" fill="#22c55e"/>
+  <circle cx="80" cy="68" r="6" fill="#f59e0b"/>
+</svg>
+

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Quaternions / SO(3) icon">
+  <rect width="128" height="128" rx="16" fill="#0b1220"/>
+  <circle cx="64" cy="64" r="32" fill="#111827" stroke="#7c4dff" stroke-width="2"/>
+  <ellipse cx="64" cy="64" rx="28" ry="10" fill="none" stroke="#a78bfa" stroke-width="2"/>
+  <ellipse cx="64" cy="64" rx="10" ry="28" fill="none" stroke="#a78bfa" stroke-width="2"/>
+  <ellipse cx="64" cy="64" rx="23" ry="23" transform="rotate(45 64 64)" fill="none" stroke="#c4b5fd" stroke-width="2"/>
+  <path d="M64 64L92 52" stroke="#22c55e" stroke-width="3" stroke-linecap="round"/>
+  <path d="M64 64L52 36" stroke="#3b82f6" stroke-width="3" stroke-linecap="round"/>
+  <path d="M64 64L40 80" stroke="#f59e0b" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="64" cy="64" r="3" fill="#e5e7eb"/>
+</svg>
+

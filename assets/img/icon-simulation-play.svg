@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Simulation icon">
+  <rect width="128" height="128" rx="16" fill="#0b1220"/>
+  <circle cx="64" cy="64" r="36" fill="#111827" stroke="#10b981" stroke-width="2"/>
+  <polygon points="56,48 92,64 56,80" fill="#22c55e"/>
+  <path d="M28 96h72" stroke="#1f2937" stroke-width="4"/>
+</svg>
+

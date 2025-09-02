@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Control systems icon">
+  <rect width="128" height="128" rx="16" fill="#0b1220"/>
+  <g fill="#8b5cf6">
+    <circle cx="52" cy="52" r="12"/>
+    <circle cx="84" cy="76" r="10"/>
+  </g>
+  <g stroke="#a78bfa" stroke-width="6" stroke-linecap="round">
+    <path d="M52 36v-4M52 72v4M36 52h-4M72 52h4"/>
+    <path d="M84 64v-4M84 92v4M70 76h-4M98 76h4"/>
+  </g>
+  <path d="M28 96c18-16 54-16 72 0" fill="none" stroke="#34d399" stroke-width="3" stroke-linecap="round"/>
+</svg>
+

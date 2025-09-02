@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Formatting icon">
+  <rect width="128" height="128" rx="16" fill="#0b1220"/>
+  <path d="M28 92h72" stroke="#1f2937" stroke-width="4"/>
+  <path d="M40 84l20-56h8l20 56h-10l-5-16H55l-5 16H40zm18-24h16l-8-24-8 24z" fill="#64748b"/>
+</svg>
+

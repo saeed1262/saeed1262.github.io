@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Algorithms icon">
+  <rect width="128" height="128" rx="16" fill="#0b1220"/>
+  <circle cx="40" cy="40" r="10" fill="#3b82f6"/>
+  <circle cx="88" cy="40" r="10" fill="#22c55e"/>
+  <circle cx="64" cy="88" r="10" fill="#f59e0b"/>
+  <path d="M40 40L88 40" stroke="#60a5fa" stroke-width="2.5"/>
+  <path d="M40 40L64 88" stroke="#fbbf24" stroke-width="2.5"/>
+  <path d="M88 40L64 88" stroke="#34d399" stroke-width="2.5"/>
+  <path d="M64 22v10M64 96v10" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+</svg>
+

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Galaxy / N-body icon">
+  <rect width="128" height="128" rx="16" fill="#0b1220"/>
+  <radialGradient id="core" cx="64" cy="64" r="36" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#ffffff" stop-opacity="0.9"/>
+    <stop offset="1" stop-color="#10b981" stop-opacity="0.2"/>
+  </radialGradient>
+  <circle cx="64" cy="64" r="30" fill="url(#core)"/>
+  <g fill="#e5e7eb" opacity="0.9">
+    <circle cx="36" cy="40" r="1.5"/><circle cx="92" cy="38" r="1.5"/>
+    <circle cx="28" cy="72" r="1.5"/><circle cx="104" cy="80" r="1.5"/>
+    <circle cx="70" cy="26" r="1.5"/><circle cx="50" cy="102" r="1.5"/>
+  </g>
+  <path d="M28 64c8-16 32-24 52-18 20 6 28 22 20 34" fill="none" stroke="#34d399" stroke-width="3" stroke-linecap="round"/>
+  <path d="M36 84c-6-16 10-36 34-42 24-6 42 6 46 20" fill="none" stroke="#10b981" stroke-opacity="0.6" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 3"/>
+  <circle cx="64" cy="64" r="4" fill="#f59e0b"/>
+</svg>
+

@@ -23,10 +23,3 @@ I am a Research Scientist at [Amazon Games](https://www.amazongames.com/en-us), 
 
 I earned my PhD from [York University](https://www.yorku.ca/), where I was a trainee with both the [VISTA](https://vista.info.yorku.ca/) and [CVR](https://cvr.yorku.ca/) programs. My research focuses on developing **novel deep probabilistic models** for realistic human motion modeling, with applications in character animation, pose estimation, and gesture synthesis.
 
-## Research Interests
-
-- **Human Motion Modeling**: Probabilistic frameworks for character animation
-- **Gesture Generation**: Zero-shot example-based gesture synthesis from speech
-- **Pose Estimation**: Multi-view 3D human pose estimation with uncertainty quantification
-- **Computer Vision**: Deep learning applications in motion capture and analysis
-- **Machine Learning**: Variational autoencoders and hierarchical latent variable models

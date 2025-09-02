@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Spacecraft icon">
+  <rect width="128" height="128" rx="16" fill="#0b1220"/>
+  <path d="M64 24c20 8 24 36 24 36L64 84 40 60s4-28 24-36z" fill="#ef4444"/>
+  <circle cx="64" cy="48" r="8" fill="#0f2744" stroke="#fecaca"/>
+  <path d="M64 84l-8 20 8-8 8 8-8-20z" fill="#f59e0b"/>
+  <path d="M36 64l8-12 12 8-20 4z" fill="#a855f7" opacity="0.8"/>
+</svg>
+
