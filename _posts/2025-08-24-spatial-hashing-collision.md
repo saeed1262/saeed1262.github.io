@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Fast Collision in Games: Spatial Hashing vs. Naïve"
-date: 2025-09-02
+date: 2025-08-24
 description: "An interactive broad‑phase collision demo showing why uniform grids (spatial hashing) beat O(n²) for many moving objects in real‑time games."
 tags: [game-dev, algorithms, collision-detection, performance, interactive]
 categories: blog
@@ -78,6 +78,66 @@ Below you can toggle between Naïve and Spatial Hashing, adjust object counts, a
 <link rel="stylesheet" href="/assets/css/spatial-hash.css">
 <script defer src="/assets/js/spatial-hash.js"></script>
 
+## Why I Built This
+
+In real‑time games, hundreds or thousands of moving objects need collision checks every frame. The straightforward way—compare everything with everything—blows up quadratically and crushes frame time. I wanted an interactive, visual way to show how a simple broad‑phase like a uniform grid (aka spatial hashing) turns this into near‑linear work for typical scenes. The demo mirrors how production engines prune pairs before doing precise tests.
+
+## What You Can Do
+
+- Toggle `Algorithm` between `Naïve O(n²)` and `Spatial Hash` and watch `Broad‑phase Pairs` and `Collision Checks` in the HUD.
+- Drag `Objects` higher. Naïve explodes in work; hashing stays smooth until you really crowd the scene.
+- Vary `Cell Size`. Try around the object diameter for best pruning; too small or too large hurts.
+- Enable `Grid` to see the uniform cells; enable `Candidates` to visualize broad‑phase pair hypotheses.
+- Nudge `Speed` up to stress the system; combine with small cells to see dedup rules still hold.
+
+## Broad‑Phase vs Narrow‑Phase
+
+- Broad‑phase: fast, conservative culling to propose potential overlaps (same or adjacent cells). Output is a set of candidate pairs.
+- Narrow‑phase: precise, more expensive test (e.g., circle vs circle, AABB vs AABB, or SAT for polygons) to confirm real collisions.
+- The broad‑phase should be cheap enough to run every frame and accurate enough that most true overlaps are proposed without flooding the narrow‑phase with false positives.
+
+## Complexity and Scaling
+
+- Naïve: O(n²) candidate pairs. Doubling n → ~4× more comparisons.
+- Spatial hash: O(n + k), where k is the number of candidate pairs from local neighbors. With a good cell size and reasonably uniform distribution, k ≈ c·n with small c.
+- Example intuition: At 1,000 objects, naïve emits ~500k pairs. With a grid tuned to object size, each object often sees only tens of neighbors, yielding tens of thousands of pairs instead of hundreds of thousands.
+- Pathological worst case exists (everyone in one cell) but is rare with sane parameters and motion.
+
+## Visual Intuition
+
+Only neighbors in your 3×3 cell neighborhood can collide in 2D (27 cells in 3D). The grid shrinks the search from “the whole world” to “just around me.”
+
+<div style="text-align:center; margin: 1rem 0;">
+  <svg viewBox="0 0 220 220" width="360" height="360" style="max-width: 100%; background: #0f1117; border: 1px solid #222; border-radius: 10px;">
+    <defs>
+      <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+        <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#273447" stroke-width="1" />
+      </pattern>
+    </defs>
+    <rect x="10" y="10" width="200" height="200" fill="url(#grid)" stroke="#334155"/>
+    <!-- Center cell highlight -->
+    <rect x="90" y="90" width="20" height="20" fill="rgba(100,255,218,0.12)" stroke="#64ffda"/>
+    <!-- Neighbor cells (3x3) -->
+    <g fill="rgba(100,255,218,0.05)" stroke="#3b82f6">
+      <rect x="70" y="70" width="20" height="20"/>
+      <rect x="90" y="70" width="20" height="20"/>
+      <rect x="110" y="70" width="20" height="20"/>
+      <rect x="70" y="90" width="20" height="20"/>
+      <rect x="110" y="90" width="20" height="20"/>
+      <rect x="70" y="110" width="20" height="20"/>
+      <rect x="90" y="110" width="20" height="20"/>
+      <rect x="110" y="110" width="20" height="20"/>
+    </g>
+    <!-- A few objects -->
+    <circle cx="100" cy="100" r="5" fill="#e879f9"/>
+    <circle cx="132" cy="98" r="5" fill="#60a5fa"/>
+    <circle cx="88" cy="120" r="5" fill="#34d399"/>
+    <circle cx="58" cy="76" r="5" fill="#f472b6"/>
+    <text x="110" y="30" fill="#94a3b8" font-size="12" text-anchor="middle">Only test within these cells</text>
+  </svg>
+  <div style="color:#94a3b8; font-size: 0.95rem; margin-top: 0.25rem;">Broad‑phase limits candidates to the 3×3 neighborhood.</div>
+  </div>
+
 ### Why Spatial Hashing Works
 
 - Broad‑phase reduces pair candidates from O(n²) toward O(n) on average by restricting checks to neighbors in the same or adjacent cells.
@@ -86,6 +146,24 @@ Below you can toggle between Naïve and Spatial Hashing, adjust object counts, a
 
 This pattern scales well and is a staple in physics, AI sensing, particle systems, and effects. In production, you may switch to a quadtree, BVH, or clustered grids for heterogeneous sizes, but a uniform hash is hard to beat for simplicity and speed.
 
+
+## How the Demo Works
+
+- Integrate motion: update positions with simple Euler and wall bounces.
+- Build grid: for each circle, insert its covered cells into a `Map` keyed by integer cell coords.
+- Emit candidates: iterate each occupied cell and its neighbors; enforce `i < j` to avoid duplicates.
+- Narrow‑phase: circle‑circle distance test for each candidate pair; mark colliding objects.
+- Visualize: draw the grid (optional), candidate lines (optional), and circles with collision tint.
+- HUD: report algorithm, object count, cell size, candidate pair count, precise check count, and FPS.
+
+The implementation is in `assets/js/spatial-hash.js`. The grid uses string keys like `"gx,gy"` and a small set to deduplicate pairs across neighboring cells. Everything is rebuilt per frame to reflect motion—simple and cache‑friendly in JS.
+
+## Experiments To Try
+
+- Double `Objects` while in `Naïve` and watch checks explode; switch to `Spatial Hash` to see the difference.
+- Sweep `Cell Size` from too small → optimal → too large and note how `Broad‑phase Pairs` changes.
+- Turn on `Candidates`, then toggle algorithms to see how local the lines become with hashing.
+- Max out `Speed` and observe missed cases when using too few substeps—then lower speed or slightly inflate AABBs in the broad‑phase.
 
 ### Naïve vs. Hashing: Mental Model
 

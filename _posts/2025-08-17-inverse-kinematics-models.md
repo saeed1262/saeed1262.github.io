@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Interactive Inverse Kinematics: CCD, FABRIK, and Jacobian Transpose"
-date: 2025-09-02
+date: 2025-08-17
 description: "Play with three classic IK solvers on a 2D arm: CCD, FABRIK, and Jacobian‑transpose. Drag the target, tweak links, and watch convergence."
 tags: [robotics, animation, kinematics, algorithms, interactive]
 categories: blog
@@ -173,6 +173,67 @@ Inverse kinematics (IK) asks: given a desired end‑effector position, what join
   <div class="ik-help-backdrop"></div>
 </div>
 
+## Why I Built This
+
+IK sits at a beautiful intersection of robotics, character animation, and human–computer interaction. I wanted a hands‑on way to feel how classic solvers behave under constraints, limits, and moving targets—so you can build intuition, not just read formulas. This playground lets you drag a target and immediately see solver trade‑offs in stability, speed, and path smoothness.
+
+## Where IK Shows Up
+
+- Animation rigs: drive a hand or foot to a contact point while preserving a natural pose.
+- Robotics arms: position tools precisely with joint limits and soft preferences for comfortable configurations.
+- VR and AR: infer full‑body pose from a few tracked points (hands, head, hips) in real‑time.
+- Motion capture cleanup: stabilize jitter and fill gaps while respecting joint ranges.
+
+## How The Demo Works
+
+- Forward kinematics computes joint and end‑effector positions from angles each frame.
+- The selected solver runs `Iterations/Frame` steps to reduce target error.
+- Constraints apply after updates: optional joint limits and a gentle rest‑pose bias.
+- Moving target presets (Circle, Figure‑8) exercise tracking behavior; you can also drag freely.
+- Metrics show instantaneous error and an error‑over‑time sparkline; toggles control tracing and reach circle.
+- Keyboard shortcuts mirror the UI: `1..4` choose solver, `p` pause, `t` trace, `g` reach, `k` metrics, `?` help, `c/l/s` motion modes.
+
+## Complexity & Scaling
+
+- CCD: In this implementation, each joint tweak recomputes forward kinematics, making a full sweep O(n²) per iteration. Simple and robust, but slower for long chains.
+- FABRIK: Each iteration is O(n) with two linear passes (backward then forward). Converges quickly for many setups.
+- Jacobian‑Transpose: Builds updates from implicit Jacobian columns in O(n); uses an adaptive step clamped by `γ` for stability.
+- Damped Least Squares: Also O(n) per iteration here—forms a 2×2 system `(J J^T + λ² I)` and updates with `J^T y`.
+
+Rule of thumb: increase `Iterations/Frame` until error decreases smoothly without visible jitter; then tune `γ` (JT) or `λ` (DLS) to balance responsiveness vs. stability.
+
+## Visual Intuition
+
+The end‑effector wants to reach the target. CCD swings one joint at a time so the segment points more toward the target. FABRIK slides points along lines to keep segment lengths while pulling the end to the goal. Jacobian methods compute how small angle changes move the end point, then nudge all joints together.
+
+<div style="text-align:center; margin: 1rem 0;">
+  <svg viewBox="0 0 360 220" width="600" height="360" style="max-width: 100%; background: #0f1117; border: 1px solid #222; border-radius: 10px;">
+    <!-- Reach circle -->
+    <circle cx="100" cy="110" r="100" fill="rgba(100,255,218,0.06)" stroke="#64ffda" />
+    <!-- Base -->
+    <circle cx="100" cy="110" r="4" fill="#10b981" />
+    <!-- Chain -->
+    <g stroke="#93c5fd" stroke-width="4" fill="none">
+      <line x1="100" y1="110" x2="170" y2="90" />
+      <line x1="170" y1="90" x2="220" y2="120" />
+      <line x1="220" y1="120" x2="260" y2="150" />
+    </g>
+    <!-- J column hint: perpendicular to joint->end vector at middle joint -->
+    <g stroke="#fbbf24" stroke-width="2">
+      <line x1="220" y1="120" x2="260" y2="150" />
+      <line x1="220" y1="120" x2="200" y2="160" stroke-dasharray="5 5" />
+    </g>
+    <!-- Target -->
+    <g>
+      <circle cx="290" cy="140" r="6" fill="#f472b6" />
+      <line x1="280" y1="140" x2="300" y2="140" stroke="#f472b6" />
+      <line x1="290" y1="130" x2="290" y2="150" stroke="#f472b6" />
+    </g>
+    <text x="180" y="24" fill="#94a3b8" font-size="12" text-anchor="middle">Reach circle; joints, end, and Jacobian direction</text>
+  </svg>
+  <div style="color:#94a3b8; font-size: 0.95rem; margin-top: 0.25rem;">The Jacobian column for a joint is perpendicular to its joint→end vector (orange dashes).</div>
+</div>
+
 ### The Three Solvers At A Glance
 
 - CCD: rotate each joint (from tip to base) to reduce the angle between the joint‑to‑effector and joint‑to‑target vectors. Repeat until close enough.
@@ -310,6 +371,14 @@ Tuning: raise `λ` for stability (less aggressive updates), lower it for respons
 - Jacobian‑Transpose here uses an adaptive step `α` clamped by `γ` (JT Step) to curb overshoot; lower `γ` or raise `Damping` if you see ringing.
 - DLS regularizes with `λ` inside `(J J^T + λ^2 I)^{-1}`; increase `λ` near singularities for stable tracking.
 - With moving targets, compare lag vs. robustness: JT with tuned `γ` reacts quickly; DLS trades a bit of lag for smoother motion.
+
+### FAQ & Pitfalls
+
+- It oscillates or jitters: lower `JT Step (γ)`, increase global `Damping`, or switch to DLS and raise `λ`. Also increase `Iterations/Frame` modestly.
+- It flips to a weird pose: enable Joint Limits and add a small Rest Pose Bias, then Set Rest at a natural configuration.
+- It stalls near limits: clamp angles after each solver step and consider reducing `Iterations/Frame` to avoid fighting constraints.
+- It can’t reach the target: expected if outside the reach circle; solvers settle on the boundary. Move the base (Shift‑drag) or reduce link length to explore.
+- It’s slow with many links: FABRIK, JT, and DLS are O(n) per iteration here; CCD is effectively O(n²) in this simple implementation.
 
 ### Practical Tips
 

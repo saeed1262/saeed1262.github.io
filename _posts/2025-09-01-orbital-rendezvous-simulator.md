@@ -772,6 +772,42 @@ body.performance-mode #orbit-container {
   <div id="orbit-status">Simulation ready. Use burn controls to maneuver the chaser spacecraft.</div>
 </div>
 
+## What You Can Do
+
+- Use +V/−V (prograde/retrograde) to raise/lower the opposite side of your orbit; tweak Burn Magnitude for gentle taps.
+- Try +R/−R (radial out/in) to rotate the ellipse within the plane; great for small phasing trims and lining up periapsis/apoapsis.
+- Adjust Time Scale to observe slow‑motion vs. accelerated orbits; watch HUD values update in real time.
+- Toggle Real‑world units to see km, km/s, and minutes alongside the normalized units used in the sim.
+- Load scenarios (Basic Phasing, Hohmann, R‑bar) and follow the on‑screen HUD to hit the objectives.
+
+## How The Simulator Works
+
+- Two‑body, coplanar model: Earth is fixed; we integrate motion in normalized units with Earth radius R⊕ = 1 and μ = 1.
+- Propagation: advance true anomaly via Kepler’s equation and mean motion; speed from vis‑viva; positions from orbital elements.
+- Impulsive burns: convert elements → state, add Δv in the LVLH frame, then convert back to elements.
+- Closest approach: periodically predict min range over ~1.5 periods to estimate time‑to‑CA and min range.
+- HUD: shows each vehicle’s a, e, period, speed; relative range and closing rate; total ΔV spent; current/desired phase angle.
+
+## LVLH Visual Intuition
+
+<div style="text-align:center; margin: 1rem 0;">
+  <svg viewBox="0 0 280 200" width="420" height="300" style="max-width: 100%; background: #0f1117; border: 1px solid #222; border-radius: 10px;">
+    <!-- Orbit and Earth -->
+    <circle cx="140" cy="100" r="18" fill="#0f2744" stroke="#60a5fa" stroke-opacity="0.35"/>
+    <circle cx="140" cy="100" r="84" fill="none" stroke="#334155" stroke-dasharray="6 6"/>
+    <!-- Spacecraft point -->
+    <circle cx="224" cy="100" r="4" fill="#e879f9"/>
+    <!-- LVLH axes at spacecraft -->
+    <g stroke-width="2">
+      <line x1="224" y1="100" x2="244" y2="100" stroke="#22c55e"/>
+      <line x1="224" y1="100" x2="224" y2="80" stroke="#60a5fa"/>
+      <text x="248" y="104" fill="#22c55e" font-size="11">+R (radial)</text>
+      <text x="228" y="76" fill="#60a5fa" font-size="11">+V (prograde)</text>
+    </g>
+  </svg>
+  <div style="color:#94a3b8; font-size: 0.95rem; margin-top: 0.25rem;">Burns are applied in LVLH: +V tangential, +R radial.</div>
+</div>
+
 ## Scenario Guides
 
 - Basic Phasing: Catch the target ahead by going lower/faster.
@@ -785,6 +821,21 @@ body.performance-mode #orbit-container {
 - R-bar Approach: Safe final approach along the radial corridor.
   - Steps: Use small −R pulses to reduce range; keep closing rate small; null out relative motion near capture.
   - Check: Closing rate near 0 at short range; relative ellipse shrinks; ΔV stays small and controlled.
+
+## Experiments To Try
+
+- Phase to a number: set the target 30° ahead; do a small −V to drop lower, coast until phase error ≈ 0°, then +V to recircularize.
+- “Wrong place” burn: try +V at apoapsis vs. at periapsis; note which side of the orbit rises and how the period changes.
+- Radial trims: use short +R/−R taps to rotate periapsis alignment to the target’s true anomaly before doing +V.
+- ΔV budgeting: reduce Burn Magnitude and aim to complete each scenario with minimum total ΔV in the HUD.
+
+## FAQ & Pitfalls
+
+- I sped up but fell behind: expected—+V at periapsis makes the opposite side higher and the overall period longer; you arrive later there.
+- My transfer missed the target altitude: your first +V was too large or at the wrong place; burns are most efficient at apses.
+- Radial burns seem useless: they don’t change energy much; they rotate the ellipse—use them for alignment tweaks, not big transfers.
+- Numbers don’t look like km/s: enable Real‑world units; otherwise values are in normalized TU/VU/R⊕.
+- Time step artifacts: if fast‑forwarding, expect small differences in closest‑approach predictions; slow down to verify.
 
 ## The Mathematics of Orbital Motion
 
