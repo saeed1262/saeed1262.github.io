@@ -179,92 +179,35 @@ IK sits at a beautiful intersection of robotics, character animation, and human�
 
 ## Where IK Shows Up
 
-- Animation rigs: drive a hand or foot to a contact point while preserving a natural pose.
-- Robotics arms: position tools precisely with joint limits and soft preferences for comfortable configurations.
-- VR and AR: infer full‑body pose from a few tracked points (hands, head, hips) in real‑time.
-- Motion capture cleanup: stabilize jitter and fill gaps while respecting joint ranges.
+If you’ve ever dragged a character’s hand onto a doorknob in an animation tool, or watched a robot smoothly align a gripper with a bolt, you’ve seen IK at work. Games lean on it to plant feet on uneven ground; VR headsets use it to guess a whole body from a few tracked points; mocap artists use it to tame jitter and fill gaps. The point isn’t just “reaching a position” — it’s doing so while staying within joint limits, preferring comfortable poses, and moving in a way that looks intentional.
 
 ## How The Demo Works
 
-- Forward kinematics computes joint and end‑effector positions from angles each frame.
-- The selected solver runs `Iterations/Frame` steps to reduce target error.
-- Constraints apply after updates: optional joint limits and a gentle rest‑pose bias.
-- Moving target presets (Circle, Figure‑8) exercise tracking behavior; you can also drag freely.
-- Metrics show instantaneous error and an error‑over‑time sparkline; toggles control tracing and reach circle.
-- Keyboard shortcuts mirror the UI: `1..4` choose solver, `p` pause, `t` trace, `g` reach, `k` metrics, `?` help, `c/l/s` motion modes.
+Drag the orange crosshair and the arm tries to follow. Under the hood, forward kinematics turns the current joint angles into points in space; then, several times per frame, the chosen solver nudges those angles to shrink the gap to the target. After each nudge, we respect joint limits if you’ve enabled them, and we can gently bias the motion back toward a rest pose so things don’t collapse into awkward shapes. You can switch algorithms on the fly to feel how each one “thinks,” and turn on metrics to watch the error curve settle as the arm converges.
 
 ## Complexity & Scaling
 
-- CCD: In this implementation, each joint tweak recomputes forward kinematics, making a full sweep O(n²) per iteration. Simple and robust, but slower for long chains.
-- FABRIK: Each iteration is O(n) with two linear passes (backward then forward). Converges quickly for many setups.
-- Jacobian‑Transpose: Builds updates from implicit Jacobian columns in O(n); uses an adaptive step clamped by `γ` for stability.
-- Damped Least Squares: Also O(n) per iteration here—forms a 2×2 system `(J J^T + λ² I)` and updates with `J^T y`.
-
-Rule of thumb: increase `Iterations/Frame` until error decreases smoothly without visible jitter; then tune `γ` (JT) or `λ` (DLS) to balance responsiveness vs. stability.
+Not all IK steps cost the same. CCD in this simple form touches one joint at a time and re‑does forward kinematics after each tweak, which makes a full sweep scale roughly like n² for n links. FABRIK runs two clean passes along the chain and lands at O(n) per iteration. Jacobian‑based methods also build O(n) updates in this 2D setup; the transpose variant takes a smart step in the gradient’s direction, while Damped Least Squares solves a tiny 2×2 system to stay stable near straightened‑out poses. In practice, you can raise Iterations/Frame until the error curve gets calm, then balance snappiness vs. smoothness with JT’s γ or DLS’s λ plus the global damping.
 
 ## Visual Intuition
 
 The end‑effector wants to reach the target. CCD swings one joint at a time so the segment points more toward the target. FABRIK slides points along lines to keep segment lengths while pulling the end to the goal. Jacobian methods compute how small angle changes move the end point, then nudge all joints together.
 
-<div style="text-align:center; margin: 1rem 0;">
-  <svg viewBox="0 0 360 220" width="600" height="360" style="max-width: 100%; background: #0f1117; border: 1px solid #222; border-radius: 10px;">
-    <!-- Reach circle -->
-    <circle cx="100" cy="110" r="100" fill="rgba(100,255,218,0.06)" stroke="#64ffda" />
-    <!-- Base -->
-    <circle cx="100" cy="110" r="4" fill="#10b981" />
-    <!-- Chain -->
-    <g stroke="#93c5fd" stroke-width="4" fill="none">
-      <line x1="100" y1="110" x2="170" y2="90" />
-      <line x1="170" y1="90" x2="220" y2="120" />
-      <line x1="220" y1="120" x2="260" y2="150" />
-    </g>
-    <!-- J column hint: perpendicular to joint->end vector at middle joint -->
-    <g stroke="#fbbf24" stroke-width="2">
-      <line x1="220" y1="120" x2="260" y2="150" />
-      <line x1="220" y1="120" x2="200" y2="160" stroke-dasharray="5 5" />
-    </g>
-    <!-- Target -->
-    <g>
-      <circle cx="290" cy="140" r="6" fill="#f472b6" />
-      <line x1="280" y1="140" x2="300" y2="140" stroke="#f472b6" />
-      <line x1="290" y1="130" x2="290" y2="150" stroke="#f472b6" />
-    </g>
-    <text x="180" y="24" fill="#94a3b8" font-size="12" text-anchor="middle">Reach circle; joints, end, and Jacobian direction</text>
-  </svg>
-  <div style="color:#94a3b8; font-size: 0.95rem; margin-top: 0.25rem;">The Jacobian column for a joint is perpendicular to its joint→end vector (orange dashes).</div>
-</div>
+<!-- Visual diagram removed for a cleaner look; keeping narrative explanation. -->
 
-### The Three Solvers At A Glance
+## Three Ways To Solve It
 
-- CCD: rotate each joint (from tip to base) to reduce the angle between the joint‑to‑effector and joint‑to‑target vectors. Repeat until close enough.
-- FABRIK: move joints along the line segments in two passes (end→base, then base→end) while keeping segment lengths fixed.
-- Jacobian‑Transpose: compute `J^T (target − effector)` to nudge angles in the direction that reduces error; a scalar step γ controls stability.
+There isn’t one “right” way to do IK — there are families of approaches with different personalities. CCD feels like a careful hand guiding each joint in turn. FABRIK acts like a strand of beads that slides into shape. Jacobian methods think locally: “if I turn joints this much, the end will move that way.” Real rigs mix these ideas with limits, damping, and sometimes orientation goals; the core intuition carries through.
 
-These are great building blocks. Real rigs add joint limits, damping, orientation goals, and regularization; but the core intuition transfers.
+## Play With It
 
-### What You Can Do
+Start simple: drag the target a short distance and watch how each solver approaches it. CCD will send a ripple down the chain, joint by joint, like a snake finding its way. FABRIK tends to straighten segments into clean lines and snaps into place in just a few passes. Jacobian‑Transpose moves everything together in smooth, coordinated nudges — turn the step down if it starts to overshoot.
 
-- Drag the orange crosshair to set a new target; the arm follows.
-- Hold Shift while dragging to reposition the green base and change reach.
-- Toggle Reach Circle to see the maximum reachable radius `≈ sum(link lengths)`.
-- Enable Trace to visualize the end‑effector path while the solver converges.
-- Experiment with links, length, and iterations to stress each algorithm.
-- Switch algorithms mid‑motion to compare convergence style and stability.
+Make it harder. Hold Shift and move the green base to change what’s reachable, then try pulling the target beyond the reach circle to see how each solver hugs the boundary. Turn on joint limits and show limit arcs; you’ll notice how CCD inches along the constraints, FABRIK rebalances lengths gracefully, and Jacobian methods slow down near singular poses unless you give them a bit more damping or λ.
 
-New tricks:
-- Turn on Joint Limits, adjust ±deg, and optionally show limit arcs at each joint.
-- Add Rest Pose Bias and set/reset the current configuration as the preferred pose.
-- Drive the target along a Circle or Figure‑8 and tune the speed.
-- Show Metrics to plot the error over time in the top‑right.
+Finally, give the system a rhythm. Put the target on a circle or figure‑8, enable trace, and compare how closely each solver tracks the path. You’ll feel the trade‑off: faster steps react quickly but can ring; heavier damping and DLS stay composed but lag a touch.
 
-### Try These Presets
-
-- Many short links: set `Links=10`, `Link Length=40–60`, `Iterations=16+`; compare CCD vs. FABRIK convergence speed and smoothness.
-- Unreachable target: drag outside the reach circle; observe boundary behavior across solvers.
-- Tracking a path: enable Figure‑8 at moderate speed; compare lag/overshoot for JT vs. DLS while tuning `γ` and `λ`.
-- Joint limits: enable limits at ±60–90° and toggle “Show Limit Arcs”; note how each solver adapts.
-
-### Share a Setup
+## Appendix: Shareable Presets
 
 The demo reads settings from the URL, so you can share a preset. Example:
 
@@ -272,26 +215,51 @@ The demo reads settings from the URL, so you can share a preset. Example:
 ?algo=dls&n=6&L=80&it=16&la=3&d=0.7&rg=1&tr=1&mv=eight&sp=1.2
 ```
 
-Parameters: `algo` (ccd|fabrik|jt|dls), `n` (links), `L` (link length), `it` (iterations/frame), `g` (JT γ), `la` (DLS λ), `d` (damping), `px` (pause 0/1), `rg` (reach circle 0/1), `tr` (trace 0/1), `lm` (limits 0/1), `ld` (limit degrees), `sl` (show limit arcs 0/1), `rb` (rest bias), `mv` (none|circle|eight), `sp` (target speed), `mx,my` (base), `tx,ty` (target).
+Parameters:
+- `algo`: ccd | fabrik | jt | dls
+- `n`: number of links
+- `L`: link length (px)
+- `it`: iterations per frame
+- `g`: JT step gamma (γ)
+- `la`: DLS lambda (λ)
+- `d`: damping [0..1]
+- `px`: pause (0 or 1)
+- `rg`: show reach circle (0 or 1)
+- `tr`: show trace (0 or 1)
+- `lm`: enable joint limits (0 or 1)
+- `ld`: joint limit degrees (±)
+- `sl`: show limit arcs (0 or 1)
+- `rb`: rest pose bias [0..0.5]
+- `mv`: target motion mode: none | circle | eight
+- `sp`: target speed multiplier
+- `mx,my`: base position (px)
+- `tx,ty`: target position (px)
 
-### What To Look For
+## What It Feels Like
 
-- CCD progresses joint‑by‑joint from the end: you’ll see a “snake‑like” motion.
-- FABRIK tends to straighten lines and converge quickly in a few passes.
-- Jacobian‑Transpose makes smooth, simultaneous angle updates; with a too‑large step it can overshoot or oscillate—reduce γ or increase damping.
-- When the target is outside the reach circle, the end‑effector settles on the boundary in the closest direction.
+CCD progresses joint‑by‑joint from the end — you can literally watch the “wave” of corrections travel back to the base. FABRIK often finds a clean, nearly straight path in just a few sweeps. Jacobian‑Transpose updates everything at once; it’s wonderfully smooth when the step is tamed, and a little exuberant if you let γ run wild. Outside the reach circle, all methods settle on the boundary in the closest direction they can manage.
 
 ### Problem Setup (2D Planar Chain)
 
-- Goal: find angles `θ = [θ1..θn]` so the end‑effector position `p(θ)` matches a target `t`.
-- Links are length `L` with a fixed base, so forward kinematics sums rotations and offsets.
-- We minimize position error `e = t − p(θ)`; different methods update `θ` differently.
+We’re solving for joint angles `θ = [θ1..θn]` so the end‑effector position `p(θ)` matches a target `t`. Each link has length `L` and we keep the base fixed, so forward kinematics is just a sum of rotations and offsets along the chain. All the solvers below chase the same objective — reduce the position error `e = t − p(θ)` — but they update `θ` in different ways.
 
 ### CCD (Cyclic Coordinate Descent)
 
-- Idea: for joint `i` (from end to base), rotate to reduce the angle between vectors `(joint_i → effector)` and `(joint_i → target)`.
-- Pros: dead simple, robust, no matrices; handles unreachable cases gracefully.
-- Cons: can be slow for long chains; path can look “wiggly”.
+CCD is the “one joint at a time” approach. Starting from the tip and walking back to the base, each joint turns just enough to make the end‑effector point more directly at the target. It’s dead simple and very forgiving — great when you just need something that works — but on long chains you’ll see a characteristic wiggle and a bit more time to settle.
+
+Geometrically, for joint i with position p_i, end‑effector e, and target t, define
+
+$$\mathbf{u} = e - p_i,\quad \mathbf{v} = t - p_i.$$
+
+The signed rotation that best aligns u to v in 2D is
+
+$$\Delta\theta_i = \operatorname{atan2}(\,u_x v_y - u_y v_x,\; u_x v_x + u_y v_y\,)$$
+
+and we apply a damped update
+
+$$\theta_i \leftarrow \theta_i + \eta\,\Delta\theta_i, \quad 0<\eta\le 1.$$
+
+After changing θ_i we recompute forward kinematics so the next joint acts on the new end‑effector position. CCD naturally handles unreachable targets: the chain aligns toward t and settles at the boundary of the reach circle.
 
 Pseudo‑steps per sweep:
 
@@ -305,11 +273,24 @@ for i = n-1 down to 0:
 
 ### FABRIK (Forward And Backward Reaching IK)
 
-- Idea: operate in position space, preserving segment lengths with two passes.
-- Backward: place the end at the target and pull joints back along lines to keep lengths.
-- Forward: pin the base, then push joints forward to keep lengths.
-- Pros: fast convergence, numerically stable, no Jacobians.
-- Cons: handling joint limits and constraints needs extra steps.
+FABRIK works directly in position space with two elegant passes. First it fixes the end at the target and drags joints backward along straight lines while keeping segment lengths. Then it pins the base and pushes forward the same way. The result is fast, stable convergence without building Jacobians — you get clean motion with very little fuss.
+
+Let joints be positions p_0, …, p_n with segment lengths L_i = ||p_{i+1}-p_i|| (kept constant).
+
+- If the target t is unreachable, set every segment to point toward t:
+
+$$p_{i+1} \leftarrow p_i + L_i\,\frac{t-p_i}{\lVert t-p_i\rVert}.$$
+
+- Otherwise, do two passes per iteration:
+  - Backward (anchor end at t): set p_n ← t, then for i = n−1…0
+
+    $$p_i \leftarrow p_{i+1} + L_{i}\,\frac{p_i - p_{i+1}}{\lVert p_i - p_{i+1}\rVert}.$$
+
+  - Forward (anchor base at p_0^0): set p_0 ← p_0^0, then for i = 0…n−1
+
+    $$p_{i+1} \leftarrow p_{i} + L_{i}\,\frac{p_{i+1} - p_{i}}{\lVert p_{i+1} - p_{i}\rVert}.$$
+
+Angles θ are then recovered from adjacent positions. Constraints like joint limits fit by clamping angles after each iteration.
 
 Pseudo‑steps per iteration:
 
@@ -323,10 +304,21 @@ for i = 0..n-1:  j_{i+1} = j_i + L * normalize(j_{i+1} - j_i)
 
 ### Jacobian Transpose (JT)
 
-- Idea: small changes in angles `Δθ` change the end position `Δp ≈ J Δθ`, where `J` is the 2×n Jacobian. Use the gradient direction `Δθ = α J^T (t − p)`.
-- In this demo we use an adaptive step `α = (r·(J J^T r)) / (||J J^T r||² + ε)` and clamp it to `γ` for stability.
-- Pros: smooth simultaneous joint updates; extensible to orientation, weights, damping.
-- Cons: can oscillate near singularities without step control; needs tuning.
+Jacobian‑Transpose thinks like a gradient step: if small changes in angles move the end by `Δp ≈ J Δθ`, then turning in the direction of `J^T (t − p)` should make the error shrink. Here it takes an adaptive step and clamps it by `γ` for stability. The payoff is coordinated, smooth updates and an easy path to richer goals (like mixing position and orientation) — as long as you keep the step size in check near singular poses.
+
+We minimize position error r = t − p(θ). Linearizing
+
+$$\Delta\mathbf{p} \approx J(\theta)\,\Delta\boldsymbol{\theta}.$$
+
+Gradient descent on E = 1/2 ||r||^2 gives
+
+$$\Delta\boldsymbol{\theta} = -\alpha\,\nabla_{\theta}E = \alpha\,J^T r.$$
+
+Choosing the step by projecting the desired motion r onto the predicted motion v = J J^T r yields
+
+$$\alpha = \frac{r^\top v}{v^\top v + \varepsilon} = \frac{r^\top J J^T r}{\lVert J J^T r\rVert^2 + \varepsilon},$$
+
+then clamp 0 ≤ α ≤ γ for stability (as done in the demo). In 2D, the Jacobian column for joint i is a perpendicular to the joint→end vector; see the dedicated section below.
 
 Update rule used here:
 
@@ -344,9 +336,21 @@ v = J u            // predicted end-effector motion
 
 ### Damped Least Squares (DLS)
 
-- Idea: take a regularized least‑squares step `Δθ = J^T (J J^T + λ^2 I)^{-1} r` to temper ill‑conditioned directions near singularities.
-- Pros: very robust near straight chains and during fast motions; reduces oscillations.
-- Cons: requires tuning `λ` (too large = sluggish, too small = oscillation like plain LS).
+DLS is the calm one. It takes a regularized least‑squares step `Δθ = J^T (J J^T + λ^2 I)^{-1} r`, which naturally tempers directions that would otherwise explode near singularities. Turn λ up for composure, down for responsiveness, and you’ll get graceful behavior even when the target or base won’t sit still.
+
+Formally, solve the Tikhonov‑regularized problem
+
+$$\min_{\Delta\theta}\;\lVert J\,\Delta\theta - r\rVert^2 + \lambda^2\,\lVert \Delta\theta\rVert^2,$$
+
+whose normal equations give
+
+$$\Delta\theta = (J^T J + \lambda^2 I)^{-1} J^T r.$$
+
+Using the matrix identity (Woodbury), this equals the dual form we implement efficiently in 2D task‑space:
+
+$$\Delta\theta = J^T\,(J J^T + \lambda^2 I)^{-1} r.$$
+
+As λ → 0 you recover least‑squares (fast but sensitive); as λ grows you get smaller, more conservative steps. Combine with a global damping factor to smooth motion frame‑to‑frame.
 
 Pseudo‑step (2D task):
 
@@ -359,47 +363,17 @@ y = A^{-1} r
 
 Tuning: raise `λ` for stability (less aggressive updates), lower it for responsiveness. Combine with global `Damping` for smooth paths.
 
-### Reachability and Behavior at the Limits
+## When Things Get Tricky
 
-- If the target is outside the reach circle, all methods align the chain toward the target and settle on the boundary.
-- With very short link lengths and many segments, JT can take smaller steps—raise `iterations` or lower `γ` to avoid oscillations.
-- FABRIK quickly finds boundary solutions; CCD will crawl along the boundary as joints adjust.
+Outside the reach circle, all methods will align toward the target and rest on the boundary — that’s expected. Near straight‑line (singular) poses, gradient‑based updates can wobble unless you rein them in; that’s why the JT step is clamped by `γ`, and why DLS’s λ exists at all. If you see ringing, ease γ up or add damping; if things feel sluggish, give the solver a few more iterations per frame. Joint limits add realism but also resistance — clamp after each update and let the solvers negotiate their way along the arcs rather than fighting them.
 
-### Singularities & Stability
+## Which Solver When
 
-- Near singular configurations (e.g., a straight chain), the Jacobian is ill‑conditioned and naive gradient steps can oscillate.
-- Jacobian‑Transpose here uses an adaptive step `α` clamped by `γ` (JT Step) to curb overshoot; lower `γ` or raise `Damping` if you see ringing.
-- DLS regularizes with `λ` inside `(J J^T + λ^2 I)^{-1}`; increase `λ` near singularities for stable tracking.
-- With moving targets, compare lag vs. robustness: JT with tuned `γ` reacts quickly; DLS trades a bit of lag for smoother motion.
+Use CCD when you want a tiny, dependable hammer and don’t mind a little wiggle on long chains. Reach for FABRIK when you care about fast, stable convergence and clean paths — it’s a favorite for character rigs. Choose Jacobian methods when you want to combine objectives (position now, orientation later) and tune behavior; DLS, in particular, shines when you need robustness over raw snap.
 
-### FAQ & Pitfalls
+## Beyond This Demo
 
-- It oscillates or jitters: lower `JT Step (γ)`, increase global `Damping`, or switch to DLS and raise `λ`. Also increase `Iterations/Frame` modestly.
-- It flips to a weird pose: enable Joint Limits and add a small Rest Pose Bias, then Set Rest at a natural configuration.
-- It stalls near limits: clamp angles after each solver step and consider reducing `Iterations/Frame` to avoid fighting constraints.
-- It can’t reach the target: expected if outside the reach circle; solvers settle on the boundary. Move the base (Shift‑drag) or reduce link length to explore.
-- It’s slow with many links: FABRIK, JT, and DLS are O(n) per iteration here; CCD is effectively O(n²) in this simple implementation.
-
-### Practical Tips
-
-- Increase `Iterations/Frame` to accelerate convergence at the cost of CPU.
-- Lower `γ` and/or increase `Damping` if JT jitters; raise `γ` if progress is too slow.
-- More links can make CCD slower; FABRIK scales well; JT prefers well‑scaled lengths.
-- For smooth paths, enable Trace and compare the motion across solvers.
-
-### Extensions You Might Add
-
-- Joint limits: clamp per‑joint `θ_i` after each update.
-- Regularization: add damping in JT/DLS to handle singularities better.
-- Orientation goals: extend to 3D and include end‑effector orientation constraints.
-- Obstacles: project joints away from obstacles between passes.
-- Targets over time: follow a moving target and compare lag/overshoot.
-
-### When to Use Which
-
-- Use CCD for small rigs, quick prototypes, or when simplicity wins.
-- Use FABRIK for character rigs and many‑link chains where fast, stable convergence is desired.
-- Use Jacobian methods for combining multiple objectives (position + orientation + soft constraints) and when you’ll need weights or task‑space control.
+There’s plenty more to explore: per‑joint limits and soft preferences, stronger regularization, end‑effector orientation, even obstacle avoidance by projecting joints away between passes. The math scales naturally to 3D, and the same ideas power everything from robotic arms to full‑body avatars.
 
 ### References and Further Reading
 

@@ -791,18 +791,20 @@ body.performance-mode #orbit-container {
 ## LVLH Visual Intuition
 
 <div style="text-align:center; margin: 1rem 0;">
-  <svg viewBox="0 0 280 200" width="420" height="300" style="max-width: 100%; background: #0f1117; border: 1px solid #222; border-radius: 10px;">
+  <svg viewBox="0 0 400 240" width="560" height="380" style="max-width: 100%; background: #0f1117; border: 1px solid #222; border-radius: 10px;">
     <!-- Orbit and Earth -->
-    <circle cx="140" cy="100" r="18" fill="#0f2744" stroke="#60a5fa" stroke-opacity="0.35"/>
-    <circle cx="140" cy="100" r="84" fill="none" stroke="#334155" stroke-dasharray="6 6"/>
-    <!-- Spacecraft point -->
-    <circle cx="224" cy="100" r="4" fill="#e879f9"/>
+    <circle cx="200" cy="120" r="22" fill="#0f2744" stroke="#60a5fa" stroke-opacity="0.35"/>
+    <circle cx="200" cy="120" r="100" fill="none" stroke="#334155" stroke-dasharray="6 6"/>
+    <!-- Spacecraft point (rightmost) -->
+    <circle cx="300" cy="120" r="4" fill="#e879f9"/>
     <!-- LVLH axes at spacecraft -->
-    <g stroke-width="2">
-      <line x1="224" y1="100" x2="244" y2="100" stroke="#22c55e"/>
-      <line x1="224" y1="100" x2="224" y2="80" stroke="#60a5fa"/>
-      <text x="248" y="104" fill="#22c55e" font-size="11">+R (radial)</text>
-      <text x="228" y="76" fill="#60a5fa" font-size="11">+V (prograde)</text>
+    <g stroke-width="2" font-size="12">
+      <!-- +R (radial, outward) -->
+      <line x1="300" y1="120" x2="330" y2="120" stroke="#22c55e"/>
+      <text x="335" y="124" fill="#22c55e" text-anchor="start">+R (radial)</text>
+      <!-- +V (prograde, tangent) -->
+      <line x1="300" y1="120" x2="300" y2="90" stroke="#60a5fa"/>
+      <text x="258" y="84" fill="#60a5fa" text-anchor="start">+V (prograde)</text>
     </g>
   </svg>
   <div style="color:#94a3b8; font-size: 0.95rem; margin-top: 0.25rem;">Burns are applied in LVLH: +V tangential, +R radial.</div>
