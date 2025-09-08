@@ -1,0 +1,1416 @@
+<!DOCTYPE html> <html lang="en"> <head> <meta charset="utf-8"> <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"> <meta http-equiv="X-UA-Compatible" content="IE=edge"> <title>Interactive Orbital Rendezvous Simulator | Saeed Ghorbani</title> <meta name="author" content="Saeed Ghorbani"/> <meta name="description" content="Explore the counter-intuitive nature of orbital mechanics through interactive 3D simulations. Learn why speeding up can make you drop and master spacecraft rendezvous techniques."/> <meta name="keywords" content="machine learning, computer vision, computer graphics, computer animation, human motion modeling, probabilistic models, deep learning, research scientist, Amazon Games, motion synthesis, pose estimation, gesture generation"/> <meta property="og:site_name" content="Saeed Ghorbani"/> <meta property="og:type" content="website"/> <meta property="og:title" content="Saeed Ghorbani | Interactive Orbital Rendezvous Simulator"/> <meta property="og:url" content="https://saeed1262.github.io/blog/2025/orbital-rendezvous-simulator/"/> <meta property="og:description" content="Explore the counter-intuitive nature of orbital mechanics through interactive 3D simulations. Learn why speeding up can make you drop and master spacecraft rendezvous techniques."/> <meta property="og:image" content="/assets/img/orbital-rendezvous-simulator-og.svg"/> <meta property="og:locale" content="en"/> <meta name="twitter:card" content="summary"/> <meta name="twitter:title" content="Interactive Orbital Rendezvous Simulator"/> <meta name="twitter:description" content="Explore the counter-intuitive nature of orbital mechanics through interactive 3D simulations. Learn why speeding up can make you drop and master spacecraft rendezvous techniques."/> <meta name="twitter:image" content="/assets/img/orbital-rendezvous-simulator-og.svg"/> <meta name="twitter:site" content="@SaGhorbani"/> <meta name="twitter:creator" content="@SaGhorbani"/> <script type="application/ld+json">
+      {
+        "author":
+        {
+          "@type": "Person",
+          "name": "Saeed  Ghorbani"
+        },
+        "url": "https://saeed1262.github.io/blog/2025/orbital-rendezvous-simulator/",
+        "@type": "WebSite",
+        "description": "Explore the counter-intuitive nature of orbital mechanics through interactive 3D simulations. Learn why speeding up can make you drop and master spacecraft rendezvous techniques.",
+        "headline": "Interactive Orbital Rendezvous Simulator",
+        "sameAs": ["https://scholar.google.com/citations?user=JFRY_g8AAAAJ&hl", "https://github.com/saeed1262", "https://www.linkedin.com/in/saeed-ghorbani-ba4872136", "https://twitter.com/SaGhorbani"],
+        "name": "Saeed  Ghorbani",
+        "@context": "https://schema.org"
+      }
+    </script> <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin> <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin> <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> <link rel="dns-prefetch" href="//www.google-analytics.com"> <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests"> <meta name="theme-color" content="#6c63ff"> <meta name="apple-mobile-web-app-capable" content="yes"> <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"> <meta name="msapplication-TileColor" content="#6c63ff"> <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha256-DF7Zhf293AJxJNTmh5zhoYYIMs2oXitRfBjY+9L//AY=" crossorigin="anonymous"> <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mdbootstrap@4.20.0/css/mdb.min.css" integrity="sha256-jpjYvU3G3N6nrrBwXJoVEYI/0zw8htfFnhT9ljN3JJw=" crossorigin="anonymous"/> <link rel="preload" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Slab:wght@100;300;400;500;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'"> <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Slab:wght@100;300;400;500;700&display=swap"></noscript> <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous"> <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/academicons@1.9.1/css/academicons.min.css" integrity="sha256-i1+4qU2G2860dGGIOJscdC30s9beBXjFfzjWLjBRsBg=" crossorigin="anonymous"> <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jwarby/jekyll-pygments-themes@master/github.css" media="none" id="highlight_theme_light"/> <link rel="shortcut icon" href="/assets/img/fav.png"/> <link rel="preload" href="/assets/css/main.css" as="style" onload="this.onload=null;this.rel='stylesheet'"> <noscript><link rel="stylesheet" href="/assets/css/main.css"></noscript> <link rel="canonical" href="https://saeed1262.github.io/blog/2025/orbital-rendezvous-simulator/"> <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"> <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jwarby/jekyll-pygments-themes@master/native.css" media="none" id="highlight_theme_dark"/> <script src="/assets/js/theme.js"></script> <script src="/assets/js/dark_mode.js"></script> </head> <body class="fixed-top-nav "> <header> <nav id="navbar" class="navbar navbar-light navbar-expand-sm fixed-top"> <div class="container"> <a class="navbar-brand title font-weight-lighter" href="https://saeed1262.github.io/">Saeed Ghorbani</a> <button class="navbar-toggler collapsed ml-auto" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation"> <span class="sr-only">Toggle navigation</span> <span class="icon-bar top-bar"></span> <span class="icon-bar middle-bar"></span> <span class="icon-bar bottom-bar"></span> </button> <div class="collapse navbar-collapse text-right" id="navbarNav"> <ul class="navbar-nav ml-auto flex-nowrap"> <li class="nav-item "> <a class="nav-link" href="/">About</a> </li> <li class="nav-item active"> <a class="nav-link" href="/blog/">Blog<span class="sr-only">(current)</span></a> </li> <li class="nav-item "> <a class="nav-link" href="/publications/">Publications</a> </li> <li class="nav-item "> <a class="nav-link" href="/projects/">Projects</a> </li> <li class="nav-item "> <a class="nav-link" href="/cv/">CV</a> </li> <li class="nav-item dropdown "> <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Submenus</a> <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown"> <a class="dropdown-item" href="/publications/">publications</a> <div class="dropdown-divider"></div> <a class="dropdown-item" href="/projects/">projects</a> </div> </li> <li class="toggle-container"> <button id="light-toggle" title="Change theme"> <i class="fas fa-moon"></i> <i class="fas fa-sun"></i> </button> </li> </ul> </div> </div> </nav> </header> <div class="container mt-5"> <div class="post"> <header class="post-header"> <h1 class="post-title">Interactive Orbital Rendezvous Simulator</h1> <p class="post-meta">September 1, 2025</p> <p class="post-tags"> <a href="/blog/2025"> <i class="fas fa-calendar fa-sm"></i> 2025 </a>   ·   <a href="/blog/tag/orbital-mechanics"> <i class="fas fa-hashtag fa-sm"></i> orbital-mechanics</a>   <a href="/blog/tag/physics"> <i class="fas fa-hashtag fa-sm"></i> physics</a>   <a href="/blog/tag/simulation"> <i class="fas fa-hashtag fa-sm"></i> simulation</a>   <a href="/blog/tag/aerospace"> <i class="fas fa-hashtag fa-sm"></i> aerospace</a>   <a href="/blog/tag/interactive"> <i class="fas fa-hashtag fa-sm"></i> interactive</a>   <a href="/blog/tag/three-js"> <i class="fas fa-hashtag fa-sm"></i> three-js</a>     ·   <a href="/blog/category/blog"> <i class="fas fa-tag fa-sm"></i> blog</a>   </p> </header> <article class="post-content"> <script type="text/javascript">window.MathJax={tex:{inlineMath:[["$","$"],["\\(","\\)"]],displayMath:[["$$","$$"],["\\[","\\]"]],processEscapes:!0,processEnvironments:!0,tags:"ams"},options:{ignoreHtmlClass:"tex2jax_ignore",processHtmlClass:"tex2jax_process"}};</script> <script type="text/javascript" id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3.2.0/es5/tex-mml-chtml.js"></script> <h2 id="why-speeding-up-can-make-you-fall-behind">Why “Speeding Up” Can Make You Fall Behind</h2> <p>In orbit, a short +V makes you faster now but slower later. A <strong>prograde burn</strong> boosts energy and raises the <strong>opposite side</strong> of your orbit; when you get there, you’re in a higher, slower path. To catch a target ahead, the winning move is often <strong>−V to drop lower and lap faster</strong>.</p> <p>Quick intuition check (two classic cases):</p> <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1rem 0;align-items:center;"> <figure style="margin:0;padding:0.5rem;border:1px solid rgba(59,130,246,0.25);border-radius:10px;background:linear-gradient(135deg,rgba(59,130,246,0.08),rgba(15,23,42,0.3));"> <svg viewbox="0 0 300 200" width="100%" height="auto" role="img" aria-label="Prograde at periapsis raises apoapsis"> <circle cx="150" cy="100" r="24" fill="#0f2744" stroke="#60a5fa" stroke-opacity="0.35"></circle> <circle cx="150" cy="100" r="74" fill="none" stroke="#94a3b8" stroke-dasharray="6 6"></circle> <ellipse cx="150" cy="100" rx="118" ry="74" fill="none" stroke="#e5e7eb" stroke-width="2"></ellipse> <circle cx="268" cy="100" r="5" fill="#a855f7"></circle> <text x="210" y="88" fill="#e9d5ff" font-size="12">Apoapsis ↑</text> <circle cx="32" cy="100" r="5" fill="#3b82f6"></circle> <text x="12" y="88" fill="#bfdbfe" font-size="12">Periapsis</text> <circle cx="150" cy="174" r="6" fill="#22c55e"></circle> <text x="162" y="176" fill="#bbf7d0" font-size="12">+V here</text> </svg> <figcaption style="text-align:center;color:#cbd5e1;font-size:0.9rem">+V at periapsis → apoapsis rises; later you go slower.</figcaption> </figure> <figure style="margin:0;padding:0.5rem;border:1px solid rgba(59,130,246,0.25);border-radius:10px;background:linear-gradient(135deg,rgba(59,130,246,0.08),rgba(15,23,42,0.3));"> <svg viewbox="0 0 300 200" width="100%" height="auto" role="img" aria-label="Retrograde at apoapsis lowers periapsis"> <circle cx="150" cy="100" r="24" fill="#0f2744" stroke="#60a5fa" stroke-opacity="0.35"></circle> <circle cx="150" cy="100" r="120" fill="none" stroke="#94a3b8" stroke-dasharray="6 6"></circle> <ellipse cx="150" cy="100" rx="118" ry="74" fill="none" stroke="#e5e7eb" stroke-width="2"></ellipse> <circle cx="268" cy="100" r="6" fill="#ef4444"></circle> <text x="210" y="88" fill="#fecaca" font-size="12">−V here</text> <circle cx="32" cy="100" r="5" fill="#3b82f6"></circle> <text x="8" y="88" fill="#bfdbfe" font-size="12">Periapsis ↓</text> </svg> <figcaption style="text-align:center;color:#cbd5e1;font-size:0.9rem">−V at apoapsis → periapsis drops; lower orbit laps faster.</figcaption> </figure> </div> <p>So what? To close on a target ahead of you: <strong>drop, wait, then raise</strong>.</p> <h2 id="interactive-orbital-mechanics-simulator">Interactive Orbital Mechanics Simulator</h2> <link rel="stylesheet" href="/assets/css/orbit-simulator.css"> <style>#orbit-controls{background:linear-gradient(135deg,rgba(30,41,59,0.9) 0%,rgba(15,23,42,0.95) 100%);border:1px solid rgba(59,130,246,0.3);border-radius:16px;padding:1.5rem;margin-bottom:1.5rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.5rem;align-items:center;box-shadow:0 8px 25px rgba(0,0,0,0.2),inset 0 1px 0 rgba(255,255,255,0.1)}.control-group{display:flex;flex-direction:column;gap:.75rem;align-items:center}.control-group label{font-size:.9rem;font-weight:600;color:rgba(255,255,255,0.9);text-align:center;text-shadow:0 1px 2px rgba(0,0,0,0.5);letter-spacing:.5px}.control-row{display:flex;gap:.75rem;align-items:center;justify-content:center}.burn-button{background:linear-gradient(135deg,var(--global-theme-color) 0%,rgba(59,130,246,0.8) 100%);color:white;border:0;padding:.875rem 1.25rem;border-radius:10px;cursor:pointer;font-weight:600;font-size:.95rem;transition:all .3s cubic-bezier(0.4,0,0.2,1);min-width:70px;position:relative;overflow:hidden;box-shadow:0 4px 15px rgba(0,0,0,0.2),0 0 0 1px rgba(255,255,255,0.1);text-shadow:0 1px 2px rgba(0,0,0,0.5)}.burn-button::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent);transition:left .5s}.burn-button:hover::before{left:100%}.burn-button:hover{transform:translateY(-2px) scale(1.05);box-shadow:0 8px 25px rgba(0,0,0,0.3),0 0 20px rgba(59,130,246,0.4)}.burn-button:active{transform:translateY(0) scale(0.98)}.burn-button.prograde{background:linear-gradient(135deg,#22c55e 0%,#16a34a 100%);box-shadow:0 4px 15px rgba(34,197,94,0.3),0 0 0 1px rgba(255,255,255,0.1)}.burn-button.prograde:hover{box-shadow:0 8px 25px rgba(34,197,94,0.4),0 0 20px rgba(34,197,94,0.6)}.burn-button.retrograde{background:linear-gradient(135deg,#ef4444 0%,#dc2626 100%);box-shadow:0 4px 15px rgba(239,68,68,0.3),0 0 0 1px rgba(255,255,255,0.1)}.burn-button.retrograde:hover{box-shadow:0 8px 25px rgba(239,68,68,0.4),0 0 20px rgba(239,68,68,0.6)}.burn-button.radial-out{background:linear-gradient(135deg,#3b82f6 0%,#2563eb 100%);box-shadow:0 4px 15px rgba(59,130,246,0.3),0 0 0 1px rgba(255,255,255,0.1)}.burn-button.radial-out:hover{box-shadow:0 8px 25px rgba(59,130,246,0.4),0 0 20px rgba(59,130,246,0.6)}.burn-button.radial-in{background:linear-gradient(135deg,#f59e0b 0%,#d97706 100%);box-shadow:0 4px 15px rgba(245,158,11,0.3),0 0 0 1px rgba(255,255,255,0.1)}.burn-button.radial-in:hover{box-shadow:0 8px 25px rgba(245,158,11,0.4),0 0 20px rgba(245,158,11,0.6)}button{background:linear-gradient(135deg,var(--global-theme-color) 0%,rgba(59,130,246,0.8) 100%);color:white;border:0;padding:.75rem 1.25rem;border-radius:8px;cursor:pointer;font-weight:500;transition:all .3s ease;box-shadow:0 4px 15px rgba(0,0,0,0.2),0 0 0 1px rgba(255,255,255,0.1)}button:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(0,0,0,0.3),0 0 20px rgba(59,130,246,0.4)}select{background:linear-gradient(135deg,rgba(30,41,59,0.9) 0%,rgba(15,23,42,0.9) 100%);color:var(--global-text-color);border:1px solid rgba(59,130,246,0.3);padding:.75rem;border-radius:8px;cursor:pointer;transition:all .3s ease}select:hover{border-color:rgba(59,130,246,0.6);box-shadow:0 0 15px rgba(59,130,246,0.3)}.slider-group{display:flex;flex-direction:column;align-items:center;gap:.5rem}.slider-group label{font-size:.9rem;font-weight:600;color:rgba(255,255,255,0.9);text-align:center;text-shadow:0 1px 2px rgba(0,0,0,0.5)}.slider-group input[type="range"]{width:140px;height:6px;background:linear-gradient(90deg,rgba(59,130,246,0.3) 0%,rgba(59,130,246,0.8) 100%);border-radius:3px;outline:0;-webkit-appearance:none}.slider-group input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;background:linear-gradient(135deg,#3b82f6 0%,#2563eb 100%);border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(59,130,246,0.5)}.slider-group input[type="range"]::-moz-range-thumb{width:18px;height:18px;background:linear-gradient(135deg,#3b82f6 0%,#2563eb 100%);border-radius:50%;cursor:pointer;border:0;box-shadow:0 2px 8px rgba(59,130,246,0.5)}.slider-group .value{font-family:'SF Mono','Monaco','Inconsolata','Roboto Mono',monospace;font-size:.85rem;color:#3b82f6;font-weight:600;background:rgba(59,130,246,0.1);padding:.25rem .5rem;border-radius:4px;border:1px solid rgba(59,130,246,0.3)}#orbit-viz-container{position:relative;width:100%;aspect-ratio:16/9;background:radial-gradient(ellipse at center,#0f172a 0%,#000 70%);border:1px solid rgba(59,130,246,0.3);border-radius:16px;overflow:hidden;margin-bottom:1.5rem;box-shadow:0 8px 25px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.1)}#orbit-viz{width:100%;height:100%}#orbit-hud{background:linear-gradient(135deg,rgba(30,41,59,0.9) 0%,rgba(15,23,42,0.95) 100%);border:1px solid rgba(59,130,246,0.3);border-radius:16px;padding:1.5rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1.5rem;box-shadow:0 8px 25px rgba(0,0,0,0.2),inset 0 1px 0 rgba(255,255,255,0.1)}
+.hud-panel{background:linear-gradient(135deg,rgba(59,130,246,0.1) 0%,rgba(30,58,138,0.05) 100%);border:1px solid rgba(59,130,246,0.3);border-radius:12px;padding:1rem;transition:all .3s ease;box-shadow:0 4px 15px rgba(0,0,0,0.1)}.hud-panel:hover{border-color:rgba(59,130,246,0.5);box-shadow:0 6px 20px rgba(0,0,0,0.2),0 0 15px rgba(59,130,246,0.2);transform:translateY(-2px)}.hud-panel h4{color:#60a5fa;margin-bottom:.75rem;font-size:1rem;font-weight:600;text-transform:uppercase;letter-spacing:.75px;text-shadow:0 1px 2px rgba(0,0,0,0.5);border-bottom:2px solid rgba(59,130,246,0.3);padding-bottom:.5rem}.hud-value{font-family:'SF Mono','Monaco','Inconsolata','Roboto Mono',monospace;font-size:.9rem;color:var(--global-text-color);display:flex;justify-content:space-between;margin-bottom:.5rem;padding:.25rem 0;border-bottom:1px solid rgba(255,255,255,0.1)}.hud-value:last-child{border-bottom:0}.hud-value .label{color:rgba(255,255,255,0.7);font-weight:400}.hud-value .value{color:#60a5fa;font-weight:600;text-shadow:0 1px 2px rgba(0,0,0,0.5)}#orbit-status{font-family:'SF Mono','Monaco','Inconsolata','Roboto Mono',monospace;font-size:1rem;color:#60a5fa;padding:1rem;background:linear-gradient(135deg,rgba(59,130,246,0.1) 0%,rgba(30,58,138,0.05) 100%);border:1px solid rgba(59,130,246,0.3);border-radius:12px;text-align:center;grid-column:1 / -1;margin-top:1rem;box-shadow:0 4px 15px rgba(0,0,0,0.1);text-shadow:0 1px 2px rgba(0,0,0,0.5)}.scenario-button{background:linear-gradient(135deg,var(--global-theme-color) 0%,rgba(59,130,246,0.8) 100%);color:white;border:0;padding:.75rem 1rem;border-radius:8px;cursor:pointer;font-size:.85rem;font-weight:500;transition:all .3s ease;box-shadow:0 4px 15px rgba(0,0,0,0.2),0 0 0 1px rgba(255,255,255,0.1)}.scenario-button:hover{transform:translateY(-1px) scale(1.02);box-shadow:0 6px 20px rgba(0,0,0,0.3),0 0 15px rgba(59,130,246,0.4)}.burn-info{font-size:.75rem;color:rgba(255,255,255,0.7);text-align:center;margin-bottom:.5rem;padding:.5rem;background:rgba(59,130,246,0.1);border-radius:6px;border:1px solid rgba(59,130,246,0.2)}.scenario-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;width:100%}.scenario-grid .scenario-button{padding:.6rem .4rem;font-size:.75rem;line-height:1.2;min-height:60px;display:flex;align-items:center;justify-content:center;text-align:center}.burn-effect{position:absolute;pointer-events:none;border-radius:50%;animation:burnPulse .6s ease-out}@keyframes burnPulse{0%{transform:scale(0);opacity:1}100%{transform:scale(3);opacity:0}}@media(max-width:768px){#orbit-container{margin:1rem;padding:1rem}#orbit-controls{grid-template-columns:1fr;gap:1rem;padding:1rem}.control-group{align-items:stretch}.control-row{justify-content:stretch}.burn-button{flex:1;padding:1rem}#orbit-hud{grid-template-columns:1fr;padding:1rem}}.no-webgl{display:flex;align-items:center;justify-content:center;height:100%;font-size:1.2rem;color:rgba(255,255,255,0.7);text-align:center;padding:2rem;background:linear-gradient(135deg,rgba(239,68,68,0.1) 0%,rgba(220,38,38,0.1) 100%);border:1px solid rgba(239,68,68,0.3);border-radius:12px}.loading{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#60a5fa;font-size:1.2rem;font-weight:600;text-shadow:0 1px 2px rgba(0,0,0,0.5)}.loading::after{content:'';animation:loadingDots 1.5s infinite}@keyframes loadingDots{0%,20%{content:'.'}40%{content:'..'}60%,100%{content:'...'}}.units-legend{margin:0 0 1rem 0;padding:.75rem 1rem;font-size:.9rem;color:rgba(255,255,255,0.85);background:linear-gradient(135deg,rgba(59,130,246,0.08) 0%,rgba(15,23,42,0.3) 100%);border:1px solid rgba(59,130,246,0.25);border-radius:10px}.toast{position:fixed;top:20px;right:20px;max-width:400px;padding:1rem 1.25rem;background:linear-gradient(135deg,rgba(59,130,246,0.95) 0%,rgba(30,58,138,0.98) 100%);border:1px solid rgba(59,130,246,0.8);border-radius:12px;color:white;font-size:.95rem;font-weight:500;box-shadow:0 8px 25px rgba(0,0,0,0.4),0 0 20px rgba(59,130,246,0.6);transform:translateX(450px);transition:transform .4s cubic-bezier(0.4,0,0.2,1);z-index:1000;backdrop-filter:blur(10px);text-shadow:0 1px 2px rgba(0,0,0,0.5)}.toast.show{transform:translateX(0)}.toast .toast-icon{display:inline-block;margin-right:.5rem;font-size:1.1em}.phase-gauge{background:linear-gradient(135deg,rgba(59,130,246,0.1) 0%,rgba(30,58,138,0.05) 100%);border:1px solid rgba(59,130,246,0.3);border-radius:12px;padding:1rem;box-shadow:0 4px 15px rgba(0,0,0,0.1)}.phase-gauge h4{color:#60a5fa;margin-bottom:.75rem;font-size:1rem;font-weight:600;text-transform:uppercase;letter-spacing:.75px;border-bottom:2px solid rgba(59,130,246,0.3);padding-bottom:.5rem}.phase-gauge .row{display:flex;justify-content:space-between;font-family:'SF Mono','Monaco','Inconsolata','Roboto Mono',monospace;font-size:.9rem;margin:.25rem 0}
+.phase-bar{position:relative;height:10px;border-radius:6px;background:rgba(255,255,255,0.08);margin-top:.5rem;overflow:hidden;border:1px solid rgba(255,255,255,0.15)}.phase-fill{position:absolute;top:0;left:0;bottom:0;width:0;background:linear-gradient(90deg,rgba(34,197,94,0.8),rgba(59,130,246,0.8))}.phase-status{margin-top:.5rem;text-align:center;font-weight:700}.phase-status.ready{color:#22c55e}.phase-status.wait{color:#f59e0b}.phase-status.na{color:rgba(255,255,255,0.6)}.sprite-label{filter:drop-shadow(0 0 2px rgba(0,0,0,0.7))}body.performance-mode .burn-button{box-shadow:0 2px 8px rgba(0,0,0,0.15)!important}body.performance-mode .hud-panel{box-shadow:0 2px 8px rgba(0,0,0,0.08)!important}body.performance-mode .toast{box-shadow:0 4px 12px rgba(0,0,0,0.2)!important;backdrop-filter:none!important}body.performance-mode #orbit-container{box-shadow:0 8px 30px rgba(0,0,0,0.2)!important;backdrop-filter:none!important}.keyboard-shortcuts{position:fixed;bottom:20px;left:20px;background:rgba(15,23,42,0.95);border:1px solid rgba(59,130,246,0.3);border-radius:8px;padding:.75rem;font-size:.8rem;color:rgba(255,255,255,0.8);max-width:200px;transform:translateY(200px);transition:transform .3s ease;z-index:999}.keyboard-shortcuts.show{transform:translateY(0)}.keyboard-shortcuts h5{color:#60a5fa;margin-bottom:.5rem;font-size:.9rem}.keyboard-shortcuts div{margin:.25rem 0}.keyboard-shortcuts kbd{background:rgba(59,130,246,0.2);border:1px solid rgba(59,130,246,0.4);border-radius:3px;padding:.1rem .3rem;font-size:.75rem;margin-right:.5rem}</style> <div class="units-legend" aria-live="polite"> <strong>Try this:</strong> Press <kbd>X</kbd> to burn <em>retrograde</em> and drop to a lower, faster orbit. Watch the phase angle close, then press <kbd>Z</kbd> at periapsis/apoapsis to raise and circularize. </div> <div id="orbit-container"> <div id="orbit-controls"> <div class="control-group"> <label><strong>Simulation Control</strong></label> <div class="control-row"> <button id="orbit-play-pause" aria-label="Play or pause simulation">Pause</button> <button id="orbit-reset" aria-label="Reset simulation">Reset</button> </div> </div> <div class="control-group"> <label><strong>Burn Controls</strong></label> <div class="burn-info"> <small>+V: Prograde (speed up) | -V: Retrograde (slow down)<br> +R: Radial out (away from Earth) | -R: Radial in (toward Earth)</small> </div> <div class="control-row"> <button class="burn-button prograde" id="burn-prograde" aria-label="Burn prograde">+V</button> <button class="burn-button retrograde" id="burn-retrograde" aria-label="Burn retrograde">-V</button> </div> <div class="control-row"> <button class="burn-button radial-out" id="burn-radial-out" aria-label="Burn radial out">+R</button> <button class="burn-button radial-in" id="burn-radial-in" aria-label="Burn radial in">-R</button> </div> </div> <div class="slider-group"> <label for="burn-magnitude">Burn Magnitude</label> <input type="range" id="burn-magnitude" min="0.005" max="0.1" step="0.005" value="0.03" aria-label="Burn magnitude"> <span class="value" id="burn-magnitude-value">0.03</span> </div> <div class="slider-group"> <label for="time-scale">Time Scale</label> <input type="range" id="time-scale" min="0.1" max="10" step="0.1" value="1.0" aria-label="Time scale"> <span class="value" id="time-scale-value">1.0×</span> </div> <div class="control-group"> <label><strong>Scenarios</strong></label> <div class="scenario-grid"> <button class="scenario-button" id="scenario-basic" aria-label="Load Basic Phasing scenario">Basic<br>Phasing</button> <button class="scenario-button" id="scenario-hohmann" aria-label="Load Hohmann Transfer scenario">Hohmann<br>Transfer</button> <button class="scenario-button" id="scenario-rendezvous" aria-label="Load R-bar Approach scenario">R-bar<br>Approach</button> </div> <div class="control-row" style="margin-top: 0.5rem;"> <label for="real-world-units" style="display:flex;align-items:center;gap:0.4rem;"> <input type="checkbox" id="real-world-units" aria-label="Toggle real-world units (km, km/s, minutes)"> Real-world units (km, km/s, min) </label> </div> </div> </div> <div class="units-legend"> <strong>Units:</strong> Earth radius R⊕ = 1, gravitational parameter μ = 1, time unit TU satisfies \(T=2\pi\sqrt{a^3/\mu}\), and speeds are in VU from vis-viva. </div> <div id="orbit-viz-container"> <div id="orbit-viz"></div> </div> <div id="orbit-hud"> <div class="hud-panel"> <h4>Chaser Spacecraft</h4> <div class="hud-value"> <span class="label">Semi-major axis:</span> <span class="value" id="chaser-a">1.000 R⊕</span> </div> <div class="hud-value"> <span class="label">Eccentricity:</span> <span class="value" id="chaser-e">0.000</span> </div> <div class="hud-value"> <span class="label">Period:</span> <span class="value" id="chaser-period">1.00 TU</span> </div> <div class="hud-value"> <span class="label">Speed:</span> <span class="value" id="chaser-speed">1.000 VU</span> </div> </div> <div class="hud-panel"> <h4>Target Spacecraft</h4> <div class="hud-value"> <span class="label">Semi-major axis:</span> <span class="value" id="target-a">1.000 R⊕</span> </div> <div class="hud-value"> <span class="label">Eccentricity:</span> <span class="value" id="target-e">0.000</span> </div> <div class="hud-value"> <span class="label">Period:</span> <span class="value" id="target-period">1.00 TU</span> </div> <div class="hud-value"> <span class="label">Phase angle:</span> <span class="value" id="phase-angle">0.0°</span> </div> </div> <div class="hud-panel"> <h4>Relative Motion</h4> <div class="hud-value"> <span class="label">Range:</span> <span class="value" id="relative-range">0.000 R⊕</span> </div> <div class="hud-value"> <span class="label">Closing rate:</span> <span class="value" id="closing-rate">0.000 VU</span> </div> <div class="hud-value"> <span class="label">ΔV budget used:</span> <span class="value" id="dv-budget">0.000 VU</span> </div> <div class="hud-value"> <span class="label">Time to closest approach:</span> <span class="value" id="time-to-ca">-- TU</span> </div> <div class="hud-value"> <span class="label">Min range:</span> <span class="value" id="min-range">-- R⊕</span> </div> </div> <div class="phase-gauge"> <h4>Phase Gauge</h4> <div class="row"> <span>Current:</span> <span id="phase-current">0.0°</span> </div> <div class="row"> <span>Desired:</span> <span id="phase-desired">—</span> </div> <div class="row"> <span>Error:</span> <span id="phase-error">—</span> </div> <div class="phase-bar"> <div class="phase-fill" id="phase-fill"></div> </div> <div class="phase-status na" id="phase-status">N/A</div> </div> </div> <div id="orbit-status">Simulation ready. Use burn controls to maneuver the chaser spacecraft.</div> </div> <h2 id="what-you-can-do">What You Can Do</h2> <ul> <li>Use +V/−V (prograde/retrograde) to raise/lower the opposite side of your orbit; tweak Burn Magnitude for gentle taps.</li> <li>Try +R/−R (radial out/in) to rotate the ellipse within the plane; great for small phasing trims and lining up periapsis/apoapsis.</li> <li>Adjust Time Scale to observe slow‑motion vs. accelerated orbits; watch HUD values update in real time.</li> <li>Toggle Real‑world units to see km, km/s, and minutes alongside the normalized units used in the sim.</li> <li>Load scenarios (Basic Phasing, Hohmann, R‑bar) and follow the on‑screen HUD to hit the objectives.</li> </ul> <h2 id="how-the-simulator-works">How The Simulator Works</h2> <ul> <li>Two‑body, coplanar model: Earth is fixed; we integrate motion in normalized units with Earth radius R⊕ = 1 and μ = 1.</li> <li>Propagation: advance true anomaly via Kepler’s equation and mean motion; speed from vis‑viva; positions from orbital elements.</li> <li>Impulsive burns: convert elements → state, add Δv in the LVLH frame, then convert back to elements.</li> <li>Closest approach: periodically predict min range over ~1.5 periods to estimate time‑to‑CA and min range.</li> <li>HUD: shows each vehicle’s a, e, period, speed; relative range and closing rate; total ΔV spent; current/desired phase angle.</li> </ul> <h2 id="lvlh-visual-intuition">LVLH Visual Intuition</h2> <div style="text-align:center; margin: 1rem 0;"> <svg viewbox="0 0 400 240" width="560" height="380" style="max-width: 100%; background: #0f1117; border: 1px solid #222; border-radius: 10px;"> <circle cx="200" cy="120" r="22" fill="#0f2744" stroke="#60a5fa" stroke-opacity="0.35"></circle> <circle cx="200" cy="120" r="100" fill="none" stroke="#334155" stroke-dasharray="6 6"></circle> <circle cx="300" cy="120" r="4" fill="#e879f9"></circle> <g stroke-width="2" font-size="12"> <line x1="300" y1="120" x2="330" y2="120" stroke="#22c55e"></line> <text x="335" y="124" fill="#22c55e" text-anchor="start">+R (radial)</text> <line x1="300" y1="120" x2="300" y2="90" stroke="#60a5fa"></line> <text x="258" y="84" fill="#60a5fa" text-anchor="start">+V (prograde)</text> </g> </svg> <div style="color:#94a3b8; font-size: 0.95rem; margin-top: 0.25rem;">Burns are applied in LVLH: +V tangential, +R radial.</div> </div> <h2 id="scenario-guides">Scenario Guides</h2> <ul> <li>Basic Phasing: Catch the target ahead by going lower/faster. <ul> <li>Steps: Press −V once; let the phase angle shrink; when aligned, press +V to re-circularize.</li> <li>Check: Phase angle → 0; chaser period &lt; target; min range drops; modest ΔV.</li> </ul> </li> <li>Hohmann Transfer: Change orbits efficiently with two burns. <ul> <li>Steps: At periapsis press +V to enter transfer; coast; at apoapsis press +V to circularize with target.</li> <li>Check: Semi-major axis matches target after second burn; periods match; range trending down.</li> </ul> </li> <li>R-bar Approach: Safe final approach along the radial corridor. <ul> <li>Steps: Use small −R pulses to reduce range; keep closing rate small; null out relative motion near capture.</li> <li>Check: Closing rate near 0 at short range; relative ellipse shrinks; ΔV stays small and controlled.</li> </ul> </li> </ul> <h2 id="experiments-to-try">Experiments To Try</h2> <ul> <li>Phase to a number: set the target 30° ahead; do a small −V to drop lower, coast until phase error ≈ 0°, then +V to recircularize.</li> <li>“Wrong place” burn: try +V at apoapsis vs. at periapsis; note which side of the orbit rises and how the period changes.</li> <li>Radial trims: use short +R/−R taps to rotate periapsis alignment to the target’s true anomaly before doing +V.</li> <li>ΔV budgeting: reduce Burn Magnitude and aim to complete each scenario with minimum total ΔV in the HUD.</li> </ul> <h2 id="faq--pitfalls">FAQ &amp; Pitfalls</h2> <ul> <li>I sped up but fell behind: expected—+V at periapsis makes the opposite side higher and the overall period longer; you arrive later there.</li> <li>My transfer missed the target altitude: your first +V was too large or at the wrong place; burns are most efficient at apses.</li> <li>Radial burns seem useless: they don’t change energy much; they rotate the ellipse—use them for alignment tweaks, not big transfers.</li> <li>Numbers don’t look like km/s: enable Real‑world units; otherwise values are in normalized TU/VU/R⊕.</li> <li>Time step artifacts: if fast‑forwarding, expect small differences in closest‑approach predictions; slow down to verify.</li> </ul> <h2 id="the-mathematics-of-orbital-motion">The Mathematics of Orbital Motion</h2> <p>Understanding orbital rendezvous requires a few key equations — each answers a practical question you’ll use in the sim.</p> <h3 id="vis-viva-equation">Vis-Viva Equation</h3> <p>Why it matters: Predict local speed from orbit size — explains why “lower = faster.”</p> \[V = \sqrt{\mu\left(\frac{2}{r} - \frac{1}{a}\right)}\] <p>Where:</p> <ul> <li>$V$ = orbital velocity</li> <li>$\mu$ = gravitational parameter (GM)</li> <li>$r$ = current distance from center</li> <li>$a$ = semi-major axis</li> </ul> <p>This equation tells us why <strong>lower orbits are faster</strong>—as $a$ decreases, $V$ increases.</p> <h3 id="keplers-third-law">Kepler’s Third Law</h3> <p>Why it matters: Predict orbital period — phasing works because periods differ.</p> \[T = 2\pi\sqrt{\frac{a^3}{\mu}}\] <p>This is why phasing maneuvers work: the spacecraft in the lower orbit completes more revolutions and can “catch up” to a target in a higher orbit.</p> <h3 id="mean-motion-and-keplers-equation">Mean Motion and Kepler’s Equation</h3> <p>Why it matters: Convert time → position along an ellipse.</p> <p><strong>Mean motion</strong> (average angular velocity): \(n = \sqrt{\frac{\mu}{a^3}}\)</p> <p><strong>Kepler’s equation</strong> (relating time to orbital position): \(M = E - e \sin E\)</p> <p>Where:</p> <ul> <li>$M$ = mean anomaly (average position)</li> <li>$E$ = eccentric anomaly</li> <li>$e$ = eccentricity</li> </ul> <h3 id="eccentric-anomaly-relations">Eccentric Anomaly Relations</h3> <p>Why it matters: Convert ellipse parameterizations to the true angle you see in the sim.</p> \[\tan\left(\frac{E}{2}\right) = \sqrt{\frac{1-e}{1+e}} \tan\left(\frac{\nu}{2}\right)\] <p>Where $\nu$ is the <strong>true anomaly</strong> (actual angular position in orbit).</p> <h2 id="orbital-elements-and-state-vectors">Orbital Elements and State Vectors</h2> <p>Every orbit can be described by six <strong>orbital elements</strong>:</p> <ol> <li> <strong>Semi-major axis (a)</strong>: Size of the orbit</li> <li> <strong>Eccentricity (e)</strong>: Shape of the orbit (0 = circular, &gt;0 = elliptical)</li> <li> <strong>Inclination (i)</strong>: Angle relative to equatorial plane</li> <li> <strong>Right ascension of ascending node (Ω)</strong>: Orientation in space</li> <li> <strong>Argument of periapsis (ω)</strong>: Orientation of ellipse in orbital plane</li> <li> <strong>True anomaly (ν)</strong>: Position along the orbit</li> </ol> <p>For our <strong>coplanar</strong> simulation, we simplify to just $(a, e, ω, ν)$ since $i = Ω = 0$.</p> <h3 id="converting-between-elements-and-state-vectors">Converting Between Elements and State Vectors</h3> <p><strong>Position in orbital plane:</strong> \(r = \frac{a(1-e^2)}{1 + e\cos\nu}\)</p> \[\vec{r} = r[\cos(\omega + \nu), \sin(\omega + \nu), 0]\] <p><strong>Velocity direction</strong> (perpendicular to radius, adjusted for eccentricity): \(\vec{v} = \sqrt{\frac{\mu}{a(1-e^2)}}[-\sin(\omega + \nu), e + \cos(\omega + \nu), 0]\)</p> <p>Note: Use vis‑viva above for speed; this section provides the direction.</p> <h2 id="lvlh-coordinate-frame">LVLH Coordinate Frame</h2> <p>In spacecraft operations, engineers use the <strong>Local Vertical Local Horizontal (LVLH)</strong> frame, also called the <strong>Hill frame</strong>:</p> <ul> <li> <strong>R-bar</strong>: Radial direction (toward/away from Earth)</li> <li> <strong>V-bar</strong>: Velocity direction (prograde/retrograde)</li> <li> <strong>H-bar</strong>: Angular momentum direction (out-of-plane)</li> </ul> <p><strong>Why This Matters</strong>: When mission controllers say “burn prograde” or “approach along the R-bar,” they’re using this coordinate system. It’s the natural reference frame for orbital operations.</p> <h3 id="lvlh-unit-vectors">LVLH Unit Vectors</h3> <p>At any point in orbit:</p> \[\hat{R} = \frac{\vec{r}}{|\vec{r}|} \quad \text{(radial)}\] \[\hat{V} = \frac{\vec{v}}{|\vec{v}|} \quad \text{(prograde)}\] \[\hat{H} = \frac{\vec{r} \times \vec{v}}{|\vec{r} \times \vec{v}|} \quad \text{(normal)}\] <h2 id="rendezvous-strategy-the-three-phase-approach">Rendezvous Strategy: The Three-Phase Approach</h2> <p>Real spacecraft rendezvous follows a systematic approach:</p> <h3 id="phase-1-phasing">Phase 1: Phasing</h3> <ul> <li>Lower the chaser’s orbit to make it faster</li> <li>Wait for proper phase alignment</li> <li>Multiple revolutions may be required</li> </ul> <h3 id="phase-2-transfer">Phase 2: Transfer</h3> <ul> <li>Execute Hohmann transfer or similar maneuver</li> <li>Time the burn for intercept geometry</li> <li>Monitor closest approach predictions</li> </ul> <h3 id="phase-3-final-approach">Phase 3: Final Approach</h3> <ul> <li>Small, precise burns in LVLH frame</li> <li>Approach along R-bar or V-bar for safety</li> <li>Maintain relative motion control</li> </ul> <blockquote> <p>Why it matters: Split the problem. Phase to align timing, transfer to meet geometry, then finalize relative motion safely.</p> </blockquote> <h2 id="advanced-topic-clohessy-wiltshire-equations">Advanced Topic: Clohessy-Wiltshire Equations</h2> <p>For <strong>close-proximity operations</strong>, we can linearize the relative motion equations around a circular orbit. This gives us the <strong>Clohessy-Wiltshire equations</strong>:</p> <p>\(\ddot{x} - 3n^2 x - 2n\dot{y} = 0\) \(\ddot{y} + 2n\dot{x} = 0\) \(\ddot{z} + n^2 z = 0\)</p> <p>Where:</p> <ul> <li>$x$ = radial separation (R-bar)</li> <li>$y$ = along-track separation (V-bar)</li> <li>$z$ = cross-track separation (H-bar)</li> <li>$n$ = target’s mean motion</li> </ul> <p>These equations predict that <strong>small relative motions follow elliptical paths</strong> in the orbital plane—exactly what you see in the final phases of ISS approaches.</p> <p>Try this (R‑bar): Load “R‑bar Approach.” Use tiny −R pulses to start closing, then alternate small +R/−R pulses to keep the relative ellipse centered while the closing rate trends to zero.</p> <h3 id="physical-interpretation">Physical Interpretation</h3> <p>The CW equations reveal fascinating physics:</p> <ul> <li> <strong>Radial motion couples to along-track motion</strong> through Coriolis effects</li> <li><strong>A radial impulse creates a closed elliptical trajectory</strong></li> <li><strong>Along-track motion has a secular drift component</strong></li> </ul> <p>This is why spacecraft approaching the ISS follow specific <strong>R-bar</strong> or <strong>V-bar</strong> approach corridors—it’s the safest way to maintain predictable relative motion.</p> <h2 id="real-world-applications">Real-World Applications</h2> <p>This isn’t just theoretical—every spacecraft rendezvous uses these principles:</p> <h3 id="international-space-station-iss">International Space Station (ISS)</h3> <ul> <li> <strong>Cargo Dragon</strong>: Approaches along the <strong>R-bar</strong> (from below/radial) to a capture point near the station.</li> <li> <strong>Crew Dragon</strong>: Similar R-bar profile with multiple hold points and built-in abort options.</li> <li> <strong>Progress/Soyuz</strong>: Russian vehicles use largely automated rendezvous along established corridors.</li> <li> <strong>Cygnus</strong>: Also follows an R-bar approach and is grappled by the robotic arm.</li> </ul> <h3 id="historical-missions">Historical Missions</h3> <ul> <li> <strong>Apollo</strong>: Lunar Module rendezvous with Command Module</li> <li> <strong>Space Shuttle</strong>: Dozens of ISS construction flights</li> <li> <strong>Hubble Servicing</strong>: Precision rendezvous for maintenance</li> </ul> <h3 id="future-applications">Future Applications</h3> <ul> <li> <strong>Artemis</strong>: Lunar Gateway rendezvous operations</li> <li> <strong>Commercial stations</strong>: Multiple private stations planned</li> <li> <strong>On-orbit servicing</strong>: Satellite refueling and repair</li> <li> <strong>Debris removal</strong>: Active cleanup missions</li> </ul> <h2 id="why-i-love-teaching-this">Why I Love Teaching This</h2> <p>Here’s the thing that absolutely blows my mind about orbital mechanics: it’s completely backwards from everything we experience on Earth. I’ve spent countless hours watching spacecraft approach the ISS, and every single time I’m amazed by how they do it.</p> <p>When I first learned about orbital rendezvous, I thought it would work like driving a car—speed up to catch up, right? <strong>Wrong.</strong> So incredibly wrong. And that’s exactly why I built this simulation.</p> <h2 id="the-stories-behind-each-scenario">The Stories Behind Each Scenario</h2> <p>I’ve included three different scenarios that represent real missions I’ve watched unfold. Each one teaches you something different about the beautiful, frustrating, counter-intuitive world of orbital mechanics.</p> <h3 id="scenario-1-the-chase-basic-phasing">Scenario 1: “The Chase” (Basic Phasing)</h3> <p><strong>This is my favorite one to mess with people’s heads.</strong></p> <p>Picture this: You’re an astronaut in a spacecraft, and you can see your target—maybe the ISS—ahead of you in the same orbit. Your instinct? Fire the engines and speed up to catch it, obviously.</p> <p><strong>Here’s what actually happens:</strong> You speed up, which raises the back half of your orbit, which means you’re now in a bigger orbit, which means you’re actually going <em>slower</em> on average. The target pulls further ahead. Congratulations, you just made things worse.</p> <p><strong>The mind-bending solution?</strong> Slow down. Seriously. Hit that <strong>-V button</strong> and drop into a lower orbit. Now you’re closer to Earth, moving faster, and you’ll gradually catch up over the next few orbits. It’s like taking the inside lane on a racetrack.</p> <p><strong>Real talk:</strong> This is exactly how every SpaceX Dragon mission catches up to the ISS. They launch into a lower orbit and spend about a day chasing the station from below. Every time I watch a launch, I think about how this breaks everyone’s brain the first time they learn it.</p> <h3 id="scenario-2-the-elegant-dance-hohmann-transfer">Scenario 2: “The Elegant Dance” (Hohmann Transfer)</h3> <p><strong>This one is pure poetry in motion.</strong></p> <p>Walter Hohmann figured this out in 1925—before we’d even put anything in orbit—and it’s still the most elegant way to change altitudes in space. It’s like orbital ballroom dancing: two perfectly timed moves, separated by a graceful coast through space.</p> <p><strong>Here’s how the dance works:</strong></p> <ol> <li> <strong>First move (+V):</strong> Burn prograde at your lowest point. This raises the top of your orbit to match your target’s altitude.</li> <li> <strong>The coast:</strong> Follow your new elliptical path for exactly half an orbit. This is where patience pays off.</li> <li> <strong>Second move (+V):</strong> Another prograde burn at the high point to circularize. Now you’re dancing at the same altitude.</li> </ol> <p><strong>The magic is in the timing.</strong> You have to time that first burn so that when you arrive at the high point, your target is waiting there for you. Miss the timing, and you’re playing cosmic tag in the worst possible way.</p> <p><strong>This blew my mind:</strong> Apollo’s trans-lunar injection used a <strong>Hohmann-like</strong> transfer timed with the Moon’s motion; the same elegant, energy-efficient idea shows up everywhere in mission design.</p> <h3 id="scenario-3-the-final-approach-r-bar-approach">Scenario 3: “The Final Approach” (R-bar Approach)</h3> <p><strong>This is where it gets really precise—and really nerve-wracking.</strong></p> <p>Imagine you’re the pilot of a cargo ship approaching the ISS. You’re close now—maybe a few kilometers away. Every move you make could be your last if you mess it up. There are people inside that station, and you’re carrying tons of supplies hurtling through space at 17,500 mph.</p> <p><strong>Why the R-bar approach is brilliant:</strong> Instead of approaching directly (which would be terrifying), you approach along the “R-bar”—the imaginary line pointing straight down toward Earth. If something goes wrong, you don’t crash into the station—you just drop away toward Earth.</p> <p><strong>The technique:</strong> Tiny <strong>-R burns</strong> that nudge you inward along this safe corridor. The relative motion follows these beautiful, predictable patterns that mathematicians call Clohessy-Wiltshire equations (don’t worry about the math—just know it works).</p> <p><strong>I’ve watched this happen live:</strong> During ISS approaches, NASA’s mission control guides the spacecraft along this exact path. You can see it on their live streams—the slow, careful approach from directly below the station. It looks almost gentle, but it’s the result of decades of learning how to do this safely.</p> <h2 id="ready-to-break-your-brain">Ready to Break Your Brain?</h2> <p>Here’s what I want you to try. Start with these scenarios and prepare to have your Earth-based intuition completely shattered:</p> <p><strong>Start with “The Chase”:</strong> Click Basic Phasing, then resist every instinct you have. When you see that target ahead of you, hit <strong>-V</strong> instead of +V. Watch the magic happen over several orbits. It feels wrong, but it works.</p> <p><strong>Try “The Dance”:</strong> Load up Hohmann Transfer and practice the two-burn sequence. Hit <strong>+V</strong> at the bottom of your orbit, coast patiently, then <strong>+V</strong> again at the top. Time it right and you’ll intercept your target perfectly.</p> <p><strong>Master “The Approach”:</strong> R-bar Approach lets you practice the final phase that every ISS visitor uses. Small <strong>-R burns</strong> only. Watch how controlled and predictable everything stays.</p> <p>The first time I got these right, I felt like I’d unlocked some secret of the universe. Because in a way, I had.</p> <h2 id="wait-why-does-v-sometimes-shrink-my-orbit">“Wait, Why Does +V Sometimes Shrink My Orbit?”</h2> <p><strong>This question breaks everyone’s brain the first time.</strong> You’re not going crazy, and it’s definitely not a bug. This is orbital mechanics being its beautifully weird self.</p> <p>Here’s what’s actually happening when you hit +V (prograde burn):</p> <h3 id="the-energy-distribution-dance">The Energy Distribution Dance</h3> <p>When you fire prograde, you’re adding energy to your orbit. But here’s the kicker—<strong>that energy doesn’t just make you go faster where you are</strong>. Instead, it gets distributed around your entire orbital path in a very specific way.</p> <p><strong>The fundamental rule:</strong> A prograde burn raises the <em>opposite side</em> of your orbit from where you’re currently located.</p> <h3 id="why-this-happens">Why This Happens</h3> <p>Think of your orbit like a rubber band around Earth. When you “stretch” one part by adding energy, the opposite part moves further out. So:</p> <ul> <li> <strong>Burn at the bottom of your orbit?</strong> You raise the top</li> <li> <strong>Burn at the top of your orbit?</strong> You raise the bottom</li> <li> <strong>Burn anywhere in between?</strong> You raise the opposite side</li> </ul> <h3 id="what-youre-actually-seeing">What You’re Actually Seeing</h3> <p>The “Semi-major axis” in the HUD shows your orbit’s average radius—and yes, +V <em>always</em> increases this. But here’s where it gets weird:</p> <ol> <li> <strong>Right after the burn:</strong> Your current position might show a smaller radius if you were at a high point and the burn raised the opposite (low) point more than your current position</li> <li> <strong>As you continue orbiting:</strong> You’ll see your altitude vary more dramatically because your orbit is now more elliptical</li> </ol> <h3 id="the-real-world-example">The Real-World Example</h3> <p>This is exactly why the Apollo Command Module had to do <strong>two</strong> separate burns to reach the Moon:</p> <ol> <li>First burn raised their apoapsis to lunar distance</li> <li>But they were still at low altitude—they had to coast all the way around to that high point</li> <li>Second burn at the high point raised their periapsis to complete the transfer</li> </ol> <h3 id="pro-tip-for-the-simulation">Pro Tip for the Simulation</h3> <p>Watch both the <strong>semi-major axis</strong> (average orbit size) and your <strong>current altitude</strong> as you orbit. The semi-major axis tells you the real story—it always increases with +V burns. The current radius changes as you move around your now-elliptical orbit.</p> <p><strong>This behavior is pure physics, not a bug—and it’s exactly why orbital mechanics is so beautifully counter-intuitive!</strong></p> <h2 id="help-my-hohmann-transfer-went-crazy">“Help! My Hohmann Transfer Went Crazy!”</h2> <p><strong>You’re discovering why rocket scientists do so much math before pressing buttons!</strong></p> <p>If your second +V burn in the Hohmann Transfer scenario is sending your orbit into the stratosphere, you’re experiencing one of the most important lessons in spaceflight: <strong>burn magnitude matters. A lot.</strong></p> <h3 id="whats-actually-happening">What’s Actually Happening</h3> <p>The Hohmann transfer is incredibly sensitive to burn timing and magnitude. Here’s what’s going wrong:</p> <ol> <li> <strong>Your first burn was probably too big</strong>: This created a transfer orbit that’s larger than intended</li> <li> <strong>When you reached apoapsis</strong>: You’re now much higher than the target orbit</li> <li> <strong>The second burn</strong>: Instead of circularizing at the target altitude, it’s adding energy to an already high orbit</li> </ol> <h3 id="the-real-world-parallel">The Real-World Parallel</h3> <p>This is exactly why SpaceX and NASA spend months calculating precise burn values. Get it wrong by even a few meters per second, and you miss your target by thousands of kilometers.</p> <h3 id="how-to-get-it-right">How to Get It Right</h3> <p>For the Hohmann Transfer scenario, try this:</p> <ol> <li> <strong>Reduce your burn magnitude to ~0.02</strong> using the slider</li> <li> <strong>First burn</strong>: One quick +V tap at your lowest point (periapsis)</li> <li> <strong>Coast</strong>: Wait exactly half an orbit until you’re at the highest point</li> <li> <strong>Second burn</strong>: Another small +V tap to circularize</li> </ol> <h3 id="the-math-behind-it">The Math Behind It</h3> <p>In the real world, the exact burn values for a Hohmann transfer are calculated using:</p> <ul> <li>First burn: ΔV₁ = √(μ/r₁) × (√(2r₂/(r₁+r₂)) - 1)</li> <li>Second burn: ΔV₂ = √(μ/r₂) × (1 - √(2r₁/(r₁+r₂)))</li> </ul> <p>For our scenario (1.2 to 1.4 Earth radii), these work out to much smaller values than the default 0.05 burn magnitude.</p> <h3 id="pro-tip">Pro Tip</h3> <p><strong>Watch the ghost trail!</strong> After your first burn, you’ll see a dashed line showing your predicted orbit. It should just barely touch the target’s orbital altitude. If it goes way beyond, your burn was too big.</p> <p><strong>This is why orbital mechanics is both beautiful and terrifying—tiny changes have huge consequences!</strong></p> <h2 id="the-counter-intuitive-truth">The Counter-Intuitive Truth</h2> <p>Now you understand why “speeding up makes you drop”:</p> <ul> <li>A <strong>prograde burn raises your apoapsis</strong> but may put you in a less favorable position</li> <li> <strong>Lower orbits are faster</strong>, so dropping down can help you catch up</li> <li> <strong>Orbital mechanics is about energy and angular momentum</strong>, not just instantaneous velocity</li> </ul> <p>This is the beautiful complexity of orbital mechanics—it requires thinking in terms of entire orbital paths, not just local motion. Every real spacecraft mission depends on these principles, from the smallest CubeSat to the largest space station.</p> <p>The next time you see a cargo ship approaching the ISS, you’ll know exactly why it takes that specific curved approach path and why the maneuvers seem so deliberate and careful. It’s not just caution—it’s the fundamental physics of orbital motion at work.</p> <script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script> <script type="module/disabled">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// Check WebGL support with actual context creation
+const canvas = document.createElement('canvas');
+const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+if (!gl) {
+  document.getElementById('orbit-viz').innerHTML = '<div class="no-webgl">WebGL is not supported in your browser</div>';
+  throw new Error('WebGL not supported');
+}
+
+// Show loading indicator
+document.getElementById('orbit-viz').innerHTML = '<div class="loading">Loading Orbital Simulator</div>';
+
+// Normalized units: Earth radius = 1, μ = 1
+const EARTH_RADIUS = 1.0;
+const MU = 1.0; // Gravitational parameter
+
+// Simulation parameters
+let params = {
+  playing: true,
+  timeScale: 1.0,
+  burnMagnitude: 0.05,
+  dt: 0.01,
+  realWorldUnits: false
+};
+
+// Real-world unit conversions
+const EARTH_RADIUS_KM = 6371.0; // km
+const TU_TO_SECONDS = Math.sqrt(EARTH_RADIUS_KM * EARTH_RADIUS_KM * EARTH_RADIUS_KM / 398600.4418); // √(R³/μ_Earth)
+const VU_TO_KM_S = EARTH_RADIUS_KM / TU_TO_SECONDS; // km/s
+
+// Simulation state
+let time = 0;
+let dvBudget = 0;
+let currentScenario = null;
+
+// Orbital elements for chaser and target [a, e, omega, nu]
+let chaserElements = [1.0, 0.0, 0.0, 0.0];
+let targetElements = [1.0, 0.0, 0.0, Math.PI/6]; // Start target ahead
+
+// Three.js objects
+let scene, camera, renderer, controls;
+let earthMesh, chaserMesh, targetMesh;
+let chaserTrail, targetTrail, ghostTrail;
+let chaserTrailGeometry, targetTrailGeometry, ghostTrailGeometry;
+let starField, ambientLight, directionalLight, pointLight;
+let particleSystem, burnParticles = [];
+let chaserGlow, targetGlow, earthGlow;
+
+// Markers for chaser periapsis/apoapsis
+let periMarker, apoMarker, periLabel, apoLabel;
+
+// Ghost burn arrows for Hohmann guidance
+let periBurnArrow, apoBurnArrow;
+
+// Orbital mechanics functions
+function keplerSolve(M, e, tolerance = 1e-8) {
+  let E = M; // Initial guess
+  for (let i = 0; i < 10; i++) {
+    const dE = (E - e * Math.sin(E) - M) / (1 - e * Math.cos(E));
+    E -= dE;
+    if (Math.abs(dE) < tolerance) break;
+  }
+  return E;
+}
+
+function elementsToState(elements) {
+  const [a, e, omega, nu] = elements;
+  
+  // Position magnitude
+  const r = a * (1 - e * e) / (1 + e * Math.cos(nu));
+  
+  // Position vector
+  const cosOmegaNu = Math.cos(omega + nu);
+  const sinOmegaNu = Math.sin(omega + nu);
+  const position = new THREE.Vector3(r * cosOmegaNu, r * sinOmegaNu, 0);
+  
+  // Velocity vector
+  const h = Math.sqrt(MU * a * (1 - e * e)); // Angular momentum
+  const cosNu = Math.cos(nu);
+  const sinNu = Math.sin(nu);
+  const cosOmega = Math.cos(omega);
+  const sinOmega = Math.sin(omega);
+  
+  const vx = -(MU / h) * Math.sin(omega + nu);
+  const vy = (MU / h) * (e + Math.cos(omega + nu));
+  const velocity = new THREE.Vector3(vx, vy, 0);
+  
+  return { position, velocity, r, speed: velocity.length() };
+}
+
+function stateToElements(position, velocity) {
+  const r = position.length();
+  const v = velocity.length();
+  
+  // Angular momentum vector
+  const h_vec = new THREE.Vector3().crossVectors(position, velocity);
+  const h = h_vec.length();
+  
+  // Eccentricity vector
+  const mu_r = MU / r;
+  const e_vec = new THREE.Vector3()
+    .crossVectors(velocity, h_vec)
+    .divideScalar(MU)
+    .sub(position.clone().normalize());
+  const e = e_vec.length();
+  
+  // Semi-major axis
+  const energy = 0.5 * v * v - mu_r;
+  const a = -MU / (2 * energy);
+  
+  // Argument of periapsis and true anomaly
+  let omega, nu;
+  if (e < 1e-6) {
+    // Circular orbit case - omega is undefined, set to 0 for consistency
+    omega = 0;
+    // True anomaly is just the position angle
+    nu = Math.atan2(position.y, position.x);
+    // Normalize to [0, 2π]
+    while (nu < 0) nu += 2 * Math.PI;
+    while (nu > 2 * Math.PI) nu -= 2 * Math.PI;
+  } else {
+    // Elliptical orbit case
+    omega = Math.atan2(e_vec.y, e_vec.x);
+    const cos_nu = e_vec.dot(position) / (e * r);
+    const sin_nu = h_vec.dot(new THREE.Vector3().crossVectors(e_vec, position)) / (h * e * r);
+    nu = Math.atan2(sin_nu, cos_nu);
+  }
+  
+  return [a, e, omega, nu];
+}
+
+function propagateOrbit(elements, dt) {
+  const [a, e, omega, nu_old] = elements;
+  
+  // Convert to eccentric anomaly
+  const cos_E_old = (e + Math.cos(nu_old)) / (1 + e * Math.cos(nu_old));
+  const sin_E_old = Math.sqrt(1 - e * e) * Math.sin(nu_old) / (1 + e * Math.cos(nu_old));
+  const E_old = Math.atan2(sin_E_old, cos_E_old);
+  
+  // Mean anomaly
+  const M_old = E_old - e * Math.sin(E_old);
+  
+  // Advance mean anomaly
+  const n = Math.sqrt(MU / (a * a * a)); // Mean motion
+  const M_new = M_old + n * dt;
+  
+  // Solve Kepler's equation
+  const E_new = keplerSolve(M_new, e);
+  
+  // Convert back to true anomaly
+  const cos_nu_new = (Math.cos(E_new) - e) / (1 - e * Math.cos(E_new));
+  const sin_nu_new = Math.sqrt(1 - e * e) * Math.sin(E_new) / (1 - e * Math.cos(E_new));
+  const nu_new = Math.atan2(sin_nu_new, cos_nu_new);
+  
+  return [a, e, omega, nu_new];
+}
+
+function applyBurn(elements, deltaV) {
+  // Get current state
+  const state = elementsToState(elements);
+  
+  // Apply delta-V
+  const newVelocity = state.velocity.clone().add(deltaV);
+  
+  // Convert back to elements
+  return stateToElements(state.position, newVelocity);
+}
+
+function computePhaseAngle(chaserElements, targetElements) {
+  const chaserNu = chaserElements[3];
+  const targetNu = targetElements[3];
+  let phase = targetNu - chaserNu;
+  
+  // Normalize to [0, 2π]
+  while (phase < 0) phase += 2 * Math.PI;
+  while (phase > 2 * Math.PI) phase -= 2 * Math.PI;
+  
+  return phase;
+}
+
+function predictClosestApproach(chaserElements, targetElements, maxTime = null) {
+  // Use scale-invariant prediction horizon based on chaser's period
+  if (maxTime === null) {
+    const [a] = chaserElements;
+    const P = 2 * Math.PI * Math.sqrt(a * a * a / MU);
+    maxTime = 1.5 * P;
+  }
+  
+  let minRange = Infinity;
+  let timeToCA = 0;
+  let chaserStateAtCA = null;
+  let targetStateAtCA = null;
+  
+  const dt = 0.01;
+  const steps = Math.floor(maxTime / dt);
+  
+  let currentChaserElements = [...chaserElements];
+  let currentTargetElements = [...targetElements];
+  
+  for (let i = 0; i < steps; i++) {
+    const chaserState = elementsToState(currentChaserElements);
+    const targetState = elementsToState(currentTargetElements);
+    
+    const range = chaserState.position.distanceTo(targetState.position);
+    
+    if (range < minRange) {
+      minRange = range;
+      timeToCA = i * dt;
+      chaserStateAtCA = { ...chaserState };
+      targetStateAtCA = { ...targetState };
+    }
+    
+    // Propagate orbits
+    currentChaserElements = propagateOrbit(currentChaserElements, dt);
+    currentTargetElements = propagateOrbit(currentTargetElements, dt);
+  }
+  
+  return {
+    minRange,
+    timeToCA,
+    chaserStateAtCA,
+    targetStateAtCA
+  };
+}
+
+function createTrailGeometry(maxPoints = 500) {
+  const positions = new Float32Array(maxPoints * 3);
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geometry.setDrawRange(0, 0); // Initially draw no points
+  return geometry;
+}
+
+function updateTrail(trailGeometry, newPosition, maxPoints = 500) {
+  const positions = trailGeometry.attributes.position.array;
+  const currentCount = trailGeometry.drawRange.count;
+  
+  if (currentCount < maxPoints) {
+    // Add new point
+    const index = currentCount * 3;
+    positions[index] = newPosition.x;
+    positions[index + 1] = newPosition.y;
+    positions[index + 2] = newPosition.z;
+    trailGeometry.setDrawRange(0, currentCount + 1);
+  } else {
+    // Shift array and add new point
+    for (let i = 0; i < (maxPoints - 1) * 3; i++) {
+      positions[i] = positions[i + 3];
+    }
+    const lastIndex = (maxPoints - 1) * 3;
+    positions[lastIndex] = newPosition.x;
+    positions[lastIndex + 1] = newPosition.y;
+    positions[lastIndex + 2] = newPosition.z;
+  }
+  
+  trailGeometry.attributes.position.needsUpdate = true;
+}
+
+function getLVLHBasis(position, velocity) {
+  const rBar = position.clone().normalize(); // Radial (away from Earth)
+  const hBar = new THREE.Vector3().crossVectors(position, velocity).normalize(); // Normal (out of plane)
+  const vBar = new THREE.Vector3().crossVectors(hBar, rBar); // Prograde (velocity direction)
+  
+  return { rBar, vBar, hBar };
+}
+
+// Add orbital collision detection and prevention
+function isOrbitValid(elements) {
+  const [a, e] = elements;
+  
+  // Check for hyperbolic orbits (energy >= 0, a < 0)
+  if (a <= 0) {
+    return false; // Hyperbolic or parabolic orbit
+  }
+  
+  // Check periapsis against Earth intersection
+  const periapsis = a * (1 - e);
+  const EARTH_RADIUS = 1.0;
+  const MIN_ALTITUDE = 0.01; // Minimum safe altitude above Earth
+  
+  if (periapsis <= (EARTH_RADIUS + MIN_ALTITUDE)) {
+    return false; // Would crash into Earth
+  }
+  
+  // Check apoapsis to avoid near-parabolic numerical weirdness
+  const apoapsis = a * (1 + e);
+  const MAX_APOAPSIS = 10.0; // Reasonable limit for simulation
+  
+  if (apoapsis > MAX_APOAPSIS) {
+    return false; // Orbit too large, numerical issues likely
+  }
+  
+  return true;
+}
+
+// Enhanced simulation step with visual effects
+function step() {
+  if (!params.playing) return;
+  
+  const dt = params.dt * params.timeScale;
+  
+  // Propagate orbits
+  chaserElements = propagateOrbit(chaserElements, dt);
+  targetElements = propagateOrbit(targetElements, dt);
+  
+  time += dt;
+  
+  // Update spacecraft positions
+  const chaserState = elementsToState(chaserElements);
+  const targetState = elementsToState(targetElements);
+  
+  chaserMesh.position.copy(chaserState.position);
+  targetMesh.position.copy(targetState.position);
+  
+  // Update trails with enhanced effects
+  updateTrail(chaserTrailGeometry, chaserState.position);
+  updateTrail(targetTrailGeometry, targetState.position);
+  
+  // Update particle systems
+  updateParticles();
+  
+  // Animate glow effects
+  if (chaserGlow) {
+    chaserGlow.material.opacity = 0.3 + 0.1 * Math.sin(time * 5);
+  }
+  if (targetGlow) {
+    targetGlow.material.opacity = 0.3 + 0.1 * Math.sin(time * 3);
+  }
+  if (earthGlow) {
+    earthGlow.material.opacity = 0.2 + 0.05 * Math.sin(time * 2);
+  }
+  
+  // Rotate Earth slowly
+  if (earthMesh) {
+    earthMesh.rotation.y += 0.001 * params.timeScale;
+  }
+  
+  // Animate starfield
+  if (starField) {
+    starField.rotation.y += 0.0001 * params.timeScale;
+  }
+  
+  // Update directional light position (simulating sun)
+  if (directionalLight) {
+    const angle = time * 0.1;
+    directionalLight.position.set(
+      Math.cos(angle) * 10,
+      3,
+      Math.sin(angle) * 10
+    );
+  }
+  
+  // Update HUD
+  updateHUD();
+  
+  updatePAOMarkers();
+  updatePhaseGauge();
+  updateGhostBurnArrows();
+  
+  updatePAOMarkers();
+  updatePhaseGauge();
+  
+  updatePAOMarkers();
+  updatePhaseGauge();
+  
+  updatePAOMarkers();
+  updatePhaseGauge();
+  
+  updatePAOMarkers();
+  updatePhaseGauge();
+}
+
+function updateHUD() {
+  const chaserState = elementsToState(chaserElements);
+  const targetState = elementsToState(targetElements);
+  
+  // Chaser parameters
+  const [chaserA, chaserE] = chaserElements;
+  const chaserPeriod = 2 * Math.PI * Math.sqrt(chaserA * chaserA * chaserA / MU);
+  
+  if (params.realWorldUnits) {
+    document.getElementById('chaser-a').textContent = `${(chaserA * EARTH_RADIUS_KM).toFixed(0)} km`;
+    document.getElementById('chaser-period').textContent = `${(chaserPeriod * TU_TO_SECONDS / 60).toFixed(1)} min`;
+    document.getElementById('chaser-speed').textContent = `${(chaserState.speed * VU_TO_KM_S).toFixed(2)} km/s`;
+  } else {
+    document.getElementById('chaser-a').textContent = `${chaserA.toFixed(3)} R⊕`;
+    document.getElementById('chaser-period').textContent = `${chaserPeriod.toFixed(2)} TU`;
+    document.getElementById('chaser-speed').textContent = `${chaserState.speed.toFixed(3)} VU`;
+  }
+  document.getElementById('chaser-e').textContent = chaserE.toFixed(3);
+  
+  // Target parameters
+  const [targetA, targetE] = targetElements;
+  const targetPeriod = 2 * Math.PI * Math.sqrt(targetA * targetA * targetA / MU);
+  
+  if (params.realWorldUnits) {
+    document.getElementById('target-a').textContent = `${(targetA * EARTH_RADIUS_KM).toFixed(0)} km`;
+    document.getElementById('target-period').textContent = `${(targetPeriod * TU_TO_SECONDS / 60).toFixed(1)} min`;
+  } else {
+    document.getElementById('target-a').textContent = `${targetA.toFixed(3)} R⊕`;
+    document.getElementById('target-period').textContent = `${targetPeriod.toFixed(2)} TU`;
+  }
+  document.getElementById('target-e').textContent = targetE.toFixed(3);
+  
+  // Phase angle (same in both unit systems)
+  const phaseAngle = computePhaseAngle(chaserElements, targetElements);
+  document.getElementById('phase-angle').textContent = `${(phaseAngle * 180 / Math.PI).toFixed(1)}°`;
+  
+  // Relative motion
+  const range = chaserState.position.distanceTo(targetState.position);
+  const relativeVel = new THREE.Vector3().subVectors(chaserState.velocity, targetState.velocity);
+  const closingRate = -relativeVel.dot(new THREE.Vector3().subVectors(targetState.position, chaserState.position).normalize());
+  
+  if (params.realWorldUnits) {
+    document.getElementById('relative-range').textContent = `${(range * EARTH_RADIUS_KM).toFixed(1)} km`;
+    document.getElementById('closing-rate').textContent = `${(closingRate * VU_TO_KM_S).toFixed(3)} km/s`;
+    document.getElementById('dv-budget').textContent = `${(dvBudget * VU_TO_KM_S).toFixed(2)} km/s`;
+  } else {
+    document.getElementById('relative-range').textContent = `${range.toFixed(3)} R⊕`;
+    document.getElementById('closing-rate').textContent = `${closingRate.toFixed(3)} VU`;
+    document.getElementById('dv-budget').textContent = `${dvBudget.toFixed(3)} VU`;
+  }
+  
+  // Closest approach prediction
+  const ca = predictClosestApproach(chaserElements, targetElements);
+  if (params.realWorldUnits) {
+    document.getElementById('time-to-ca').textContent =
+      ca.timeToCA > 0 ? `${(ca.timeToCA * TU_TO_SECONDS / 60).toFixed(1)} min` : '-- min';
+    document.getElementById('min-range').textContent = `${(ca.minRange * EARTH_RADIUS_KM).toFixed(1)} km`;
+  } else {
+    document.getElementById('time-to-ca').textContent =
+      ca.timeToCA > 0 ? `${ca.timeToCA.toFixed(1)} TU` : '-- TU';
+    document.getElementById('min-range').textContent = `${ca.minRange.toFixed(3)} R⊕`;
+  }
+
+  // Status
+  const mode = params.playing ? 'Running' : 'Paused';
+  if (params.realWorldUnits) {
+    document.getElementById('orbit-status').textContent =
+      `${mode} | Time: ${(time * TU_TO_SECONDS / 60).toFixed(1)} min | Range: ${(range * EARTH_RADIUS_KM).toFixed(1)} km`;
+  } else {
+    document.getElementById('orbit-status').textContent =
+      `${mode} | Time: ${time.toFixed(1)} TU | Range: ${range.toFixed(3)} R⊕`;
+  }
+}
+
+// Create starfield background
+function createStarField() {
+  const starsGeometry = new THREE.BufferGeometry();
+  const starsMaterial = new THREE.PointsMaterial({
+    color: 0xffffff,
+    size: 0.003,
+    transparent: true,
+    opacity: 1.0,
+    sizeAttenuation: false
+  });
+
+  const starsVertices = [];
+  for (let i = 0; i < 2000; i++) {
+    const x = (Math.random() - 0.5) * 200;
+    const y = (Math.random() - 0.5) * 200;
+    const z = (Math.random() - 0.5) * 200;
+    starsVertices.push(x, y, z);
+  }
+
+  starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starsVertices, 3));
+  return new THREE.Points(starsGeometry, starsMaterial);
+}
+
+// Create particle system for burn effects
+function createParticleSystem() {
+  const particleCount = 100;
+  const geometry = new THREE.BufferGeometry();
+  const positions = new Float32Array(particleCount * 3);
+  const velocities = new Float32Array(particleCount * 3);
+  const lifetimes = new Float32Array(particleCount);
+  
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute('velocity', new THREE.BufferAttribute(velocities, 3));
+  geometry.setAttribute('lifetime', new THREE.BufferAttribute(lifetimes, 1));
+  
+  const material = new THREE.PointsMaterial({
+    color: 0xffffff,
+    size: 0.01,
+    transparent: true,
+    opacity: 0.8,
+    blending: THREE.AdditiveBlending
+  });
+  
+  return new THREE.Points(geometry, material);
+}
+
+// Create glow effect
+function createGlow(color, size) {
+  const glowGeometry = new THREE.SphereGeometry(size, 16, 16);
+  const glowMaterial = new THREE.MeshBasicMaterial({
+    color: color,
+    transparent: true,
+    opacity: 0.3,
+    side: THREE.BackSide
+  });
+  return new THREE.Mesh(glowGeometry, glowMaterial);
+}
+
+// Create a small colored marker sphere
+function createMarker(color = 0x00e5ff, size = 0.035) {
+  const geo = new THREE.SphereGeometry(size, 16, 16);
+  const mat = new THREE.MeshPhongMaterial({ color, emissive: 0x000000, shininess: 80, specular: 0x444444 });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.castShadow = true;
+  return mesh;
+}
+
+// Make a simple text sprite (canvas-based) so it always faces camera
+function makeTextSprite(text, color = '#e5e7eb', fontSize = 48) {
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  const pad = 16;
+  ctx.font = `bold ${fontSize}px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto`;
+  const w = Math.ceil(ctx.measureText(text).width) + pad * 2;
+  const h = fontSize + pad * 2;
+  canvas.width = w; canvas.height = h;
+  // background glow
+  const grd = ctx.createLinearGradient(0,0,w,h);
+  grd.addColorStop(0, 'rgba(30,41,59,0.8)'); grd.addColorStop(1, 'rgba(15,23,42,0.8)');
+  ctx.fillStyle = grd; ctx.fillRect(0,0,w,h);
+  ctx.strokeStyle = 'rgba(59,130,246,0.6)'; ctx.lineWidth = 2; ctx.strokeRect(1,1,w-2,h-2);
+  // text
+  ctx.font = `bold ${fontSize}px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto`;
+  ctx.fillStyle = color; ctx.textBaseline = 'middle'; ctx.textAlign = 'center';
+  ctx.fillText(text, w/2, h/2);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.anisotropy = 4; texture.needsUpdate = true;
+  const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
+  const sprite = new THREE.Sprite(material);
+  const scale = 0.45; // world units scale
+  sprite.scale.set(canvas.width / 200 * scale, canvas.height / 200 * scale, 1);
+  sprite.userData.canvasTexture = texture;
+  sprite.renderOrder = 999;
+  return sprite;
+}
+
+// Position vector for a given (a, e, omega) at specified true anomaly nu (z=0 plane)
+function positionAtTrueAnomaly(a, e, omega, nu) {
+  const r = a * (1 - e * e) / (1 + e * Math.cos(nu));
+  const ang = omega + nu;
+  return new THREE.Vector3(r * Math.cos(ang), r * Math.sin(ang), 0);
+}
+
+// Create burn arrow indicator
+function createBurnArrow(color = 0x22c55e, size = 0.08) {
+  const group = new THREE.Group();
+  
+  // Arrow shaft
+  const shaftGeometry = new THREE.CylinderGeometry(0.008, 0.008, size, 8);
+  const shaftMaterial = new THREE.MeshPhongMaterial({ color, emissive: color, emissiveIntensity: 0.3 });
+  const shaft = new THREE.Mesh(shaftGeometry, shaftMaterial);
+  shaft.rotation.z = Math.PI / 2; // Point right initially
+  group.add(shaft);
+  
+  // Arrow head
+  const headGeometry = new THREE.ConeGeometry(0.02, 0.04, 8);
+  const head = new THREE.Mesh(headGeometry, shaftMaterial);
+  head.position.x = size / 2 + 0.02;
+  head.rotation.z = -Math.PI / 2; // Point right
+  group.add(head);
+  
+  return group;
+}
+
+// Update ghost burn arrows visibility and positioning
+function updateGhostBurnArrows() {
+  // Return early if arrows haven't been created yet
+  if (!periBurnArrow || !apoBurnArrow) return;
+  
+  const showArrows = (currentScenario === 'hohmann');
+  
+  periBurnArrow.visible = showArrows;
+  apoBurnArrow.visible = showArrows;
+  
+  if (showArrows) {
+    const [a, e, omega] = chaserElements;
+    
+    // Position arrows at periapsis and apoapsis
+    const periPos = positionAtTrueAnomaly(a, e, omega, 0);
+    const apoPos = positionAtTrueAnomaly(a, e, omega, Math.PI);
+    
+    periBurnArrow.position.copy(periPos);
+    apoBurnArrow.position.copy(apoPos);
+    
+    // Orient arrows tangentially (prograde direction)
+    const periTangent = Math.atan2(periPos.y, periPos.x) + Math.PI/2;
+    const apoTangent = Math.atan2(apoPos.y, apoPos.x) + Math.PI/2;
+    
+    periBurnArrow.rotation.z = periTangent;
+    apoBurnArrow.rotation.z = apoTangent;
+    
+    // Animate the arrows
+    const pulse = 0.8 + 0.2 * Math.sin(time * 4);
+    periBurnArrow.scale.setScalar(pulse);
+    apoBurnArrow.scale.setScalar(pulse);
+  }
+}
+
+// Update periapsis/apoapsis markers (for chaser)
+function updatePAOMarkers() {
+  if (!periMarker || !apoMarker || !periLabel || !apoLabel) return;
+  
+  const [a, e, omega] = chaserElements;
+  const periPos = positionAtTrueAnomaly(a, e, omega, 0);
+  const apoPos  = positionAtTrueAnomaly(a, e, omega, Math.PI);
+  periMarker.position.copy(periPos);
+  apoMarker.position.copy(apoPos);
+  // Offset labels slightly outward
+  periLabel.position.copy(periPos.clone().multiplyScalar(1.06));
+  apoLabel.position.copy(apoPos.clone().multiplyScalar(1.06));
+}
+
+// Wrap angle to [-π, π]
+function wrapPi(theta) {
+  while (theta > Math.PI) theta -= 2*Math.PI;
+  while (theta < -Math.PI) theta += 2*Math.PI;
+  return theta;
+}
+
+// Desired target lead angle (radians) for Hohmann-style transfer between *nearly circular* orbits
+// Positive = target ahead of chaser at departure
+function desiredPhaseHohmann(a1, a2) {
+  if (a1 <= 0 || a2 <= 0) return null;
+  // transfer time = π * sqrt( ((a1+a2)/2)^3 / μ ), μ = 1
+  const tTrans = Math.PI * Math.sqrt(Math.pow((a1 + a2)/2, 3));
+  const n2 = Math.sqrt(1 / Math.pow(a2, 3)); // mean motion of target
+  // Lower -> Higher: φ = π - n2*tTrans (target should lead by φ)
+  // Higher -> Lower: same formula still yields correct sign; interpret positive as "target ahead"
+  const phi = Math.PI - n2 * tTrans;
+  return wrapPi(phi);
+}
+
+// Update gauge UI; returns readiness boolean
+function updatePhaseGauge() {
+  const [a1, e1] = chaserElements;
+  const [a2, e2] = targetElements;
+
+  // Current phase (target relative to chaser)
+  const phase = computePhaseAngle(chaserElements, targetElements); // 0..2π
+  const phaseSigned = wrapPi(phase); // -π..π
+
+  // Show current
+  document.getElementById('phase-current').textContent = `${(phase * 180/Math.PI).toFixed(1)}°`;
+
+  // Only meaningful for near-circular orbits
+  if (e1 > 0.05 || e2 > 0.05) {
+    document.getElementById('phase-desired').textContent = '— (non-circular)';
+    document.getElementById('phase-error').textContent = '—';
+    document.getElementById('phase-status').textContent = 'N/A for eccentric orbits';
+    document.getElementById('phase-status').className = 'phase-status na';
+    document.getElementById('phase-fill').style.width = '0%';
+    return false;
+  }
+
+  const phi = desiredPhaseHohmann(a1, a2);
+  if (phi === null) {
+    document.getElementById('phase-desired').textContent = '—';
+    document.getElementById('phase-error').textContent = '—';
+    document.getElementById('phase-status').textContent = 'N/A';
+    document.getElementById('phase-status').className = 'phase-status na';
+    document.getElementById('phase-fill').style.width = '0%';
+    return false;
+  }
+
+  // desired lead (signed): positive = target ahead; negative = target behind
+  const desiredDeg = phi * 180/Math.PI;
+  document.getElementById('phase-desired').textContent =
+    `${desiredDeg >= 0 ? '' : '−'}${Math.abs(desiredDeg).toFixed(1)}° ${desiredDeg >= 0 ? '(ahead)' : '(behind)'}`;
+
+  // Error: difference between current phase and desired lead
+  const err = wrapPi(phaseSigned - phi);
+  const errDeg = err * 180/Math.PI;
+  document.getElementById('phase-error').textContent = `${errDeg >= 0 ? '' : '−'}${Math.abs(errDeg).toFixed(1)}°`;
+
+  // Bar shows "how close" (0° = full bar)
+  const tol = 5; // degrees
+  const closeness = Math.max(0, 1 - Math.min(Math.abs(errDeg)/90, 1)); // crude visualization
+  document.getElementById('phase-fill').style.width = `${(closeness*100).toFixed(0)}%`;
+
+  const ready = Math.abs(errDeg) <= tol;
+  const statusEl = document.getElementById('phase-status');
+  if (ready) {
+    statusEl.textContent = `READY (|error| ≤ ${tol}°)`;
+    statusEl.className = 'phase-status ready';
+  } else {
+    statusEl.textContent = `WAIT (need |error| ≤ ${tol}°)`;
+    statusEl.className = 'phase-status wait';
+  }
+  return ready;
+}
+
+// Initialize Three.js scene
+function initThree() {
+  const container = document.getElementById('orbit-viz');
+  
+  // Clear loading indicator
+  container.innerHTML = '';
+  
+  // Scene
+  scene = new THREE.Scene();
+  scene.fog = new THREE.Fog(0x000510, 10, 100);
+  
+  // Starfield background
+  starField = createStarField();
+  scene.add(starField);
+  
+  // Camera
+  camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 500);
+  camera.position.set(0, 0, 8);
+  camera.lookAt(0, 0, 0);
+  
+  // Renderer with enhanced settings
+  renderer = new THREE.WebGLRenderer({
+    antialias: true,
+    alpha: true,
+    powerPreference: 'high-performance'
+  });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(container.clientWidth, container.clientHeight);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.2;
+  container.appendChild(renderer.domElement);
+  
+  // Enhanced lighting system - brighter for better visibility
+  ambientLight = new THREE.AmbientLight(0x6080a0, 0.7);
+  scene.add(ambientLight);
+  
+  directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
+  directionalLight.position.set(5, 3, 5);
+  directionalLight.castShadow = true;
+  directionalLight.shadow.mapSize.width = 2048;
+  directionalLight.shadow.mapSize.height = 2048;
+  directionalLight.shadow.camera.near = 0.5;
+  directionalLight.shadow.camera.far = 50;
+  scene.add(directionalLight);
+  
+  pointLight = new THREE.PointLight(0x80b5ff, 1.2, 50);
+  pointLight.position.set(0, 0, 0);
+  scene.add(pointLight);
+  
+  // Enhanced Earth with realistic materials
+  const earthGeometry = new THREE.SphereGeometry(EARTH_RADIUS, 64, 64);
+  
+  // Create enhanced Earth texture
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+  
+  // Earth base with realistic colors
+  const earthGradient = ctx.createRadialGradient(512, 256, 0, 512, 256, 400);
+  earthGradient.addColorStop(0, '#2563eb');
+  earthGradient.addColorStop(0.3, '#1d4ed8');
+  earthGradient.addColorStop(0.7, '#1e40af');
+  earthGradient.addColorStop(1, '#1e3a8a');
+  ctx.fillStyle = earthGradient;
+  ctx.fillRect(0, 0, 1024, 512);
+  
+  // Add continents
+  ctx.fillStyle = '#065f46';
+  ctx.beginPath();
+  ctx.ellipse(200, 200, 80, 50, Math.PI/4, 0, 2*Math.PI);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(600, 300, 120, 70, -Math.PI/6, 0, 2*Math.PI);
+  ctx.fill();
+  
+  // Add coordinate grid
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 16; i++) {
+    const x = (i * 1024) / 16;
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, 512);
+    ctx.stroke();
+  }
+  for (let i = 0; i <= 8; i++) {
+    const y = (i * 512) / 8;
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(1024, y);
+    ctx.stroke();
+  }
+  
+  const earthTexture = new THREE.CanvasTexture(canvas);
+  earthTexture.wrapS = THREE.RepeatWrapping;
+  earthTexture.wrapT = THREE.RepeatWrapping;
+  
+  const earthMaterial = new THREE.MeshPhongMaterial({
+    map: earthTexture,
+    transparent: true,
+    opacity: 1.0,
+    shininess: 30,
+    specular: 0x222222
+  });
+  
+  earthMesh = new THREE.Mesh(earthGeometry, earthMaterial);
+  earthMesh.castShadow = true;
+  earthMesh.receiveShadow = true;
+  scene.add(earthMesh);
+  
+  // Earth glow effect
+  earthGlow = createGlow(0x60a5fa, 1.1);
+  earthMesh.add(earthGlow);
+  
+  // Enhanced Chaser spacecraft - larger and more visible
+  const chaserGeometry = new THREE.SphereGeometry(0.06, 16, 16);
+  const chaserMaterial = new THREE.MeshPhongMaterial({
+    color: 0xff4444,
+    emissive: 0x330000,
+    shininess: 100,
+    specular: 0x555555
+  });
+  chaserMesh = new THREE.Mesh(chaserGeometry, chaserMaterial);
+  chaserMesh.castShadow = true;
+  scene.add(chaserMesh);
+  
+  // Chaser glow - larger
+  chaserGlow = createGlow(0xff4444, 0.12);
+  chaserMesh.add(chaserGlow);
+  
+  // Enhanced Target spacecraft - larger and more visible
+  const targetGeometry = new THREE.SphereGeometry(0.06, 16, 16);
+  const targetMaterial = new THREE.MeshPhongMaterial({
+    color: 0x44ff44,
+    emissive: 0x003300,
+    shininess: 100,
+    specular: 0x555555
+  });
+  targetMesh = new THREE.Mesh(targetGeometry, targetMaterial);
+  targetMesh.castShadow = true;
+  scene.add(targetMesh);
+  
+  // Target glow - larger
+  targetGlow = createGlow(0x44ff44, 0.12);
+  targetMesh.add(targetGlow);
+  
+  // --- Periapsis / Apoapsis markers & labels for the chaser ---
+  periMarker = createMarker(0x3b82f6, 0.04);   // blue-ish
+  apoMarker  = createMarker(0xa855f7, 0.04);   // purple-ish
+  scene.add(periMarker, apoMarker);
+
+  periLabel = makeTextSprite('Periapsis', '#bfdbfe', 48);
+  apoLabel  = makeTextSprite('Apoapsis',  '#e9d5ff', 48);
+  periLabel.className = 'sprite-label';
+  apoLabel.className  = 'sprite-label';
+  scene.add(periLabel, apoLabel);
+
+  // Position them once at startup
+  updatePAOMarkers();
+  
+  // Enhanced orbital trails with gradient
+  chaserTrailGeometry = createTrailGeometry();
+  const chaserTrailMaterial = new THREE.LineBasicMaterial({
+    color: 0xff4444,
+    transparent: true,
+    opacity: 0.8,
+    linewidth: 2
+  });
+  chaserTrail = new THREE.Line(chaserTrailGeometry, chaserTrailMaterial);
+  scene.add(chaserTrail);
+  
+  targetTrailGeometry = createTrailGeometry();
+  const targetTrailMaterial = new THREE.LineBasicMaterial({
+    color: 0x44ff44,
+    transparent: true,
+    opacity: 0.8,
+    linewidth: 2
+  });
+  targetTrail = new THREE.Line(targetTrailGeometry, targetTrailMaterial);
+  scene.add(targetTrail);
+  
+  // Enhanced ghost trail with dashed line effect
+  ghostTrailGeometry = createTrailGeometry();
+  const ghostTrailMaterial = new THREE.LineDashedMaterial({
+    color: 0xffffff,
+    transparent: true,
+    opacity: 0.5,
+    dashSize: 0.05,
+    gapSize: 0.03,
+    linewidth: 1
+  });
+  ghostTrail = new THREE.Line(ghostTrailGeometry, ghostTrailMaterial);
+  ghostTrail.computeLineDistances();
+  scene.add(ghostTrail);
+  
+  // Particle system for burn effects
+  particleSystem = createParticleSystem();
+  scene.add(particleSystem);
+  
+  // Enhanced controls
+  controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.05;
+  controls.enablePan = true;
+  controls.enableZoom = true;
+  controls.minDistance = 1.5;
+  controls.maxDistance = 15;
+  controls.autoRotate = false;
+  controls.autoRotateSpeed = 0.5;
+  
+  // Handle resize
+  const resizeObserver = new ResizeObserver(() => {
+    camera.aspect = container.clientWidth / container.clientHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(container.clientWidth, container.clientHeight);
+  });
+  resizeObserver.observe(container);
+  
+  // --- Ghost burn arrows for Hohmann guidance ---
+  periBurnArrow = createBurnArrow(0x22c55e, 0.12); // Green prograde arrow
+  apoBurnArrow = createBurnArrow(0x22c55e, 0.12);  // Green prograde arrow
+  periBurnArrow.visible = false; // Initially hidden
+  apoBurnArrow.visible = false;
+  scene.add(periBurnArrow, apoBurnArrow);
+  
+  // Initial positions
+  resetSimulation();
+}
+
+function resetSimulation() {
+  // Reset to initial conditions - start at LEO altitude
+  chaserElements = [1.3, 0.0, 0.0, 0.0];
+  targetElements = [1.3, 0.0, 0.0, Math.PI/6];
+  time = 0;
+  dvBudget = 0;
+  
+  // Clear trails (only if they exist)
+  if (chaserTrailGeometry) chaserTrailGeometry.setDrawRange(0, 0);
+  if (targetTrailGeometry) targetTrailGeometry.setDrawRange(0, 0);
+  if (ghostTrailGeometry) ghostTrailGeometry.setDrawRange(0, 0);
+  
+  // Update positions (only if meshes exist)
+  if (chaserMesh && targetMesh) {
+    const chaserState = elementsToState(chaserElements);
+    const targetState = elementsToState(targetElements);
+    
+    chaserMesh.position.copy(chaserState.position);
+    targetMesh.position.copy(targetState.position);
+  }
+  
+  updateHUD();
+  if (periMarker && apoMarker) updatePAOMarkers();
+  updatePhaseGauge();
+  currentScenario = null; // Reset scenario
+  updateGhostBurnArrows();
+}
+
+// Scenario presets with detailed setups
+function loadScenario(scenario) {
+  switch (scenario) {
+    case 'basic':
+      // Basic Phasing: Chaser starts behind target in same circular orbit
+      // Goal: Use retrograde burn to lower orbit and catch up
+      chaserElements = [1.3, 0.0, 0.0, -Math.PI/3]; // 60° behind
+      targetElements = [1.3, 0.0, 0.0, 0.0];
+      currentScenario = 'basic';
+      document.getElementById('orbit-status').textContent =
+        'Basic Phasing: Try a -V burn to lower orbit and catch up to target';
+      break;
+      
+    case 'hohmann':
+      // Hohmann Transfer: Chaser in lower orbit, target in higher orbit
+      // Goal: Execute two-burn transfer maneuver
+      chaserElements = [1.2, 0.0, 0.0, 0.0]; // Lower orbit
+      targetElements = [1.4, 0.0, 0.0, Math.PI]; // Higher orbit, opposite side
+      currentScenario = 'hohmann';
+      document.getElementById('orbit-status').textContent =
+        'Hohmann Transfer: Use +V at periapsis, then +V again at apoapsis to circularize';
+      break;
+      
+    case 'rendezvous':
+      // R-bar Approach: Close proximity with slight eccentricity
+      // Goal: Use small radial burns for final approach
+      chaserElements = [1.295, 0.02, 0.0, Math.PI + Math.PI/12]; // Slightly elliptical, near target
+      targetElements = [1.3, 0.0, 0.0, 0.0];
+      currentScenario = 'rendezvous';
+      document.getElementById('orbit-status').textContent =
+        'R-bar Approach: Use small -R burns to approach target along radial corridor';
+      break;
+  }
+  
+  // Clear trails for new scenario (only if they exist)
+  if (chaserTrailGeometry) chaserTrailGeometry.setDrawRange(0, 0);
+  if (targetTrailGeometry) targetTrailGeometry.setDrawRange(0, 0);
+  if (ghostTrailGeometry) ghostTrailGeometry.setDrawRange(0, 0);
+  
+  time = 0;
+  dvBudget = 0;
+  
+  // Update positions (only if meshes exist)
+  if (chaserMesh && targetMesh) {
+    const chaserState = elementsToState(chaserElements);
+    const targetState = elementsToState(targetElements);
+    
+    chaserMesh.position.copy(chaserState.position);
+    targetMesh.position.copy(targetState.position);
+  }
+  
+  updateHUD();
+  if (periMarker && apoMarker) updatePAOMarkers();
+  updatePhaseGauge();
+  updateGhostBurnArrows();
+}
+
+// Create burn particle effect
+function createBurnEffect(position, direction, burnType) {
+  const particleCount = 50;
+  const particles = new THREE.Group();
+  
+  for (let i = 0; i < particleCount; i++) {
+    const particleGeometry = new THREE.SphereGeometry(0.002, 4, 4);
+    let particleColor;
+    switch (burnType) {
+      case 'prograde': particleColor = 0x22c55e; break;
+      case 'retrograde': particleColor = 0xef4444; break;
+      case 'radial-out': particleColor = 0x3b82f6; break;
+      case 'radial-in': particleColor = 0xf59e0b; break;
+      default: particleColor = 0xffffff;
+    }
+    
+    const particleMaterial = new THREE.MeshBasicMaterial({
+      color: particleColor,
+      transparent: true,
+      opacity: 0.8
+    });
+    
+    const particle = new THREE.Mesh(particleGeometry, particleMaterial);
+    
+    // Random position around burn point
+    const spread = 0.1;
+    particle.position.copy(position);
+    particle.position.add(new THREE.Vector3(
+      (Math.random() - 0.5) * spread,
+      (Math.random() - 0.5) * spread,
+      (Math.random() - 0.5) * spread
+    ));
+    
+    // Velocity opposite to burn direction
+    const velocity = direction.clone().multiplyScalar(-0.02 * (0.5 + Math.random()));
+    velocity.add(new THREE.Vector3(
+      (Math.random() - 0.5) * 0.01,
+      (Math.random() - 0.5) * 0.01,
+      (Math.random() - 0.5) * 0.01
+    ));
+    
+    particle.userData = {
+      velocity: velocity,
+      life: 1.0,
+      decay: 0.02 + Math.random() * 0.02
+    };
+    
+    particles.add(particle);
+  }
+  
+  scene.add(particles);
+  burnParticles.push({
+    group: particles,
+    life: 1.0
+  });
+}
+
+// Update particle systems
+function updateParticles() {
+  for (let i = burnParticles.length - 1; i >= 0; i--) {
+    const burnEffect = burnParticles[i];
+    burnEffect.life -= 0.02;
+    
+    if (burnEffect.life <= 0) {
+      scene.remove(burnEffect.group);
+      burnParticles.splice(i, 1);
+      continue;
+    }
+    
+    burnEffect.group.children.forEach(particle => {
+      particle.userData.life -= particle.userData.decay;
+      particle.position.add(particle.userData.velocity);
+      particle.material.opacity = particle.userData.life;
+      particle.scale.setScalar(particle.userData.life);
+      
+      if (particle.userData.life <= 0) {
+        particle.visible = false;
+      }
+    });
+  }
+}
+
+// Enhanced execute burn with visual effects and collision detection
+function executeBurn(direction) {
+  const chaserState = elementsToState(chaserElements);
+  const basis = getLVLHBasis(chaserState.position, chaserState.velocity);
+  
+  let deltaV;
+  switch (direction) {
+    case 'prograde':
+      deltaV = basis.vBar.clone().multiplyScalar(params.burnMagnitude);
+      break;
+    case 'retrograde':
+      deltaV = basis.vBar.clone().multiplyScalar(-params.burnMagnitude);
+      break;
+    case 'radial-out':
+      deltaV = basis.rBar.clone().multiplyScalar(params.burnMagnitude);
+      break;
+    case 'radial-in':
+      deltaV = basis.rBar.clone().multiplyScalar(-params.burnMagnitude);
+      break;
+  }
+  
+  // Test the burn before applying it
+  const testElements = applyBurn(chaserElements, deltaV);
+  
+  // Check if the resulting orbit would be valid (not crash into Earth)
+  if (!isOrbitValid(testElements)) {
+    // Warn user and prevent dangerous burn
+    document.getElementById('orbit-status').textContent =
+      `⚠️ Burn rejected: Would cause orbit to intersect with Earth! Try smaller magnitude.`;
+    document.getElementById('orbit-status').style.color = '#ef4444';
+    
+    // Reset color after 3 seconds
+    setTimeout(() => {
+      document.getElementById('orbit-status').style.color = '#60a5fa';
+    }, 3000);
+    
+    return; // Don't execute the burn
+  }
+  
+  // Create visual burn effect
+  createBurnEffect(chaserState.position, deltaV.clone().normalize(), direction);
+  
+  // Flash effect on chaser
+  chaserMesh.material.emissive.setHex(0x444444);
+  setTimeout(() => {
+    chaserMesh.material.emissive.setHex(0x330000);
+  }, 200);
+  
+  // Apply the burn (we know it's safe now)
+  chaserElements = testElements;
+  dvBudget += deltaV.length();
+  
+  // Update ghost trail with prediction
+  updateGhostTrail();
+  
+  // Update status with burn confirmation
+  const burnNames = {
+    'prograde': '+V (Prograde)',
+    'retrograde': '-V (Retrograde)',
+    'radial-out': '+R (Radial Out)',
+    'radial-in': '-R (Radial In)'
+  };
+  document.getElementById('orbit-status').textContent =
+    `✓ ${burnNames[direction]} burn executed. ΔV: ${params.burnMagnitude.toFixed(3)} VU`;
+  
+  // Add UI feedback
+  const button = document.getElementById(`burn-${direction}`);
+  if (button) {
+    button.style.transform = 'scale(0.95)';
+    setTimeout(() => {
+      button.style.transform = '';
+    }, 150);
+  }
+}
+
+function updateGhostTrail() {
+  // Clear previous ghost trail
+  ghostTrailGeometry.setDrawRange(0, 0);
+  
+  // Predict future trajectory
+  let tempElements = [...chaserElements];
+  const positions = ghostTrailGeometry.attributes.position.array;
+  
+  for (let i = 0; i < 200; i++) {
+    const state = elementsToState(tempElements);
+    positions[i * 3] = state.position.x;
+    positions[i * 3 + 1] = state.position.y;
+    positions[i * 3 + 2] = state.position.z;
+    
+    tempElements = propagateOrbit(tempElements, 0.05);
+  }
+  
+  ghostTrailGeometry.setDrawRange(0, 200);
+  ghostTrailGeometry.attributes.position.needsUpdate = true;
+  
+  // Recompute line distances so dashes render correctly after updates
+  if (ghostTrail && ghostTrail.computeLineDistances) {
+    ghostTrail.computeLineDistances();
+  }
+}
+
+// Educational callouts for counter-intuitive moments
+function showEducationalCallout(direction, chaserState, elements) {
+  const [a, e, omega, nu] = elements;
+  const r = chaserState.r;
+  
+  // Determine orbital position relative to periapsis/apoapsis
+  const periapsisR = a * (1 - e);
+  const apoapsisR = a * (1 + e);
+  const nearPeriapsis = Math.abs(r - periapsisR) < 0.1 * a;
+  const nearApoapsis = Math.abs(r - apoapsisR) < 0.1 * a;
+  
+  let message = '';
+  
+  if (direction === 'prograde') {
+    if (nearPeriapsis) {
+      message = '🚀 Apoapsis ↑, current speed ↑ (instant), average speed ↓ after you reach apoapsis';
+    } else if (nearApoapsis) {
+      message = '🌍 Periapsis ↑, current speed ↑ (instant), you\'re now in a higher, slower orbit';
+    } else {
+      message = '⬆️ Prograde burn raises opposite side of orbit - energy increases but effects are delayed';
+    }
+  } else if (direction === 'retrograde') {
+    if (nearPeriapsis) {
+      message = '⬇️ Apoapsis ↓, current speed ↓ (instant), but you\'ll be faster on average in this lower orbit';
+    } else if (nearApoapsis) {
+      message = '🎯 Periapsis ↓, dropping to a lower, faster orbit - perfect for catching up';
+    } else {
+      message = '🔻 Retrograde burn lowers opposite side - less energy means faster average speed';
+    }
+  } else if (direction === 'radial-out') {
+    message = '📡 Radial-out burn: raising periapsis while lowering apoapsis - circularizing from below';
+  } else if (direction === 'radial-in') {
+    message = '🎯 Radial-in burn: lowering periapsis while raising apoapsis - circularizing from above';
+  }
+  
+  if (message) {
+    showToast(message);
+  }
+}
+
+// Show toast message
+let currentToast = null;
+function showToast(message) {
+  // Remove existing toast
+  if (currentToast) {
+    currentToast.remove();
+  }
+  
+  // Create new toast
+  currentToast = document.createElement('div');
+  currentToast.className = 'toast';
+  currentToast.innerHTML = `<span class="toast-icon">💡</span>${message}`;
+  document.body.appendChild(currentToast);
+  
+  // Show animation
+  setTimeout(() => {
+    currentToast.classList.add('show');
+  }, 50);
+  
+  // Auto-hide after 4 seconds
+  setTimeout(() => {
+    if (currentToast) {
+      currentToast.classList.remove('show');
+      setTimeout(() => {
+        if (currentToast) {
+          currentToast.remove();
+          currentToast = null;
+        }
+      }, 400);
+    }
+  }, 4000);
+}
+
+// Animation loop
+function animate() {
+  requestAnimationFrame(animate);
+  
+  step();
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+// Event listeners
+document.getElementById('orbit-play-pause').addEventListener('click', () => {
+  params.playing = !params.playing;
+  document.getElementById('orbit-play-pause').textContent = params.playing ? 'Pause' : 'Play';
+});
+
+document.getElementById('orbit-reset').addEventListener('click', resetSimulation);
+
+document.getElementById('burn-prograde').addEventListener('click', () => executeBurn('prograde'));
+document.getElementById('burn-retrograde').addEventListener('click', () => executeBurn('retrograde'));
+document.getElementById('burn-radial-out').addEventListener('click', () => executeBurn('radial-out'));
+document.getElementById('burn-radial-in').addEventListener('click', () => executeBurn('radial-in'));
+
+document.getElementById('burn-magnitude').addEventListener('input', (e) => {
+  params.burnMagnitude = parseFloat(e.target.value);
+  document.getElementById('burn-magnitude-value').textContent = params.burnMagnitude.toFixed(2);
+});
+
+document.getElementById('time-scale').addEventListener('input', (e) => {
+  params.timeScale = parseFloat(e.target.value);
+  document.getElementById('time-scale-value').textContent = `${params.timeScale.toFixed(1)}×`;
+});
+
+document.getElementById('scenario-basic').addEventListener('click', () => loadScenario('basic'));
+document.getElementById('scenario-hohmann').addEventListener('click', () => loadScenario('hohmann'));
+document.getElementById('scenario-rendezvous').addEventListener('click', () => loadScenario('rendezvous'));
+
+// Real-world units toggle removed - no UI element exists for this feature
+// If needed in future, add a checkbox element with id="real-world-units"
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+  // Don't interfere if user is typing in an input
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  
+  switch (e.key.toLowerCase()) {
+    case ' ':
+      e.preventDefault();
+      document.getElementById('orbit-play-pause').click();
+      break;
+    case '[':
+      e.preventDefault();
+      const timeScale = Math.max(0.1, params.timeScale - 0.1);
+      document.getElementById('time-scale').value = timeScale;
+      document.getElementById('time-scale').dispatchEvent(new Event('input'));
+      break;
+    case ']':
+      e.preventDefault();
+      const timeScaleUp = Math.min(10, params.timeScale + 0.1);
+      document.getElementById('time-scale').value = timeScaleUp;
+      document.getElementById('time-scale').dispatchEvent(new Event('input'));
+      break;
+    case 'z':
+      e.preventDefault();
+      executeBurn('prograde');
+      break;
+    case 'x':
+      e.preventDefault();
+      executeBurn('retrograde');
+      break;
+    case 'c':
+      e.preventDefault();
+      executeBurn('radial-out');
+      break;
+    case 'v':
+      e.preventDefault();
+      executeBurn('radial-in');
+      break;
+    case 'r':
+      e.preventDefault();
+      document.getElementById('orbit-reset').click();
+      break;
+    case '?':
+    case 'h':
+      e.preventDefault();
+      toggleKeyboardHelp();
+      break;
+  }
+});
+
+// Show/hide keyboard shortcuts help
+let keyboardHelpVisible = false;
+function toggleKeyboardHelp() {
+  const helpDiv = document.getElementById('keyboard-help');
+  if (helpDiv) {
+    keyboardHelpVisible = !keyboardHelpVisible;
+    helpDiv.classList.toggle('show', keyboardHelpVisible);
+  }
+}
+
+// Add keyboard shortcuts helper to page
+document.body.insertAdjacentHTML('beforeend', `
+<div id="keyboard-help" class="keyboard-shortcuts">
+  <h5>Keyboard Shortcuts</h5>
+  <div><kbd>Space</kbd>Play/Pause</div>
+  <div><kbd>[</kbd><kbd>]</kbd>Time Scale</div>
+  <div><kbd>Z</kbd>+V (Prograde)</div>
+  <div><kbd>X</kbd>-V (Retrograde)</div>
+  <div><kbd>C</kbd>+R (Radial Out)</div>
+  <div><kbd>V</kbd>-R (Radial In)</div>
+  <div><kbd>R</kbd>Reset</div>
+  <div><kbd>?</kbd>Toggle Help</div>
+</div>
+`);
+
+// Initialize
+initThree();
+animate();
+</script> <script type="module" src="/assets/js/orbit-simulator.js"></script> </article> </div> </div> <footer class="fixed-bottom"> <div class="container mt-0"> © Copyright 2025 Saeed Ghorbani. Powered by <a href="https://jekyllrb.com/" target="_blank" rel="noopener noreferrer">Jekyll</a> with <a href="https://github.com/alshedivat/al-folio" target="_blank" rel="noopener noreferrer">al-folio</a> theme. Hosted by <a href="https://pages.github.com/" target="_blank" rel="noopener noreferrer">GitHub Pages</a>. Photos from <a href="https://unsplash.com" target="_blank" rel="noopener noreferrer">Unsplash</a>. </div> </footer> <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script> <script async src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.2/dist/umd/popper.min.js" integrity="sha256-l/1pMF/+J4TThfgARS6KwWrk/egwuVvhRzfLAMQ6Ds4=" crossorigin="anonymous"></script> <script async src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.min.js" integrity="sha256-SyTu6CwrfOhaznYZPoolVw2rxoY7lKYKQvqbtqN93HI=" crossorigin="anonymous"></script> <script async src="https://cdn.jsdelivr.net/npm/mdbootstrap@4.20.0/js/mdb.min.js" integrity="sha256-NdbiivsvWt7VYCt6hYNT3h/th9vSTL4EDWeGs5SN3DA=" crossorigin="anonymous"></script> <script defer src="/assets/js/common.js"></script> <script defer src="/assets/js/custom_effects.js"></script> <script type="text/javascript">window.MathJax={tex:{inlineMath:[["$","$"],["\\(","\\)"]],displayMath:[["$$","$$"],["\\[","\\]"]],processEscapes:!0,processEnvironments:!0,tags:"ams"},options:{ignoreHtmlClass:"tex2jax_ignore",processHtmlClass:"tex2jax_process"}};</script> <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3.2.0/es5/tex-mml-chtml.js"></script> </body> </html>

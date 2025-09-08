@@ -1,8 +1,4 @@
----
-permalink: /robots.txt
-layout: none
----
-# Robots.txt for {{ site.title }} - {{ site.url }}
+# Robots.txt for Saeed Ghorbani - https://saeed1262.github.io
 User-agent: *
 Allow: /
 
@@ -11,14 +7,14 @@ Allow: /assets/
 Allow: /projects/
 Allow: /publications/
 Allow: /cv/
-{% if site.blog_nav_title %}Allow: /blog/{% endif %}
+Allow: /blog/
 
 # Allow crawling of academic resources
 Allow: /assets/pdf/
 Allow: /assets/img/
 
 # Enhanced sitemap reference
-Sitemap: {{ site.baseurl | prepend: site.url }}/sitemap.xml
+Sitemap: https://saeed1262.github.io/sitemap.xml
 
 # Crawling guidance for better indexing
 Crawl-delay: 1
