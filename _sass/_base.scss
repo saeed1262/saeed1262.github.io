@@ -27,10 +27,7 @@ h1, h2, h3, h4, h5, h6 {
 h1 {
   font-size: 2.5rem;
   font-weight: 800;
-  background: var(--global-gradient-primary);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--global-heading-color);
 }
 
 h2 {
@@ -71,26 +68,10 @@ table {
 a, table.table a {
   color: var(--global-theme-color);
   text-decoration: none;
-  position: relative;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: -2px;
-    left: 0;
-    width: 0;
-    height: 2px;
-    background: var(--global-gradient-primary);
-    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  
+  transition: color 0.15s ease;
+
   &:hover {
     color: var(--global-hover-color);
-    
-    &::after {
-      width: 100%;
-    }
   }
 }
 
@@ -146,18 +127,12 @@ blockquote {
   box-shadow: var(--global-box-shadow-sm);
   
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--global-box-shadow-lg);
+    box-shadow: var(--global-box-shadow-md);
     background-color: var(--global-card-hover-bg);
   }
 
   img {
     width: 100%;
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  
-  &:hover img {
-    transform: scale(1.05);
   }
 
   .card-title {
@@ -190,12 +165,6 @@ blockquote {
   img {
     border-radius: 12px;
     box-shadow: var(--global-box-shadow-md);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    
-    &:hover {
-      transform: scale(1.02);
-      box-shadow: var(--global-box-shadow-lg);
-    }
   }
 
   .address {
@@ -285,11 +254,6 @@ blockquote {
     font-weight: 700;
     font-size: 1.3rem;
     letter-spacing: -0.02em;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    
-    &:hover {
-      transform: scale(1.05);
-    }
   }
   
   .navbar-nav .nav-item .nav-link {
@@ -311,10 +275,9 @@ blockquote {
     background: var(--global-gradient-primary);
     color: white;
     font-weight: 600;
-    
+
     &:hover {
       color: white;
-      transform: scale(1.05);
     }
   }
   .navbar-brand.social {
@@ -406,13 +369,8 @@ blockquote {
   
   &:hover {
     color: var(--global-hover-color);
-    background: var(--global-gradient-primary);
-    border-color: transparent;
-    transform: scale(1.05);
-    
-    i {
-      color: white !important;
-    }
+    background-color: var(--global-bg-color-tertiary);
+    border-color: var(--global-border-color);
   }
   
   &:focus {
@@ -452,12 +410,10 @@ blockquote {
       }
       
       &:hover {
-        transform: translateY(-5px) scale(1.1);
-        background: var(--global-gradient-primary);
-        box-shadow: var(--global-box-shadow-lg);
-        
+        background: var(--global-bg-color-tertiary);
+
         i::before {
-          color: white;
+          color: var(--global-theme-color);
         }
       }
       
@@ -578,13 +534,8 @@ footer.sticky-bottom {
         }
         
         &:hover {
-          transform: translateY(-2px) scale(1.05);
           box-shadow: var(--global-box-shadow-md);
           background: var(--global-card-hover-bg);
-          
-          i {
-            transform: scale(1.1);
-          }
         }
       }
       
@@ -741,10 +692,7 @@ footer.sticky-bottom {
 
     &:hover {
       .card-title {
-        background: var(--global-gradient-primary);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
+        color: var(--global-theme-color);
       }
     }
   }
@@ -802,10 +750,6 @@ footer.sticky-bottom {
     text-align: center;
     margin-top: 1em;
     margin-bottom: 1em;
-    background: var(--global-gradient-primary);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
   }
   h2 {
     margin-bottom: 1rem;
@@ -836,7 +780,6 @@ footer.sticky-bottom {
       
       &:hover {
         box-shadow: var(--global-box-shadow-md);
-        transform: translateX(5px);
       }
       
       .abbr {
@@ -902,8 +845,6 @@ footer.sticky-bottom {
             color: white;
             background: var(--global-gradient-primary);
             border-color: transparent;
-            transform: translateY(-2px);
-            box-shadow: var(--global-box-shadow-md);
           }
         }
       }
@@ -1011,14 +952,6 @@ html.transition *:after {
   }
 }
 
-// Apply animations
-.profile, .news, .publications, .projects {
-  animation: fadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.navbar {
-  animation: slideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-}
 
 // Improved scrollbar
 ::-webkit-scrollbar {
@@ -1031,11 +964,11 @@ html.transition *:after {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--global-theme-color);
+  background: var(--global-text-color-muted);
   border-radius: 5px;
-  
+
   &:hover {
-    background: var(--global-theme-color-dark);
+    background: var(--global-text-color-light);
   }
 }
 
