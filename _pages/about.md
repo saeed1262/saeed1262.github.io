@@ -7,7 +7,7 @@ permalink: /
 profile:
   align: right
   image: saeed.jpg
-  image_cicular: false # crops the image to make it circular
+  image_circular: false # crops the image to make it circular
   address: >
       <p><strong>Research Scientist</strong></p>
       <p>Amazon Games</p>

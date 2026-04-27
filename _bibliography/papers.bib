@@ -40,19 +40,15 @@
   pdf         = {https://arxiv.org/pdf/2404.12625},
   selected    = {true},
   website     = {https://vdavoodnia.github.io/projects/skelformer/},
-  abstract    = {Abstract. We introduce UPose3D, a novel approach for multi-view 3D
-                 human pose estimation, addressing challenges in accuracy and scalability.
-                 Our method advances existing pose estimation frameworks by improving
-                 robustness and flexibility without requiring direct 3D annotations. At the
-                 core of our method, a pose compiler module refines predictions from a 2D
-                 keypoints estimator that operates on a single image by leveraging temporal and cross-view information. Our novel cross-view fusion strategy is
-                 scalable to any number of cameras, while our synthetic data generation
-                 strategy ensures generalization across diverse actors, scenes, and viewpoints. Finally, UPose3D leverages the prediction uncertainty of both
-                 the 2D keypoint estimator and the pose compiler module. This provides
-                 robustness to outliers and noisy data, resulting in state-of-the-art performance in out-of-distribution settings. In addition, for in-distribution
-                 settings, UPose3D yields performance rivalling methods that rely on 3D
-                 annotated data while being the state-of-the-art among methods relying
-                 only on 2D supervision.}
+  abstract    = {We present a markerless motion capture pipeline for 3D human pose and shape
+                 estimation. Our two-stage approach first leverages existing 2D keypoint detectors
+                 to obtain 3D joint positions, then applies a regression-based inverse-kinematic
+                 skeletal transformer that maps the joint positions to pose and shape representations
+                 from heavily noisy observations. By integrating pose space priors and separating
+                 3D keypoint detection from inverse kinematics, our model achieves strong
+                 generalization to unseen noisy data. We evaluate our approach across three public
+                 datasets in both in-distribution and out-of-distribution settings, demonstrating
+                 robust performance against noise and occlusions.}
 }
 
 @article{ghorbani2023zeroeggs,
@@ -95,7 +91,7 @@
   abbr        = {APIN},
   bibtex_show = {true},
   journal     = {Journal of Applied Intelligence},
-  title       = {Estimating Pose from Pressure Data for Smart Beds withDeep Image-based Pose Estimators},
+  title       = {Estimating Pose from Pressure Data for Smart Beds with Deep Image-based Pose Estimators},
   author      = {Davoodnia, Vandad and Ghorbani, Saeed and Etemad, Ali},
   publisher   = {Springer},
   year        = {2021},
