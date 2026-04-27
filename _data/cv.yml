@@ -22,9 +22,12 @@
 - title: Work Experience
   type: time_table
   contents:
+      - title: Senior Research Scientist
+        institution: Wētā FX, Toronto, Canada
+        year: 2026 - Present
       - title: Research Scientist
         institution: Amazon Games, Toronto, Canada
-        year: 2025 - Present
+        year: 2025 - 2026
       - title: Research & Development Scientist
         institution: Ubisoft La Forge, Toronto/Montreal, Canada
         year: 2022 - 2025

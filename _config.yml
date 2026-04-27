@@ -8,7 +8,7 @@ middle_name:
 last_name: Ghorbani
 email: saeed.ghorbani1262 at gmail dot com
 description: > # the ">" symbol means to ignore newlines until "footer_text:"
-    Research Scientist at Amazon Games specializing in machine learning, computer vision, computer graphics, and computer animation. Expert in probabilistic motion modeling and deep learning for human motion synthesis.
+    Senior Research Scientist at Wētā FX specializing in machine learning, computer vision, computer graphics, and computer animation. Expert in probabilistic motion modeling and deep learning for human motion synthesis.
 footer_text: >
     Powered by <a href="https://jekyllrb.com/" target="_blank">Jekyll</a> with <a href="https://github.com/alshedivat/al-folio">al-folio</a> theme.
     Hosted by <a href="https://pages.github.com/" target="_blank">GitHub Pages</a>.
