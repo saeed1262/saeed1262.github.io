@@ -4,18 +4,18 @@
  ******************************************************************************/
 
 
-// Modern Dark Color Palette
-$primary-color:       #06B6D4 !default;  // Cyan blue-green
-$primary-dark:        #0891B2 !default;
-$primary-light:       #67E8F9 !default;
-$accent-color:        #2DD4BF !default;  // Teal
-$accent-dark:         #0D9488 !default;
-$secondary-color:     #38BDF8 !default;  // Sky blue
-$secondary-dark:      #0284C7 !default;
-$tertiary-color:      #94A3B8 !default;  // Slate
-$success-color:       #2DD4BF !default;
-$warning-color:       #94A3B8 !default;
-$info-color:          #38BDF8 !default;
+// Midnight Slate Color Palette
+$primary-color:       #7C3AED !default;  // Electric violet
+$primary-dark:        #5B21B6 !default;
+$primary-light:       #A78BFA !default;
+$accent-color:        #8B5CF6 !default;  // Soft violet
+$accent-dark:         #6D28D9 !default;
+$secondary-color:     #C4B5FD !default;  // Lavender
+$secondary-dark:      #7C3AED !default;
+$tertiary-color:      #4C4571 !default;  // Muted purple-slate
+$success-color:       #A78BFA !default;
+$warning-color:       #C4B5FD !default;
+$info-color:          #8B5CF6 !default;
 
 // Legacy colors (kept for compatibility)
 $red-color:           $accent-color !default;
@@ -36,12 +36,12 @@ $pink-color:          #FF69B4 !default;
 $pink-color-light:    #FFE4F1 !default;
 $yellow-color:        $tertiary-color !default;
 
-// Neutral colors (cool dark)
-$grey-color:          #8B949E !default;
-$grey-color-light:    #161B22 !default;
-$grey-color-medium:   #30363D !default;
-$grey-color-dark:     #0D1117 !default;
-$grey-900:            #080C10 !default;
+// Neutral colors (midnight slate)
+$grey-color:          #9CA3AF !default;
+$grey-color-light:    #1E1B2E !default;
+$grey-color-medium:   #2D2A40 !default;
+$grey-color-dark:     #1A1A2E !default;
+$grey-900:            #0F0F1A !default;
 
 $white-color: #FFFFFF !default;
 $black-color: #000000 !default;
@@ -49,7 +49,7 @@ $black-color: #000000 !default;
 
 // Theme colors
 $code-bg-color-light:     rgba($primary-color, 0.1);
-$code-bg-color-dark:      #1C2128 !default;
+$code-bg-color-dark:      #2D2A40 !default;
 
 // Additional theme variables
 $gradient-primary: linear-gradient(135deg, $primary-color 0%, $accent-color 100%);
