@@ -2,18 +2,18 @@
  * Themes - Modern Design System
  ******************************************************************************/
  
-// Light Theme (Default) — soft charcoal slate
+// Light Theme (Default) — desert & sky
 :root {
   // Background colors
-  --global-bg-color: #F5F4FF;
-  --global-bg-color-secondary: #EDEAFA;
-  --global-bg-color-tertiary: #E0DCF5;
+  --global-bg-color: #FAF5EF;
+  --global-bg-color-secondary: #F5EDE3;
+  --global-bg-color-tertiary: #EDD5BC;
 
   // Text colors
-  --global-text-color: #1A1A2E;
-  --global-text-color-light: #4B4869;
-  --global-text-color-muted: #7C7A9E;
-  --global-heading-color: #0F0F1A;
+  --global-text-color: #1A2830;
+  --global-text-color-light: #4A6070;
+  --global-text-color-muted: #7A8A96;
+  --global-heading-color: #0F1A22;
 
   // Theme colors
   --global-theme-color: #{$primary-color};
@@ -25,17 +25,17 @@
 
   // UI colors
   --global-divider-color: rgba(0, 0, 0, 0.08);
-  --global-border-color: #D4D0EE;
+  --global-border-color: #DDD0C4;
   --global-card-bg-color: #FFFFFF;
-  --global-card-hover-bg: #F5F4FF;
+  --global-card-hover-bg: #FAF5EF;
 
   // Code colors
   --global-code-bg-color: #{$code-bg-color-light};
 
   // Footer colors
-  --global-footer-bg-color: linear-gradient(135deg, #0F0F1A 0%, #1A1A2E 100%);
-  --global-footer-text-color: #9CA3AF;
-  --global-footer-link-color: #E5E7EB;
+  --global-footer-bg-color: linear-gradient(135deg, #1A2830 0%, #2C3A44 100%);
+  --global-footer-text-color: #89C0D3;
+  --global-footer-link-color: #EDD5BC;
   
   // Misc
   --global-distill-app-color: #{$grey-color};
@@ -59,40 +59,40 @@
   }
 }
 
-// Dark Theme — midnight slate with electric violet accents
+// Dark Theme — deep dusk with sky blue accents
 html[data-theme='dark'] {
   // Background colors
-  --global-bg-color: #1A1A2E;
-  --global-bg-color-secondary: #1E1B2E;
-  --global-bg-color-tertiary: #2D2A40;
+  --global-bg-color: #1A2830;
+  --global-bg-color-secondary: #22333E;
+  --global-bg-color-tertiary: #2C3A44;
 
   // Text colors
-  --global-text-color: #F3F4F6;
-  --global-text-color-light: #9CA3AF;
-  --global-text-color-muted: #6B7280;
-  --global-heading-color: #FFFFFF;
+  --global-text-color: #EDD5BC;
+  --global-text-color-light: #B0C8D4;
+  --global-text-color-muted: #7A8A96;
+  --global-heading-color: #FAF5EF;
 
   // Theme colors
-  --global-theme-color: #{$primary-light};
-  --global-theme-color-dark: #{$primary-color};
-  --global-theme-color-light: #C4B5FD;
+  --global-theme-color: #{$secondary-color};
+  --global-theme-color-dark: #{$primary-light};
+  --global-theme-color-light: #B8DCE8;
   --global-accent-color: #{$accent-color};
-  --global-secondary-color: #{$secondary-color};
-  --global-hover-color: #C4B5FD;
+  --global-secondary-color: #{$primary-light};
+  --global-hover-color: #B8DCE8;
 
   // UI colors
   --global-divider-color: rgba(255, 255, 255, 0.08);
-  --global-border-color: #3D3A55;
-  --global-card-bg-color: #1E1B2E;
-  --global-card-hover-bg: #2D2A40;
+  --global-border-color: #3A4E5A;
+  --global-card-bg-color: #22333E;
+  --global-card-hover-bg: #2C3A44;
 
   // Code colors
   --global-code-bg-color: #{$code-bg-color-dark};
 
   // Footer colors
-  --global-footer-bg-color: linear-gradient(135deg, #0F0F1A 0%, #1A1A2E 100%);
-  --global-footer-text-color: #6B7280;
-  --global-footer-link-color: #9CA3AF;
+  --global-footer-bg-color: linear-gradient(135deg, #0F1A22 0%, #1A2830 100%);
+  --global-footer-text-color: #7A8A96;
+  --global-footer-link-color: #B0C8D4;
 
   // Misc
   --global-distill-app-color: #{$grey-color-light};

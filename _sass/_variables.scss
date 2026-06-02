@@ -4,18 +4,18 @@
  ******************************************************************************/
 
 
-// Midnight Slate Color Palette
-$primary-color:       #7C3AED !default;  // Electric violet
-$primary-dark:        #5B21B6 !default;
-$primary-light:       #A78BFA !default;
-$accent-color:        #8B5CF6 !default;  // Soft violet
-$accent-dark:         #6D28D9 !default;
-$secondary-color:     #C4B5FD !default;  // Lavender
-$secondary-dark:      #7C3AED !default;
-$tertiary-color:      #4C4571 !default;  // Muted purple-slate
-$success-color:       #A78BFA !default;
-$warning-color:       #C4B5FD !default;
-$info-color:          #8B5CF6 !default;
+// Desert & Sky Color Palette
+$primary-color:       #2D6B98 !default;  // Deep steel blue
+$primary-dark:        #1E4E73 !default;
+$primary-light:       #5295BE !default;
+$accent-color:        #C9614A !default;  // Terracotta
+$accent-dark:         #A84A35 !default;
+$secondary-color:     #89C0D3 !default;  // Light sky blue
+$secondary-dark:      #5295BE !default;
+$tertiary-color:      #EDD5BC !default;  // Sand/cream
+$success-color:       #5295BE !default;
+$warning-color:       #C9614A !default;
+$info-color:          #89C0D3 !default;
 
 // Legacy colors (kept for compatibility)
 $red-color:           $accent-color !default;
@@ -36,24 +36,24 @@ $pink-color:          #FF69B4 !default;
 $pink-color-light:    #FFE4F1 !default;
 $yellow-color:        $tertiary-color !default;
 
-// Neutral colors (midnight slate)
-$grey-color:          #9CA3AF !default;
-$grey-color-light:    #1E1B2E !default;
-$grey-color-medium:   #2D2A40 !default;
-$grey-color-dark:     #1A1A2E !default;
-$grey-900:            #0F0F1A !default;
+// Neutral colors
+$grey-color:          #7A8A96 !default;
+$grey-color-light:    #F5EDE3 !default;
+$grey-color-medium:   #DDD0C4 !default;
+$grey-color-dark:     #2C3A44 !default;
+$grey-900:            #1A2830 !default;
 
 $white-color: #FFFFFF !default;
 $black-color: #000000 !default;
 
 
 // Theme colors
-$code-bg-color-light:     rgba($primary-color, 0.1);
-$code-bg-color-dark:      #2D2A40 !default;
+$code-bg-color-light:     rgba($primary-color, 0.08);
+$code-bg-color-dark:      #2C3A44 !default;
 
 // Additional theme variables
-$gradient-primary: linear-gradient(135deg, $primary-color 0%, $accent-color 100%);
-$gradient-accent: linear-gradient(135deg, $accent-color 0%, $secondary-color 100%);
+$gradient-primary: linear-gradient(135deg, $primary-color 0%, $secondary-color 100%);
+$gradient-accent: linear-gradient(135deg, $accent-color 0%, $tertiary-color 100%);
 $box-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.06);
 $box-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
 $box-shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
