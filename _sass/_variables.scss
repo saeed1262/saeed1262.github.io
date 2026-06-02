@@ -4,18 +4,18 @@
  ******************************************************************************/
 
 
-// Warm Neutral Color Palette
-$primary-color:       #2A5219 !default;  // Forest green
-$primary-dark:        #1C3A11 !default;
-$primary-light:       #4A8A2E !default;
-$accent-color:        #6B7C5E !default;  // Muted sage
-$accent-dark:         #556147 !default;
-$secondary-color:     #8C7355 !default;  // Warm tan
-$secondary-dark:      #70593E !default;
-$tertiary-color:      #C8B89A !default;  // Warm sand
-$success-color:       #4A8A2E !default;  // Forest green (same as primary-light)
-$warning-color:       #C8B89A !default;  // Warm sand
-$info-color:          #6B7C5E !default;  // Muted sage
+// Modern Dark Color Palette
+$primary-color:       #06B6D4 !default;  // Cyan blue-green
+$primary-dark:        #0891B2 !default;
+$primary-light:       #67E8F9 !default;
+$accent-color:        #2DD4BF !default;  // Teal
+$accent-dark:         #0D9488 !default;
+$secondary-color:     #38BDF8 !default;  // Sky blue
+$secondary-dark:      #0284C7 !default;
+$tertiary-color:      #94A3B8 !default;  // Slate
+$success-color:       #2DD4BF !default;
+$warning-color:       #94A3B8 !default;
+$info-color:          #38BDF8 !default;
 
 // Legacy colors (kept for compatibility)
 $red-color:           $accent-color !default;
@@ -36,23 +36,23 @@ $pink-color:          #FF69B4 !default;
 $pink-color-light:    #FFE4F1 !default;
 $yellow-color:        $tertiary-color !default;
 
-// Neutral colors (warm-shifted)
-$grey-color:          #6B6560 !default;
-$grey-color-light:    #F2EFE9 !default;
-$grey-color-medium:   #D8D3CB !default;
-$grey-color-dark:     #2C2926 !default;
-$grey-900:            #1A1714 !default;
+// Neutral colors (cool dark)
+$grey-color:          #8B949E !default;
+$grey-color-light:    #161B22 !default;
+$grey-color-medium:   #30363D !default;
+$grey-color-dark:     #0D1117 !default;
+$grey-900:            #080C10 !default;
 
 $white-color: #FFFFFF !default;
 $black-color: #000000 !default;
 
 
 // Theme colors
-$code-bg-color-light:     rgba($primary-color, 0.08);
-$code-bg-color-dark:      #2E2A23 !default;
+$code-bg-color-light:     rgba($primary-color, 0.1);
+$code-bg-color-dark:      #1C2128 !default;
 
 // Additional theme variables
-$gradient-primary: linear-gradient(135deg, $primary-color 0%, #5C7A3E 100%);
+$gradient-primary: linear-gradient(135deg, $primary-color 0%, $accent-color 100%);
 $gradient-accent: linear-gradient(135deg, $accent-color 0%, $secondary-color 100%);
 $box-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.06);
 $box-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
