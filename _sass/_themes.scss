@@ -6,7 +6,7 @@
 :root {
   // Background colors
   --global-bg-color: #FAF5EF;
-  --global-bg-color-secondary: #F5EDE3;
+  --global-bg-color-secondary: #F2E8DC;
   --global-bg-color-tertiary: #EDD5BC;
 
   // Text colors
@@ -81,10 +81,10 @@ html[data-theme='dark'] {
   --global-hover-color: #B8DCE8;
 
   // UI colors
-  --global-divider-color: rgba(255, 255, 255, 0.08);
-  --global-border-color: #3A4E5A;
-  --global-card-bg-color: #22333E;
-  --global-card-hover-bg: #2C3A44;
+  --global-divider-color: rgba(255, 255, 255, 0.07);
+  --global-border-color: #344D5A;
+  --global-card-bg-color: #1E2E38;
+  --global-card-hover-bg: #253544;
 
   // Code colors
   --global-code-bg-color: #{$code-bg-color-dark};

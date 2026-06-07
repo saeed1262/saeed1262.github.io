@@ -1,21 +1,22 @@
 /*******************************************************************************
- * Custom styles
+ * Custom effects — micro-interactions, hover states, polish
  ******************************************************************************/
 
-// Cards — subtle lift on hover, no 3D transforms or shimmer
+// Cards — subtle lift on hover with warm shadow tint
 .card {
-  border-radius: 8px;
+  border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  transition: box-shadow 0.2s ease;
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
 
   @media (prefers-reduced-motion: no-preference) {
     &:hover {
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 8px 24px rgba(45, 107, 152, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+      transform: translateY(-2px);
     }
   }
 }
 
-// Nav links — underline indicator for active/hover state
+// Nav links — underline indicator that slides in from center
 .nav-link {
   position: relative;
   font-weight: 500;
@@ -29,24 +30,88 @@
     width: 0;
     height: 2px;
     background: var(--global-theme-color);
-    transition: width 0.2s ease, left 0.2s ease;
+    border-radius: 1px;
+    transition: width 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+                left 0.22s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   &:hover::after,
   &.active::after {
-    width: 80%;
-    left: 10%;
+    width: 70%;
+    left: 15%;
   }
 }
 
-// Buttons — clean, professional base
+// Buttons — clean professional base with hover elevation
 .btn, button {
-  border-radius: 4px;
+  border-radius: 6px;
   font-weight: 500;
-  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: color 0.15s ease,
+              background-color 0.15s ease,
+              border-color 0.15s ease,
+              box-shadow 0.15s ease,
+              transform 0.15s ease;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: none;
+  }
 }
 
-// Reduced motion — disable all transitions for users who prefer it
+// External / inline text links — subtle underline animation
+a:not(.nav-link):not(.btn):not(.navbar-brand):not(.dropdown-item) {
+  text-underline-offset: 3px;
+}
+
+// Focus ring — accessible, on-brand
+a:focus-visible,
+button:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--global-theme-color);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+// Dark mode toggle — spin icon on hover
+#light-toggle {
+  &:hover i {
+    transform: rotate(20deg);
+  }
+}
+
+// Publication abbr badge — ensure text is always white
+.publications .abbr abbr {
+  color: #ffffff !important;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+}
+
+// News table scroll indicator when scrollable
+.news .table-responsive {
+  scrollbar-width: thin;
+  scrollbar-color: var(--global-text-color-muted) transparent;
+
+  &::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--global-border-color);
+    border-radius: 2px;
+  }
+}
+
+// Smooth image loading — prevent layout shift
+img {
+  content-visibility: auto;
+}
+
+// Reduced motion — disable all transitions and animations
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -54,5 +119,6 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
