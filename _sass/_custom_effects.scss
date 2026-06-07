@@ -39,15 +39,11 @@
   }
 }
 
-// Buttons — rounded corners and clean typography
+// Buttons — clean, professional base
 .btn, button {
-  border-radius: 6px;
+  border-radius: 4px;
   font-weight: 500;
-  transition: opacity 0.15s ease, box-shadow 0.15s ease;
-
-  &:hover {
-    opacity: 0.9;
-  }
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 // Reduced motion — disable all transitions for users who prefer it
