@@ -1,0 +1,30 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+import { formatDate } from '@/utils/format';
+const posts = (await getCollection('blog', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+---
+<BaseLayout title="Blog">
+  <main class="bloglist container">
+    <h1>Blog</h1>
+    {posts.length === 0 && <p>No posts yet.</p>}
+    <ul>
+      {posts.map((post) => (
+        <li>
+          <a href={`/blog/${post.id}/`}>
+            <time>{formatDate(post.data.date)}</time>
+            <span>{post.data.title}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </main>
+  <style>
+    .bloglist { padding-block: var(--space-xl); max-width: 48rem; }
+    .bloglist h1 { font-size: var(--step-4); margin-bottom: var(--space-lg); }
+    .bloglist ul { list-style: none; padding: 0; display: grid; gap: var(--space-sm); }
+    .bloglist a { display: flex; gap: var(--space-md); align-items: baseline; padding: var(--space-sm) 0; border-bottom: 1px solid var(--border); }
+    .bloglist time { color: var(--text-muted); font-size: var(--step--1); min-width: 6rem; }
+  </style>
+</BaseLayout>
