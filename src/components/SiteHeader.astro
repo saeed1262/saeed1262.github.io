@@ -1,14 +1,15 @@
 ---
 import { site } from '@/data/site';
+import AnimatedUnderline from '@/components/ui/AnimatedUnderline.astro';
 ---
 <header class="nav">
   <a href="/" class="nav__brand">{site.name}</a>
   <nav class="nav__links">
-    <a href="/#about">About</a>
-    <a href="/#publications">Publications</a>
-    <a href="/#projects">Projects</a>
-    <a href="/blog/">Blog</a>
-    <a href="/cv/">CV</a>
+    <a href="/#about"><AnimatedUnderline>About</AnimatedUnderline></a>
+    <a href="/#publications"><AnimatedUnderline>Publications</AnimatedUnderline></a>
+    <a href="/#projects"><AnimatedUnderline>Projects</AnimatedUnderline></a>
+    <a href="/blog/"><AnimatedUnderline>Blog</AnimatedUnderline></a>
+    <a href="/cv/"><AnimatedUnderline>CV</AnimatedUnderline></a>
   </nav>
   <style>
     .nav { position: fixed; top: 0; inset-inline: 0; z-index: 10; display: flex; justify-content: space-between; align-items: center; padding: var(--space-sm) var(--space-md); backdrop-filter: blur(10px); background: color-mix(in srgb, var(--bg) 70%, transparent); border-bottom: 1px solid var(--border); }
