@@ -1,0 +1,6 @@
+---
+interface Props { as?: string; class?: string; }
+const { as = 'div', class: className } = Astro.props;
+const Tag = as;
+---
+<Tag data-reveal class={className} style="opacity:0"><slot /></Tag>
