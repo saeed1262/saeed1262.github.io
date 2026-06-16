@@ -1,9 +1,10 @@
 ---
-// Reusable wavy underline that morphs + reveals on hover.
+// Reusable wavy underline that draws in from one end to the other on hover.
 // Dependency-free port of the 21st.dev "animated-underline-text-one" idea
 // (originally React + Framer Motion) to scoped Astro + CSS.
-// The SVG path `d` is animated via CSS in Chromium/Safari; Firefox (no CSS `d`
-// animation yet) simply reveals the static wave via opacity — graceful fallback.
+// Technique: the path has pathLength="1"; stroke-dasharray/offset hide it, and
+// transitioning stroke-dashoffset 1 -> 0 on hover sweeps the stroke into view
+// from start to end. Works in all modern browsers (incl. Firefox).
 interface Props {
   class?: string;
 }
@@ -12,7 +13,7 @@ const { class: className } = Astro.props;
 <span class:list={['au', className]}>
   <span class="au__text"><slot /></span>
   <svg class="au__line" viewBox="0 0 300 20" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-    <path d="M 0,10 Q 75,0 150,10 Q 225,20 300,10" />
+    <path d="M 0,10 Q 75,0 150,10 Q 225,20 300,10" pathLength="1" />
   </svg>
 </span>
 
@@ -35,20 +36,19 @@ const { class: className } = Astro.props;
     stroke: var(--accent-from);
     stroke-width: 2;
     stroke-linecap: round;
-    opacity: 0;
-    d: path('M 0,10 Q 75,0 150,10 Q 225,20 300,10');
-    transition:
-      d 0.5s var(--ease-out),
-      opacity 0.35s var(--ease-out);
+    /* pathLength=1, so the whole stroke is one dash of length 1, fully offset = hidden */
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    transition: stroke-dashoffset 0.5s var(--ease-out);
   }
   .au:hover .au__line path,
   .au:focus-within .au__line path {
-    opacity: 1;
-    d: path('M 0,10 Q 75,20 150,10 Q 225,0 300,10');
+    /* draw the stroke in from start (left) to end (right) */
+    stroke-dashoffset: 0;
   }
   @media (prefers-reduced-motion: reduce) {
     .au__line path {
-      transition: opacity 0.2s ease;
+      transition: none;
     }
   }
 </style>
