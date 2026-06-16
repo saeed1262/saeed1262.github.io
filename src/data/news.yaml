@@ -1,3 +1,71 @@
-- id: placeholder
-  date: "2024-01-01"
-  text: "Placeholder"
+- id: news-2026-weta
+  date: "2026-02-01"
+  text: "I joined [Wētā FX](https://www.wetafx.co.nz/) as a Senior Research Scientist."
+
+- id: news-2025-amazon-games
+  date: "2025-01-15"
+  text: "I joined [Amazon Games](https://www.amazongames.com/en-us) as a Research Scientist."
+
+- id: news-2024-upose3d-eccv
+  date: "2024-07-19"
+  text: "Our [paper](https://arxiv.org/abs/2404.14634) on human pose estimation with cross-view and temporal cues has been accepted to ECCV 2024."
+
+- id: news-2023-zeroeggs-laforge-blog
+  date: "2023-05-15"
+  text: "ZeroEGGS is featured on the [Ubisoft La Forge blog](https://www.ubisoft.com/en-us/studio/laforge/news/5ADkkY0BMG9vNSDuUMtkeg/zeroeggs-zeroshot-examplebased-gesture-generation-from-speech)."
+
+- id: news-2023-zeroeggs-cgf
+  date: "2023-03-13"
+  text: "[Zero-shot Example-based Gesture Generation from Speech](https://github.com/ubisoft/ubisoft-laforge-ZeroEGGS) is published at Computer Graphics Forum. [Link to the paper](https://onlinelibrary.wiley.com/doi/full/10.1111/cgf.14734)"
+
+- id: news-2022-zeggs-two-minute-papers
+  date: "2022-11-28"
+  text: "[ZEGGS](https://github.com/ubisoft/ubisoft-laforge-ZeroEGGS) is featured in the [Two Minute Papers](https://www.youtube.com/watch?v=Dt0cA2phKfU&t=17s) channel."
+
+- id: news-2022-siggraph-asia-talk
+  date: "2022-11-28"
+  text: "I will give a talk at SIGGRAPH ASIA on Thursday, 8 December 2022, 5:00pm - 6:00pm KST for the [Games Feature Sessions](https://sa2022.siggraph.org/en/full-program/?filter1=evtt107&date=all). [Details](https://sa2022.siggraph.org/en/presentation/?id=gp_132&sess=sess279)."
+
+- id: news-2022-zeroeggs-release
+  date: "2022-10-12"
+  text: "We published our work on [Zero-shot Example-based Gesture Generation from Speech](https://github.com/ubisoft/ubisoft-laforge-ZeroEGGS) including code, dataset, and preprint."
+
+- id: news-2022-phd-defense
+  date: "2022-04-25"
+  text: "I defended my PhD thesis."
+
+- id: news-2022-ubisoft-laforge
+  date: "2022-04-12"
+  text: "I joined Ubisoft La Forge as an R&D Scientist."
+
+- id: news-2021-smart-beds-apin
+  date: "2021-04-08"
+  text: "Our paper \"Estimating Pose from Pressure Data for Smart Beds with Deep Image-based Pose Estimators\" was accepted at the [Journal of Applied Intelligence, Springer](https://www.springer.com/journal/10489)."
+
+- id: news-2021-in-bed-icassp
+  date: "2021-01-27"
+  text: "Our paper [\"In-bed Pressure-based Pose Estimation using Image Space Representation Learning\"](https://arxiv.org/pdf/1908.08919.pdf) was accepted at [ICASSP2021](https://2021.ieeeicassp.org/)."
+
+- id: news-2020-gait-icpr
+  date: "2020-10-10"
+  text: "Our paper [\"Gait Recognition using Multi-Scale Partial Representation Transformation with Capsules\"](https://arxiv.org/abs/2010.09084) was accepted at [ICPR2020](https://www.micc.unifi.it/icpr2020/)."
+
+- id: news-2020-motion-model-cgf
+  date: "2020-10-01"
+  text: "Our [new paper](https://saeed1262.github.io/projects/motionModel/) on Motion Modelling is now published at Computer Graphics Forum. Watch the [short](https://www.youtube.com/watch?v=jw0_aBPROGA&t=93s) and [long](https://www.youtube.com/watch?v=r9F74LcGC0A&t=689s) presentations."
+
+- id: news-2020-movi-dataset
+  date: "2020-03-06"
+  text: "**MoVi**: We just published a BIG new dataset of human motion data. 9h mocap + 17h calibrated video + 7h of IMU + MoSh reconstructed body shape. Check the [website](http://biomotionlab.ca/movi/)."
+
+- id: news-2019-yorku-vista
+  date: "2019-07-16"
+  text: "Our work on Auto-labelling of markers in optical motion capture is highlighted on [YorkU VISTA news](https://vista.info.yorku.ca/2019/07/auto-labelling-of-markers-in-optical-motion-capture/)."
+
+- id: news-2019-cgi-best-paper
+  date: "2019-06-20"
+  text: "Our work on Auto-labelling of markers in optical motion capture won the **best full paper award** at the [International Conference on Computer Graphics](http://www.cgs-network.org/cgi19/)."
+
+- id: news-2019-cvr-poster-award
+  date: "2019-05-08"
+  text: "Our work on Auto-labelling of markers in optical motion capture won **2nd Place Computer Vision Poster Award** at the [CVR-VISTA International Conference on Predictive Vision](https://yfile.news.yorku.ca/2019/06/21/york-conference-on-predictive-vision-attracts-scholars-from-around-the-world/)."
