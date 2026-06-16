@@ -28,7 +28,7 @@ function imageFor(file?: string) {
             {proj.data.tags.length > 0 && (
               <ul class="project__tags">{proj.data.tags.map((t) => <li>{t}</li>)}</ul>
             )}
-            {proj.data.url && <a href={proj.data.url} target="_blank" rel="noopener">View →</a>}
+            <a href={`/projects/${proj.id}/`}>View →</a>
           </Card>
         </Reveal>
       );
