@@ -1,6 +1,10 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
+import Hero from '@/components/Hero.astro';
 ---
 <BaseLayout>
-  <main class="container"><h1>Saeed Ghorbani</h1></main>
+  <main>
+    <Hero />
+    <section id="about" class="container" style="min-height:60vh"><h2>About</h2></section>
+  </main>
 </BaseLayout>
