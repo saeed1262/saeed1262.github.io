@@ -7,9 +7,10 @@ function escapeHtml(s: string): string {
 
 export function inlineMarkdownToHtml(text: string): string {
   const escaped = escapeHtml(text);
-  return escaped.replace(
+  const withLinks = escaped.replace(
     /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,
     (_m, label: string, url: string) =>
       `<a href="${url}" target="_blank" rel="noopener">${label}</a>`,
   );
+  return withLinks.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
 }
