@@ -1,0 +1,31 @@
+---
+import { getCollection } from 'astro:content';
+import { formatDate } from '@/utils/format';
+import { inlineMarkdownToHtml } from '@/utils/markdown';
+import Reveal from '@/components/ui/Reveal.astro';
+import SectionHeading from '@/components/ui/SectionHeading.astro';
+
+const items = (await getCollection('news')).sort(
+  (a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime(),
+);
+---
+<section id="news" class="timeline container">
+  <SectionHeading kicker="Timeline" title="News & milestones" />
+  <ol class="timeline__list">
+    {items.map((item) => (
+      <Reveal as="li" class="timeline__item">
+        <time class="timeline__date">{formatDate(item.data.date)}</time>
+        <p class="timeline__text" set:html={inlineMarkdownToHtml(item.data.text)} />
+      </Reveal>
+    ))}
+  </ol>
+  <style>
+    .timeline { padding-block: var(--space-xl); }
+    .timeline__list { list-style: none; padding: 0; border-left: 1px solid var(--border); }
+    .timeline__item { padding: 0 0 var(--space-md) var(--space-md); position: relative; }
+    .timeline__item::before { content: ''; position: absolute; left: -5px; top: 6px; width: 9px; height: 9px; border-radius: 50%; background: var(--accent-gradient); }
+    .timeline__date { color: var(--accent-from); font-size: var(--step--1); }
+    .timeline__text { color: var(--text); }
+    .timeline__text :global(a) { color: var(--accent-from); text-decoration: underline; }
+  </style>
+</section>
