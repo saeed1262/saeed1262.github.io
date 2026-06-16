@@ -1,0 +1,41 @@
+---
+import { getCollection } from 'astro:content';
+import Reveal from '@/components/ui/Reveal.astro';
+import Card from '@/components/ui/Card.astro';
+import SectionHeading from '@/components/ui/SectionHeading.astro';
+
+const pubs = (await getCollection('publications')).sort((a, b) => b.data.year - a.data.year);
+---
+<section id="publications" class="pubs container">
+  <SectionHeading kicker="Research" title="Selected publications" />
+  <div class="pubs__list">
+    {pubs.map((p) => (
+      <Reveal>
+        <Card class="pub">
+          <div class="pub__head">
+            <h3 class="pub__title">{p.data.title}</h3>
+            {p.data.award && <span class="pub__award">{p.data.award}</span>}
+          </div>
+          <p class="pub__meta">{p.data.authors} · {p.data.venue} {p.data.year}</p>
+          {p.data.abstract && <p class="pub__abstract">{p.data.abstract}</p>}
+          <div class="pub__links">
+            {p.data.links.pdf && <a href={p.data.links.pdf} target="_blank" rel="noopener">PDF</a>}
+            {p.data.links.code && <a href={p.data.links.code} target="_blank" rel="noopener">Code</a>}
+            {p.data.links.project && <a href={p.data.links.project} target="_blank" rel="noopener">Project</a>}
+          </div>
+        </Card>
+      </Reveal>
+    ))}
+  </div>
+  <style>
+    .pubs { padding-block: var(--space-xl); }
+    .pubs__list { display: grid; gap: var(--space-sm); }
+    .pub__head { display: flex; justify-content: space-between; gap: var(--space-sm); align-items: baseline; }
+    .pub__title { font-size: var(--step-1); }
+    .pub__award { color: var(--accent-from); font-size: var(--step--1); white-space: nowrap; }
+    .pub__meta { color: var(--text-muted); font-size: var(--step--1); margin-top: 0.25rem; }
+    .pub__abstract { margin-top: var(--space-xs); color: var(--text-muted); }
+    .pub__links { display: flex; gap: var(--space-sm); margin-top: var(--space-sm); }
+    .pub__links a { color: var(--accent-from); font-size: var(--step--1); }
+  </style>
+</section>
