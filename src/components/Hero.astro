@@ -19,31 +19,89 @@ import AnimatedUnderline from '@/components/ui/AnimatedUnderline.astro';
 
 <style>
   .hero {
-    position: relative; min-height: 100svh; display: grid; place-items: center;
-    overflow: hidden; background: var(--bg-deep); isolation: isolate;
+    position: relative;
+    min-height: 100svh;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    background: var(--bg-deep);
+    isolation: isolate;
   }
-  /* lamp apparatus */
-  .lamp { position: absolute; top: 30%; left: 50%; transform: translateX(-50%); width: min(46rem, 92vw); height: 16rem; z-index: 0; pointer-events: none; }
-  .lamp__cone { position: absolute; top: 0; height: 14rem; width: 50%;
-    -webkit-mask-image: linear-gradient(to top, white, transparent); mask-image: linear-gradient(to top, white, transparent);
-    opacity: 0; animation: lamp-in 1.2s var(--ease-out) 0.1s forwards; }
-  .lamp__cone--left { right: 50%; background: conic-gradient(from 70deg at top center, color-mix(in srgb, var(--accent-from) 70%, transparent), transparent 55%); }
-  .lamp__cone--right { left: 50%; background: conic-gradient(from 290deg at top center, transparent 45%, color-mix(in srgb, var(--accent-from) 70%, transparent)); }
-  .lamp__glow { position: absolute; top: -1.5rem; left: 50%; transform: translateX(-50%); width: 16rem; max-width: 60vw; height: 7rem; border-radius: 999px; background: var(--accent-from); filter: blur(70px); opacity: 0; animation: lamp-glow 1.2s var(--ease-out) 0.2s forwards; }
-  .lamp__line { position: absolute; top: 0; left: 50%; transform: translateX(-50%) scaleX(0); height: 2px; width: min(24rem, 70vw); background: linear-gradient(90deg, transparent, var(--accent-from) 30%, var(--accent-to) 70%, transparent); box-shadow: 0 0 24px 3px color-mix(in srgb, var(--accent-from) 55%, transparent); animation: lamp-line 1s var(--ease-out) 0.3s forwards; }
-  @keyframes lamp-in { to { opacity: 0.7; } }
-  @keyframes lamp-glow { to { opacity: 0.45; } }
+  /* lamp apparatus — sized to fill the viewport */
+  .lamp {
+    position: absolute;
+    top: 38%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(80rem, 98vw);
+    height: 30rem;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .lamp__cone {
+    position: absolute;
+    top: 0;
+    height: 28rem;
+    width: 50%;
+    -webkit-mask-image: linear-gradient(to top, white, transparent);
+    mask-image: linear-gradient(to top, white, transparent);
+    opacity: 0;
+    animation: lamp-in 1.3s var(--ease-out) 0.1s forwards;
+  }
+  .lamp__cone--left {
+    right: 50%;
+    background: conic-gradient(from 70deg at top center, color-mix(in srgb, var(--accent-from) 75%, transparent), transparent 58%);
+  }
+  .lamp__cone--right {
+    left: 50%;
+    background: conic-gradient(from 290deg at top center, transparent 42%, color-mix(in srgb, var(--accent-from) 75%, transparent));
+  }
+  .lamp__glow {
+    position: absolute;
+    top: -2.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 34rem;
+    max-width: 80vw;
+    height: 14rem;
+    border-radius: 999px;
+    background: var(--accent-from);
+    filter: blur(110px);
+    opacity: 0;
+    animation: lamp-glow 1.3s var(--ease-out) 0.2s forwards;
+  }
+  .lamp__line {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%) scaleX(0);
+    height: 2px;
+    width: min(42rem, 88vw);
+    background: linear-gradient(90deg, transparent, var(--accent-from) 28%, var(--accent-to) 72%, transparent);
+    box-shadow: 0 0 28px 4px color-mix(in srgb, var(--accent-from) 55%, transparent);
+    animation: lamp-line 1.1s var(--ease-out) 0.3s forwards;
+  }
+  @keyframes lamp-in { to { opacity: 0.75; } }
+  @keyframes lamp-glow { to { opacity: 0.5; } }
   @keyframes lamp-line { to { transform: translateX(-50%) scaleX(1); } }
-  /* content */
-  .hero__content { position: relative; z-index: 1; text-align: center; transform: translateY(2rem); opacity: 0; animation: hero-rise 0.9s var(--ease-out) 0.45s forwards; }
+  /* content sits just beneath the light line */
+  .hero__content {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    margin-top: 6rem;
+    transform: translateY(2rem);
+    opacity: 0;
+    animation: hero-rise 0.9s var(--ease-out) 0.5s forwards;
+  }
   @keyframes hero-rise { to { opacity: 1; transform: none; } }
   .hero__eyebrow { color: var(--text-muted); letter-spacing: 0.2em; text-transform: uppercase; font-size: var(--step--1); }
   .hero__title { font-size: var(--step-5); font-weight: 700; }
   .hero__tagline { font-size: var(--step-2); margin-top: var(--space-xs); }
   .hero__cue { display: inline-block; margin-top: var(--space-md); color: var(--text-muted); }
   @media (prefers-reduced-motion: reduce) {
-    .lamp__cone { opacity: 0.7; animation: none; }
-    .lamp__glow { opacity: 0.45; animation: none; }
+    .lamp__cone { opacity: 0.75; animation: none; }
+    .lamp__glow { opacity: 0.5; animation: none; }
     .lamp__line { transform: translateX(-50%) scaleX(1); animation: none; }
     .hero__content { opacity: 1; transform: none; animation: none; }
   }

@@ -1,6 +1,5 @@
 ---
 import { Image } from 'astro:assets';
-import InkReveal from '@/components/ui/InkReveal.astro';
 import Reveal from '@/components/ui/Reveal.astro';
 import SectionHeading from '@/components/ui/SectionHeading.astro';
 import headshot from '@/assets/prof_pic.jpg';
@@ -17,25 +16,36 @@ import headshot from '@/assets/prof_pic.jpg';
       <p>Previously at Wētā FX, Amazon Games, and Ubisoft La Forge. PhD from York University.</p>
     </Reveal>
     <Reveal class="about__photo">
-      <InkReveal>
-        <Image
-          src={headshot}
-          alt="Saeed Ghorbani"
-          width={420}
-          height={560}
-          densities={[1, 2]}
-          loading="lazy"
-        />
-      </InkReveal>
+      <Image
+        src={headshot}
+        alt="Saeed Ghorbani"
+        width={420}
+        height={560}
+        densities={[1, 2]}
+        loading="lazy"
+      />
     </Reveal>
   </div>
   <style>
     .about { padding-block: var(--space-xl); }
     .about__grid { display: grid; gap: var(--space-lg); grid-template-columns: 1.4fr 1fr; align-items: center; }
     .about__bio p + p { margin-top: var(--space-sm); color: var(--text-muted); }
-    .about__photo img { border-radius: 20px; width: 100%; height: auto; }
-    .about__photo :global(.ink) { border-radius: 20px; }
-    .about__photo :global(.ink__canvas) { cursor: crosshair; }
+    /* circle by default, expands to the full rectangle on hover (clip-path tweens
+       smoothly because both states are inset() shapes) */
+    .about__photo img {
+      width: 100%;
+      height: auto;
+      clip-path: inset(12.5% 0 round 50%);
+      transition: clip-path 0.6s var(--ease-out);
+      cursor: pointer;
+    }
+    .about__photo:hover img,
+    .about__photo:focus-within img {
+      clip-path: inset(0 round 16px);
+    }
     @media (max-width: 768px) { .about__grid { grid-template-columns: 1fr; } }
+    @media (prefers-reduced-motion: reduce) {
+      .about__photo img { clip-path: inset(0 round 16px); transition: none; }
+    }
   </style>
 </section>
