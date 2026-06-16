@@ -24,7 +24,13 @@ import AnimatedUnderline from '@/components/ui/AnimatedUnderline.astro';
     display: grid;
     place-items: center;
     overflow: hidden;
-    background: var(--bg-deep);
+    /* full-viewport blue glow that fades to black at the edges (no visible frame) */
+    background:
+      radial-gradient(120% 115% at 50% 32%,
+        color-mix(in srgb, var(--accent-from) 20%, transparent) 0%,
+        color-mix(in srgb, var(--accent-to) 9%, transparent) 32%,
+        transparent 68%),
+      var(--bg-deep);
     isolation: isolate;
   }
   /* lamp apparatus — sized to fill the viewport */
