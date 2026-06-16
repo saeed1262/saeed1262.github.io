@@ -16,40 +16,43 @@ import headshot from '@/assets/prof_pic.jpg';
       <p>Previously at Wētā FX, Amazon Games, and Ubisoft La Forge. PhD from York University.</p>
     </Reveal>
     <Reveal class="about__photo">
-      <Image
-        src={headshot}
-        alt="Saeed Ghorbani"
-        width={420}
-        height={560}
-        densities={[1, 2]}
-        loading="lazy"
-      />
+      <!-- this frame lives in About's template, so it carries About's scope id and the
+           hover/clip selectors below actually match (the Reveal root does NOT) -->
+      <div class="about__frame">
+        <Image
+          class="about__img"
+          src={headshot}
+          alt="Saeed Ghorbani"
+          width={420}
+          height={560}
+          densities={[1, 2]}
+          loading="lazy"
+        />
+      </div>
     </Reveal>
   </div>
   <style>
     .about { padding-block: var(--space-xl); }
     .about__grid { display: grid; gap: var(--space-lg); grid-template-columns: 1.4fr 1fr; align-items: center; }
     .about__bio p + p { margin-top: var(--space-sm); color: var(--text-muted); }
-    /* circle by default, expands to the full rectangle on hover (clip-path tweens
-       smoothly because both states are inset() shapes) */
-    /* circle by default (clip-path: circle() is always a true circle regardless of
-       box ratio), grows to a circle larger than the box on hover = full photo shown */
-    .about__photo img {
+    .about__frame { cursor: pointer; }
+    /* circle by default — clip-path: circle() is a true circle on any box ratio —
+       grows past the box on hover so the full photo shows */
+    .about__img {
       width: 100%;
       height: auto;
       -webkit-clip-path: circle(42% at 50% 38%);
       clip-path: circle(42% at 50% 38%);
       transition: clip-path 0.6s var(--ease-out), -webkit-clip-path 0.6s var(--ease-out);
-      cursor: pointer;
     }
-    .about__photo:hover img,
-    .about__photo:focus-within img {
+    .about__frame:hover .about__img,
+    .about__frame:focus-within .about__img {
       -webkit-clip-path: circle(75% at 50% 50%);
       clip-path: circle(75% at 50% 50%);
     }
     @media (max-width: 768px) { .about__grid { grid-template-columns: 1fr; } }
     @media (prefers-reduced-motion: reduce) {
-      .about__photo img {
+      .about__img {
         -webkit-clip-path: circle(75% at 50% 50%);
         clip-path: circle(75% at 50% 50%);
         transition: none;
