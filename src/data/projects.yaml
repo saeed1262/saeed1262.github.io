@@ -1,7 +1,7 @@
 - id: movi
   title: "MoVi Dataset"
   description: "A large multi-purpose human motion and video dataset with synchronized pose, body meshes, and video recordings. It contains 90 actors performing 20+ everyday and sports movements, captured with optical motion capture, multi-view video, and IMU sensors."
-  image: "/images/movi.png"
+  image: "movi.png"
   url: "https://www.biomotionlab.ca/movi/"
   tags:
     - "motion capture"
@@ -12,7 +12,7 @@
 - id: zeggs
   title: "ZeroEGGS"
   description: "Zero-shot example-based gesture generation from speech with style control. A neural network framework that generates full-body co-speech gestures, including finger-level detail, with style controlled by a short example motion clip even for styles unseen during training."
-  image: "/images/zeggs.png"
+  image: "zeggs.png"
   url: "https://saeed1262.github.io/projects/zeggs/"
   tags:
     - "gesture generation"
@@ -23,7 +23,7 @@
 - id: motion-model
   title: "Probabilistic Motion Model"
   description: "Probabilistic character motion synthesis using a hierarchical deep latent variable model. A framework that generates realistic and diverse character animations from weak control signals while preserving the stochastic nature of human movement."
-  image: "/images/motion.jpeg"
+  image: "motion.jpeg"
   url: "https://saeed1262.github.io/projects/motionModel/"
   tags:
     - "motion synthesis"
