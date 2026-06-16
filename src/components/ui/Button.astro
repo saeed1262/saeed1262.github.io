@@ -1,0 +1,14 @@
+---
+interface Props { href: string; variant?: 'solid' | 'ghost'; }
+const { href, variant = 'solid' } = Astro.props;
+const external = href.startsWith('http');
+---
+<a class:list={['btn', `btn--${variant}`]} href={href} {...external ? { target: '_blank', rel: 'noopener' } : {}}>
+  <slot />
+  <style>
+    .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.7rem 1.2rem; border-radius: 999px; font-weight: 500; transition: transform 0.2s var(--ease-out), background 0.2s; }
+    .btn--solid { background: var(--accent-gradient); color: #07080c; }
+    .btn--ghost { border: 1px solid var(--border); color: var(--text); }
+    .btn:hover { transform: translateY(-2px); }
+  </style>
+</a>

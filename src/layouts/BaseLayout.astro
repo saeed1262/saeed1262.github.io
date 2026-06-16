@@ -1,0 +1,48 @@
+---
+import '@/styles/tokens.css';
+import '@/styles/fonts.css';
+import '@/styles/global.css';
+import { site } from '@/data/site';
+import SiteHeader from '@/components/SiteHeader.astro';
+import SiteFooter from '@/components/SiteFooter.astro';
+import Cursor from '@/components/ui/Cursor.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+  ogImage?: string;
+}
+const { title, description = site.description, ogImage = '/images/og-default.png' } = Astro.props;
+const pageTitle = title ? `${title} — ${site.name}` : `${site.name} — ${site.role}`;
+const canonical = new URL(Astro.url.pathname, site.url).toString();
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={new URL(ogImage, site.url).toString()} />
+    <meta property="og:url" content={canonical} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="alternate" type="application/rss+xml" title={site.name} href="/rss.xml" />
+    <noscript>
+      <style>[data-reveal] { opacity: 1 !important; }</style>
+    </noscript>
+  </head>
+  <body>
+    <Cursor />
+    <SiteHeader />
+    <slot />
+    <SiteFooter />
+    <script>
+      import { initMotion } from '@/scripts/motion';
+      initMotion();
+    </script>
+  </body>
+</html>

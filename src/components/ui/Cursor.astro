@@ -1,0 +1,13 @@
+<div id="cursor" class="cursor" aria-hidden="true"></div>
+<style>
+  .cursor { position: fixed; top: 0; left: 0; width: 18px; height: 18px; border: 1px solid var(--accent-from); border-radius: 50%; pointer-events: none; z-index: 50; transform: translate(-50%, -50%); transition: width 0.2s, height 0.2s; mix-blend-mode: difference; }
+  @media (max-width: 768px), (prefers-reduced-motion: reduce) { .cursor { display: none; } }
+</style>
+<script>
+  const cursor = document.getElementById('cursor');
+  if (cursor && !window.matchMedia('(max-width: 768px)').matches) {
+    window.addEventListener('pointermove', (e) => {
+      cursor.style.transform = `translate(${e.clientX}px, ${e.clientY}px) translate(-50%,-50%)`;
+    });
+  }
+</script>

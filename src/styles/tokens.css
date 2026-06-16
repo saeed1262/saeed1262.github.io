@@ -1,0 +1,35 @@
+:root {
+  /* palette */
+  --bg: #0a0b0f;
+  --bg-deep: #050608;
+  --surface: #12141c;
+  --text: #f4f4f5;
+  --text-muted: #9ca3af;
+  --accent-from: #22d3ee;
+  --accent-to: #818cf8;
+  --accent-gradient: linear-gradient(120deg, var(--accent-from), var(--accent-to));
+  --border: #21242e;
+
+  /* type */
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --step--1: clamp(0.83rem, 0.8rem + 0.16vw, 0.94rem);
+  --step-0: clamp(1rem, 0.95rem + 0.25vw, 1.13rem);
+  --step-1: clamp(1.2rem, 1.1rem + 0.5vw, 1.5rem);
+  --step-2: clamp(1.44rem, 1.3rem + 0.9vw, 2rem);
+  --step-3: clamp(1.73rem, 1.5rem + 1.6vw, 2.66rem);
+  --step-4: clamp(2.07rem, 1.7rem + 2.8vw, 3.55rem);
+  --step-5: clamp(2.49rem, 1.9rem + 4.6vw, 4.74rem);
+
+  /* spacing */
+  --space-xs: 0.5rem;
+  --space-sm: 1rem;
+  --space-md: 2rem;
+  --space-lg: 4rem;
+  --space-xl: 8rem;
+  --container: 72rem;
+
+  /* motion */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur: 0.6s;
+}

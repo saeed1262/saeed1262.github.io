@@ -1,0 +1,19 @@
+---
+import { site } from '@/data/site';
+const links = [
+  ['GitHub', site.links.github], ['LinkedIn', site.links.linkedin],
+  ['Twitter', site.links.twitter], ['Scholar', site.links.scholar],
+  ['Email', `mailto:${site.email}`],
+];
+---
+<footer class="footer container">
+  <p>© {site.name}</p>
+  <nav class="footer__links">
+    {links.map(([label, href]) => <a href={href} target="_blank" rel="noopener">{label}</a>)}
+  </nav>
+  <style>
+    .footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: var(--space-sm); padding-block: var(--space-lg); color: var(--text-muted); border-top: 1px solid var(--border); }
+    .footer__links { display: flex; gap: var(--space-md); }
+    .footer__links a:hover { color: var(--text); }
+  </style>
+</footer>

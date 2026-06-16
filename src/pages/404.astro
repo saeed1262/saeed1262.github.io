@@ -1,0 +1,15 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Button from '@/components/ui/Button.astro';
+---
+<BaseLayout title="Not found">
+  <main class="nf container">
+    <h1 class="accent-text">404</h1>
+    <p>This page drifted out of the latent space.</p>
+    <Button href="/" variant="ghost">Back home</Button>
+    <style>
+      .nf { min-height: 70vh; display: grid; place-content: center; text-align: center; gap: var(--space-md); }
+      .nf h1 { font-size: var(--step-5); }
+    </style>
+  </main>
+</BaseLayout>

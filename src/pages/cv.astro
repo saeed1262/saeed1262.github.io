@@ -1,0 +1,53 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import SectionHeading from '@/components/ui/SectionHeading.astro';
+import Reveal from '@/components/ui/Reveal.astro';
+import { cv } from '@/data/cv';
+---
+<BaseLayout title="CV" description="Curriculum vitae of Saeed Ghorbani.">
+  <main class="cv container">
+    <h1 class="cv__title">Curriculum Vitae</h1>
+    {cv.map((section) => (
+      <section class="cv__section">
+        <SectionHeading title={section.title} />
+        {section.type === 'map' ? (
+          <dl class="cv__map">
+            {section.contents.map((item) => (
+              <div class="cv__row">
+                <dt>{item.name}</dt>
+                <dd>{item.value}</dd>
+              </div>
+            ))}
+          </dl>
+        ) : (
+          <ul class="cv__list">
+            {section.contents.map((item) => (
+              <Reveal as="li" class="cv__item">
+                <div class="cv__item-main">
+                  <span class="cv__item-title">{item.title}</span>
+                  {item.institution && <span class="cv__item-inst">{item.institution}</span>}
+                </div>
+                {item.year && <span class="cv__item-year">{item.year}</span>}
+              </Reveal>
+            ))}
+          </ul>
+        )}
+      </section>
+    ))}
+  </main>
+  <style>
+    .cv { padding-block: var(--space-xl); max-width: 52rem; }
+    .cv__title { font-size: var(--step-4); margin-bottom: var(--space-lg); }
+    .cv__section { margin-bottom: var(--space-lg); }
+    .cv__map { display: grid; gap: var(--space-sm); }
+    .cv__row { display: grid; grid-template-columns: 12rem 1fr; gap: var(--space-sm); }
+    .cv__row dt { color: var(--text-muted); }
+    .cv__list { list-style: none; padding: 0; display: grid; gap: var(--space-md); }
+    .cv__item { display: flex; justify-content: space-between; gap: var(--space-md); align-items: baseline; border-bottom: 1px solid var(--border); padding-bottom: var(--space-sm); }
+    .cv__item-main { display: flex; flex-direction: column; gap: 0.2rem; }
+    .cv__item-title { font-weight: 500; }
+    .cv__item-inst { color: var(--text-muted); font-size: var(--step--1); }
+    .cv__item-year { color: var(--accent-from); font-size: var(--step--1); white-space: nowrap; }
+    @media (max-width: 560px) { .cv__row { grid-template-columns: 1fr; gap: 0.2rem; } }
+  </style>
+</BaseLayout>

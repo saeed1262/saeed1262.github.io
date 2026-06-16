@@ -1,0 +1,37 @@
+---
+import { Image } from 'astro:assets';
+import Reveal from '@/components/ui/Reveal.astro';
+import SectionHeading from '@/components/ui/SectionHeading.astro';
+import headshot from '@/assets/prof_pic.jpg';
+---
+<section id="about" class="about container">
+  <SectionHeading kicker="About" title="Hello, I'm Saeed." />
+  <div class="about__grid">
+    <Reveal class="about__bio">
+      <p>
+        I'm a machine learning engineer. My research background spans deep learning,
+        computer vision, and human motion modeling — including probabilistic models,
+        3D pose estimation, and gesture synthesis.
+      </p>
+      <p>Previously at Wētā FX, Amazon Games, and Ubisoft La Forge. PhD from York University.</p>
+    </Reveal>
+    <Reveal class="about__photo">
+      <Image
+        src={headshot}
+        alt="Saeed Ghorbani"
+        width={420}
+        height={560}
+        densities={[1, 2]}
+        loading="lazy"
+        data-parallax
+      />
+    </Reveal>
+  </div>
+  <style>
+    .about { padding-block: var(--space-xl); }
+    .about__grid { display: grid; gap: var(--space-lg); grid-template-columns: 1.4fr 1fr; align-items: center; }
+    .about__bio p + p { margin-top: var(--space-sm); color: var(--text-muted); }
+    .about__photo img { border-radius: 20px; width: 100%; height: auto; }
+    @media (max-width: 768px) { .about__grid { grid-template-columns: 1fr; } }
+  </style>
+</section>
