@@ -1,0 +1,35 @@
+---
+import { getCollection } from 'astro:content';
+import { formatDate } from '@/utils/format';
+import Reveal from '@/components/ui/Reveal.astro';
+import SectionHeading from '@/components/ui/SectionHeading.astro';
+
+const posts = (await getCollection('blog', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
+  .slice(0, 3);
+---
+{posts.length > 0 && (
+  <section id="blog" class="blog container">
+    <SectionHeading kicker="Writing" title="From the blog" />
+    <ul class="blog__list">
+      {posts.map((post) => (
+        <Reveal as="li">
+          <a href={`/blog/${post.id}/`} class="blog__item">
+            <time>{formatDate(post.data.date)}</time>
+            <h3>{post.data.title}</h3>
+            {post.data.description && <p>{post.data.description}</p>}
+          </a>
+        </Reveal>
+      ))}
+    </ul>
+    <a href="/blog/" class="blog__all">All posts →</a>
+    <style>
+      .blog { padding-block: var(--space-xl); }
+      .blog__list { list-style: none; padding: 0; display: grid; gap: var(--space-md); }
+      .blog__item time { color: var(--text-muted); font-size: var(--step--1); }
+      .blog__item h3 { font-size: var(--step-1); margin-top: 0.25rem; }
+      .blog__item p { color: var(--text-muted); margin-top: 0.25rem; }
+      .blog__all { color: var(--accent-from); display: inline-block; margin-top: var(--space-md); }
+    </style>
+  </section>
+)}
