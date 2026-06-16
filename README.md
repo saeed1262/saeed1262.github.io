@@ -1,43 +1,46 @@
-# Astro Starter Kit: Minimal
+# Saeed Ghorbani — Personal Site
+
+Saeed Ghorbani's personal website: a cinematic, motion-driven portfolio built with
+Astro. It showcases research, publications, and writing with a 3D hero scene and
+smooth scroll-based animation.
+
+## Tech stack
+
+- [Astro 6](https://astro.build) — static site framework
+- [Three.js](https://threejs.org) — 3D hero scene
+- [GSAP](https://gsap.com) + [Lenis](https://lenis.darkroom.engineering) — animation and smooth scroll
+- [Fontsource](https://fontsource.org) — self-hosted Inter and Space Grotesk fonts
+
+## Development
 
 ```sh
-npm create astro@latest -- --template minimal
+npm install      # install dependencies
+npm run dev      # start dev server at localhost:4321
+npm run build    # build production site to ./dist/
+npm run check    # astro check (type + content checks)
+npm test         # run the vitest suite
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## Content model
 
-## 🚀 Project Structure
+- **Blog posts** — markdown in `src/content/blog/`
+- **Structured data** (news, publications, etc.) — YAML in `src/data/`
+- **CV / resume** — `src/data/cv.ts`
+- **Site metadata and social links** — `src/data/site.ts`
 
-Inside of your Astro project, you'll see the following folders and files:
+## OG image
 
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+The social share image is generated from a script. Regenerate it with:
+
+```sh
+node scripts/gen-og.mjs
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+## Deployment
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+Deploys to GitHub Pages via GitHub Actions (`.github/workflows/deploy.yml`) on
+every push to `main`. The workflow runs `npm run check` and the test suite as a
+quality gate before building and uploading.
 
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+One-time setup: in the repo's **Settings → Pages**, set **Source** to
+**GitHub Actions**.

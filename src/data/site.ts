@@ -10,6 +10,6 @@ export const site = {
     github: 'https://github.com/saeed1262',
     linkedin: 'https://www.linkedin.com/in/saeed-ghorbani-ba4872136',
     twitter: 'https://twitter.com/SaGhorbani',
-    scholar: 'https://scholar.google.com/citations?user=', // fill exact id during migration
+    scholar: 'https://scholar.google.com/scholar?q=Saeed+Ghorbani', // TODO: replace with exact Scholar profile URL (user id) when available
   },
 } as const;
