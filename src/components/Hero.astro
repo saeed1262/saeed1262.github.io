@@ -1,12 +1,13 @@
 ---
 import { site } from '@/data/site';
+import AnimatedUnderline from '@/components/ui/AnimatedUnderline.astro';
 ---
 <section class="hero" aria-label="Intro">
   <div class="hero__poster" aria-hidden="true"></div>
   <canvas id="hero-canvas" class="hero__canvas" aria-hidden="true"></canvas>
   <div class="hero__content container">
     <p class="hero__eyebrow">{site.role}</p>
-    <h1 class="hero__title">{site.name}</h1>
+    <h1 class="hero__title"><AnimatedUnderline>{site.name}</AnimatedUnderline></h1>
     <p class="hero__tagline accent-text">Machine learning, in motion.</p>
     <a class="hero__cue" href="#about">Scroll ↓</a>
   </div>
