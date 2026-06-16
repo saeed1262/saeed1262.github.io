@@ -9,9 +9,9 @@ export const publicationSchema = z.object({
   abstract: z.string().optional(),
   links: z
     .object({
-      pdf: z.string().url().optional(),
-      code: z.string().url().optional(),
-      project: z.string().url().optional(),
+      pdf: z.url().optional(),
+      code: z.url().optional(),
+      project: z.url().optional(),
       bibtex: z.string().optional(),
     })
     .default({}),
@@ -21,7 +21,7 @@ export const projectSchema = z.object({
   title: z.string(),
   description: z.string(),
   image: z.string().optional(),
-  url: z.string().url().optional(),
+  url: z.url().optional(),
   tags: z.array(z.string()).default([]),
 });
 
