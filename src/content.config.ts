@@ -23,7 +23,7 @@ const publications = defineCollection({
 });
 
 const projects = defineCollection({
-  loader: file('src/data/projects.yaml', { parser: yaml }),
+  loader: glob({ pattern: '**/*.md', base: './src/content/projects' }),
   schema: projectSchema,
 });
 
