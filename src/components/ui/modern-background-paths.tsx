@@ -253,7 +253,7 @@ export default function EnhancedBackgroundPaths({
       </div>
 
       {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-[#0a0b0f]/70 via-transparent to-[#0a0b0f]/70" />
+      <div className="absolute inset-0 bg-gradient-to-t from-white/55 via-transparent to-white/55 dark:from-[#0a0b0f]/70 dark:via-transparent dark:to-[#0a0b0f]/70" />
 
       {/* Main Content */}
       <div className="relative z-10 container mx-auto px-4 md:px-6 text-center">

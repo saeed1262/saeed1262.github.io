@@ -1,19 +1,24 @@
 ---
 import { site } from '@/data/site';
 import AnimatedUnderline from '@/components/ui/AnimatedUnderline.astro';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 ---
 <header class="nav">
   <a href="/" class="nav__brand">{site.name}</a>
-  <nav class="nav__links">
-    <a href="/#about"><AnimatedUnderline>About</AnimatedUnderline></a>
-    <a href="/#publications"><AnimatedUnderline>Publications</AnimatedUnderline></a>
-    <a href="/#projects"><AnimatedUnderline>Projects</AnimatedUnderline></a>
-    <a href="/cv/"><AnimatedUnderline>CV</AnimatedUnderline></a>
-  </nav>
+  <div class="nav__right">
+    <nav class="nav__links">
+      <a href="/#about"><AnimatedUnderline>About</AnimatedUnderline></a>
+      <a href="/#publications"><AnimatedUnderline>Publications</AnimatedUnderline></a>
+      <a href="/#projects"><AnimatedUnderline>Projects</AnimatedUnderline></a>
+      <a href="/cv/"><AnimatedUnderline>CV</AnimatedUnderline></a>
+    </nav>
+    <ThemeToggle client:load class="nav__toggle" />
+  </div>
   <style>
     .nav { position: fixed; top: 0; inset-inline: 0; z-index: 10; display: flex; justify-content: space-between; align-items: center; padding: var(--space-sm) var(--space-md); backdrop-filter: blur(10px); background: color-mix(in srgb, var(--bg) 70%, transparent); border-bottom: 1px solid var(--border); }
     .nav__brand { font-family: var(--font-display); font-weight: 600; }
+    .nav__right { display: flex; align-items: center; gap: var(--space-md); }
     .nav__links { display: flex; gap: var(--space-md); font-size: var(--step--1); }
-    @media (max-width: 640px) { .nav__links { gap: var(--space-sm); } }
+    @media (max-width: 640px) { .nav__right { gap: var(--space-sm); } .nav__links { gap: var(--space-sm); } }
   </style>
 </header>

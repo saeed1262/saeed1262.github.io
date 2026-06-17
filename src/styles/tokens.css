@@ -1,14 +1,14 @@
 :root {
-  /* palette */
-  --bg: #0a0b0f;
-  --bg-deep: #050608;
-  --surface: #12141c;
-  --text: #f4f4f5;
-  --text-muted: #9ca3af;
-  --accent-from: #22d3ee;
-  --accent-to: #818cf8;
+  /* palette (LIGHT theme default values) */
+  --bg: #f6f4ee;
+  --bg-deep: #ece8df;
+  --surface: #ffffff;
+  --text: #1b1c1f;
+  --text-muted: #5b6270;
+  --accent-from: #0891b2;
+  --accent-to: #7c3aed;
   --accent-gradient: linear-gradient(120deg, var(--accent-from), var(--accent-to));
-  --border: #21242e;
+  --border: #e4e0d7;
 
   /* type */
   --font-display: 'Space Grotesk', system-ui, sans-serif;
@@ -32,4 +32,16 @@
   /* motion */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --dur: 0.6s;
+}
+
+/* DARK theme color overrides (dark is the SSR default) */
+html.dark {
+  --bg: #0a0b0f;
+  --bg-deep: #050608;
+  --surface: #12141c;
+  --text: #f4f4f5;
+  --text-muted: #9ca3af;
+  --border: #21242e;
+  --accent-from: #22d3ee;
+  --accent-to: #818cf8;
 }
