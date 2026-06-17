@@ -2,7 +2,6 @@
 import { getCollection } from 'astro:content';
 import { formatDate } from '@/utils/format';
 import { inlineMarkdownToHtml } from '@/utils/markdown';
-import Reveal from '@/components/ui/Reveal.astro';
 import SectionHeading from '@/components/ui/SectionHeading.astro';
 
 const items = (await getCollection('news')).sort(
@@ -11,21 +10,46 @@ const items = (await getCollection('news')).sort(
 ---
 <section id="news" class="timeline container">
   <SectionHeading kicker="Timeline" title="News & milestones" />
-  <ol class="timeline__list">
-    {items.map((item) => (
-      <Reveal as="li" class="timeline__item">
-        <time class="timeline__date">{formatDate(item.data.date)}</time>
-        <p class="timeline__text" set:html={inlineMarkdownToHtml(item.data.text)} />
-      </Reveal>
-    ))}
-  </ol>
+  <!-- data-lenis-prevent lets this box scroll natively instead of being hijacked
+       by the page's Lenis smooth-scroll -->
+  <div class="news-window" data-lenis-prevent>
+    <ol class="news-list">
+      {items.map((item) => (
+        <li class="news-card">
+          <time class="news-card__date">{formatDate(item.data.date)}</time>
+          <p class="news-card__text" set:html={inlineMarkdownToHtml(item.data.text)} />
+        </li>
+      ))}
+    </ol>
+  </div>
   <style>
     .timeline { padding-block: var(--space-xl); }
-    .timeline__list { list-style: none; padding: 0; border-left: 1px solid var(--border); }
-    .timeline__item { padding: 0 0 var(--space-md) var(--space-md); position: relative; }
-    .timeline__item::before { content: ''; position: absolute; left: -5px; top: 6px; width: 9px; height: 9px; border-radius: 50%; background: var(--accent-gradient); }
-    .timeline__date { color: var(--accent-from); font-size: var(--step--1); }
-    .timeline__text { color: var(--text); }
-    .timeline__text :global(a) { color: var(--accent-from); text-decoration: underline; }
+    .news-window {
+      max-height: 24rem;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: var(--space-sm);
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+    .news-window::-webkit-scrollbar { width: 8px; }
+    .news-window::-webkit-scrollbar-thumb { background: var(--border); border-radius: 8px; }
+    .news-window::-webkit-scrollbar-track { background: transparent; }
+    .news-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-sm); }
+    .news-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: var(--space-sm) var(--space-md);
+      transition: border-color 0.3s var(--ease-out), transform 0.3s var(--ease-out);
+    }
+    .news-card:hover {
+      border-color: color-mix(in srgb, var(--accent-from) 45%, var(--border));
+      transform: translateX(4px);
+    }
+    .news-card__date { color: var(--accent-from); font-size: var(--step--1); }
+    .news-card__text { color: var(--text); margin-top: 0.25rem; }
+    .news-card__text :global(a) { color: var(--accent-from); text-decoration: underline; }
   </style>
 </section>
