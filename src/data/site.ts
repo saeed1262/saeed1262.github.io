@@ -4,7 +4,7 @@ export const site = {
   role: 'Machine Learning Engineer & Scientist',
   email: 'saeed.ghorbani1262@gmail.com',
   description:
-    'Senior machine learning engineer working on agentic AI, with a research background in deep learning, computer vision, and generative models.',
+    'Senior machine learning engineer at Roper working on agentic AI, with a research background in deep learning, computer vision, and generative models.',
   url: 'https://saeed1262.github.io',
   links: {
     github: 'https://github.com/saeed1262',
