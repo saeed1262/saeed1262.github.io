@@ -2,6 +2,7 @@
 import { Image } from 'astro:assets';
 import Reveal from '@/components/ui/Reveal.astro';
 import SectionHeading from '@/components/ui/SectionHeading.astro';
+import { site } from '@/data/site';
 import headshot from '@/assets/saeed.jpg';
 ---
 <section id="about" class="about container">
@@ -20,17 +21,25 @@ import headshot from '@/assets/saeed.jpg';
       </p>
     </Reveal>
     <Reveal class="about__photo">
-      <!-- this frame lives in About's template, so it carries About's scope id and the
-           hover/clip selectors below actually match (the Reveal root does NOT) -->
-      <div class="about__frame">
-        <Image
-          class="about__img"
-          src={headshot}
-          alt="Saeed Ghorbani"
-          width={400}
-          height={400}
-          loading="lazy"
-        />
+      <!-- elements below live in About's template, so they carry About's scope id and
+           the hover/clip selectors actually match (the Reveal root does NOT) -->
+      <div class="about__card">
+        <div class="about__frame">
+          <Image
+            class="about__img"
+            src={headshot}
+            alt="Saeed Ghorbani"
+            width={400}
+            height={400}
+            loading="lazy"
+          />
+        </div>
+        <div class="profile">
+          <p class="profile__role">{site.position}</p>
+          <p class="profile__org">{site.company}</p>
+          <p class="profile__loc">{site.location}</p>
+          <a class="profile__contact" href={`mailto:${site.email}`}>Contact →</a>
+        </div>
       </div>
     </Reveal>
   </div>
@@ -38,7 +47,22 @@ import headshot from '@/assets/saeed.jpg';
     .about { padding-block: var(--space-xl); }
     .about__grid { display: grid; gap: var(--space-lg); grid-template-columns: 1.4fr 1fr; align-items: center; }
     .about__bio p + p { margin-top: var(--space-sm); color: var(--text-muted); }
-    .about__frame { cursor: pointer; }
+    .about__card { display: grid; gap: var(--space-md); justify-items: center; }
+    .about__frame { cursor: pointer; width: 100%; }
+    /* profile card: role / company / location / contact */
+    .profile {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: var(--space-md);
+      text-align: center;
+    }
+    .profile__role { font-family: var(--font-display); font-weight: 600; font-size: var(--step-1); }
+    .profile__org { color: var(--text); margin-top: 0.25rem; }
+    .profile__loc { color: var(--text-muted); font-size: var(--step--1); margin-top: 0.15rem; }
+    .profile__contact { display: inline-block; margin-top: var(--space-sm); color: var(--accent-from); font-weight: 500; }
+    .profile__contact:hover { text-decoration: underline; }
     /* circle by default — clip-path: circle() is a true circle on any box ratio —
        grows past the box on hover so the full photo shows */
     .about__img {
