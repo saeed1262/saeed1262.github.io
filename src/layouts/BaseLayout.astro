@@ -4,6 +4,7 @@ import '@/styles/fonts.css';
 import '@/styles/global.css';
 // Tailwind v4 (theme + utilities only, no preflight) for the React island hero.
 import '@/styles/tailwind.css';
+import { ClientRouter } from 'astro:transitions';
 import { site } from '@/data/site';
 import SiteHeader from '@/components/SiteHeader.astro';
 import SiteFooter from '@/components/SiteFooter.astro';
@@ -78,18 +79,38 @@ const jsonLd = {
     <meta property="og:url" content={canonical} />
     <meta name="twitter:card" content="summary_large_image" />
     <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    <ClientRouter />
     <noscript>
       <style>[data-reveal] { opacity: 1 !important; }</style>
     </noscript>
   </head>
   <body>
+    <div id="scroll-progress" transition:persist aria-hidden="true"></div>
     <Cursor />
     <SiteHeader />
     <slot />
     <SiteFooter />
     <script>
       import { initMotion } from '@/scripts/motion';
-      initMotion();
+      import { initChrome } from '@/scripts/chrome';
+      function run() {
+        initMotion();
+        initChrome();
+      }
+      // Fires on first load AND after each client-side navigation.
+      document.addEventListener('astro:page-load', run);
     </script>
+    <style is:global>
+      #scroll-progress {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 2px;
+        width: 0;
+        z-index: 60;
+        background: var(--accent-gradient);
+        transition: width 0.1s linear;
+      }
+    </style>
   </body>
 </html>

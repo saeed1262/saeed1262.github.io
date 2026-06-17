@@ -196,41 +196,57 @@ function toBibtex(p: CollectionEntry<'publications'>): string {
   </style>
 
   <script>
-    document.querySelectorAll('.pub__btn[data-toggle]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const sel = btn.getAttribute('data-toggle') === 'abs' ? '.pub__abstract' : '.pub__bibtex';
-        const panel = btn.closest('.pub')?.querySelector<HTMLElement>(sel);
-        if (panel) {
-          panel.hidden = !panel.hidden;
-          btn.classList.toggle('is-open', !panel.hidden);
-        }
-      });
-    });
-  </script>
-
-  <script>
-    const pills = document.querySelectorAll<HTMLButtonElement>('.pubs__pill');
-    const cards = document.querySelectorAll<HTMLElement>('.pub');
-    const groups = document.querySelectorAll<HTMLElement>('.pubs__group');
-
-    function applyFilter(filter: string) {
-      cards.forEach((card) => {
-        const topics = (card.getAttribute('data-topics') || '').split(/\s+/);
-        const show = filter === 'all' || topics.includes(filter);
-        card.classList.toggle('is-hidden', !show);
-      });
-      groups.forEach((group) => {
-        const visible = group.querySelectorAll('.pub:not(.is-hidden)').length;
-        group.classList.toggle('is-hidden', visible === 0);
-      });
+    declare global {
+      interface Window {
+        __pubsDelegated?: boolean;
+      }
     }
 
-    pills.forEach((pill) => {
-      pill.addEventListener('click', () => {
-        pills.forEach((p) => p.classList.remove('is-active'));
-        pill.classList.add('is-active');
-        applyFilter(pill.getAttribute('data-filter') || 'all');
+    // Document-level event delegation, attached ONCE. Because the listener
+    // lives on `document` and matches via .closest(), it keeps working after
+    // view-transition DOM swaps with no re-binding. The guard prevents a second
+    // attachment if this module ever re-evaluates.
+    if (!window.__pubsDelegated) {
+      window.__pubsDelegated = true;
+
+      document.addEventListener('click', (event) => {
+        const target = event.target as Element | null;
+        if (!target) return;
+
+        // ABS / BIB panel toggles.
+        const toggleBtn = target.closest<HTMLElement>('.pub__btn[data-toggle]');
+        if (toggleBtn) {
+          const sel = toggleBtn.getAttribute('data-toggle') === 'abs' ? '.pub__abstract' : '.pub__bibtex';
+          const panel = toggleBtn.closest('.pub')?.querySelector<HTMLElement>(sel);
+          if (panel) {
+            panel.hidden = !panel.hidden;
+            toggleBtn.classList.toggle('is-open', !panel.hidden);
+          }
+          return;
+        }
+
+        // Topic filter pills.
+        const pill = target.closest<HTMLButtonElement>('.pubs__pill');
+        if (pill) {
+          const filters = pill.closest('.pubs__filters');
+          if (filters) {
+            filters.querySelectorAll('.pubs__pill').forEach((p) => p.classList.remove('is-active'));
+          }
+          pill.classList.add('is-active');
+
+          const filter = pill.getAttribute('data-filter') || 'all';
+          const scope = filters?.parentElement ?? document;
+          scope.querySelectorAll<HTMLElement>('.pub').forEach((card) => {
+            const topics = (card.getAttribute('data-topics') || '').split(/\s+/);
+            const show = filter === 'all' || topics.includes(filter);
+            card.classList.toggle('is-hidden', !show);
+          });
+          scope.querySelectorAll<HTMLElement>('.pubs__group').forEach((group) => {
+            const visible = group.querySelectorAll('.pub:not(.is-hidden)').length;
+            group.classList.toggle('is-hidden', visible === 0);
+          });
+        }
       });
-    });
+    }
   </script>
 </section>

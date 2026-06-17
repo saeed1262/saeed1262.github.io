@@ -3,7 +3,7 @@ import { site } from '@/data/site';
 import AnimatedUnderline from '@/components/ui/AnimatedUnderline.astro';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 ---
-<header class="nav">
+<header class="nav" transition:persist>
   <a href="/" class="nav__brand">{site.name}</a>
   <div class="nav__right">
     <nav class="nav__links">
@@ -19,6 +19,8 @@ import { ThemeToggle } from '@/components/ui/theme-toggle';
     .nav__brand { font-family: var(--font-display); font-weight: 600; }
     .nav__right { display: flex; align-items: center; gap: var(--space-md); }
     .nav__links { display: flex; gap: var(--space-md); font-size: var(--step--1); }
+    .nav__links a { transition: color .2s; }
+    .nav__links a.is-current { color: var(--accent-from); }
     @media (max-width: 640px) { .nav__right { gap: var(--space-sm); } .nav__links { gap: var(--space-sm); } }
   </style>
 </header>
