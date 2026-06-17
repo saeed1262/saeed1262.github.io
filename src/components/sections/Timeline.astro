@@ -44,7 +44,7 @@ const items = (await getCollection('news')).sort(
       border: 1px solid var(--border);
       border-left: 3px solid var(--accent-from);
       border-radius: 12px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.22);
+      box-shadow: var(--shadow-card);
       transition: box-shadow 0.25s var(--ease-out), transform 0.25s var(--ease-out), border-color 0.25s var(--ease-out);
     }
     .news-item:hover {

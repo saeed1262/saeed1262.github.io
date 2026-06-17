@@ -1,14 +1,16 @@
 :root {
-  /* palette */
-  --bg: #0a0b0f;
-  --bg-deep: #050608;
-  --surface: #12141c;
-  --text: #f4f4f5;
-  --text-muted: #9ca3af;
-  --accent-from: #22d3ee;
-  --accent-to: #818cf8;
+  /* palette (LIGHT theme default values) */
+  --bg: #f6f4ee;
+  --bg-deep: #eae6dd;
+  --surface: #ffffff;
+  --text: #16171a;
+  --text-muted: #4f5661;
+  --accent-from: #2563eb;
+  --accent-to: #7c3aed;
   --accent-gradient: linear-gradient(120deg, var(--accent-from), var(--accent-to));
-  --border: #21242e;
+  --border: #e2ddd3;
+  --badge-text: #ffffff;
+  --shadow-card: 0 1px 2px rgba(17, 20, 24, 0.06), 0 10px 28px rgba(17, 20, 24, 0.07);
 
   /* type */
   --font-display: 'Space Grotesk', system-ui, sans-serif;
@@ -32,4 +34,18 @@
   /* motion */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --dur: 0.6s;
+}
+
+/* DARK theme color overrides (dark is the SSR default) */
+html.dark {
+  --bg: #0a0b0f;
+  --bg-deep: #050608;
+  --surface: #12141c;
+  --text: #f4f4f5;
+  --text-muted: #9ca3af;
+  --border: #21242e;
+  --accent-from: #22d3ee;
+  --accent-to: #818cf8;
+  --badge-text: #06070b;
+  --shadow-card: 0 2px 10px rgba(0, 0, 0, 0.25);
 }

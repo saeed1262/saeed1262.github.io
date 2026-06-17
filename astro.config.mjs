@@ -1,9 +1,15 @@
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 
+import react from '@astrojs/react';
+import tailwindcss from '@tailwindcss/vite';
+
 // User site (saeed1262.github.io) deploys at domain root => no base path.
 export default defineConfig({
   site: 'https://saeed1262.github.io',
-  integrations: [sitemap()],
+  integrations: [sitemap(), react()],
   prefetch: true,
+  vite: {
+    plugins: [tailwindcss()],
+  },
 });

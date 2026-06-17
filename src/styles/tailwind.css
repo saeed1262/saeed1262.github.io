@@ -1,0 +1,12 @@
+/* Tailwind v4 WITHOUT preflight.
+   We intentionally skip `tailwindcss/preflight` so the site's existing
+   typography/margins (tokens.css + global.css) are preserved. Only the
+   theme variables and utility classes are loaded for the React island. */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+/* Drive Tailwind's `dark:` variant from our `.dark` class (the theme toggle),
+   NOT the OS `prefers-color-scheme`. Without this the hero followed the OS and
+   stayed white-on-light when toggled to light mode on a dark-OS machine. */
+@custom-variant dark (&:where(.dark, .dark *));
