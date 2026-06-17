@@ -5,6 +5,29 @@ import SectionHeading from '@/components/ui/SectionHeading.astro';
 
 const pubs = (await getCollection('publications')).sort((a, b) => b.data.year - a.data.year);
 
+function slugify(s: string): string {
+  return s
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+// Sorted union of all topics actually used.
+const topics = [...new Set(pubs.flatMap((p) => p.data.topics))].sort();
+
+// Group consecutive same-year pubs (already sorted by year desc).
+type Group = { year: number; items: typeof pubs };
+const groups: Group[] = [];
+for (const p of pubs) {
+  const last = groups[groups.length - 1];
+  if (last && last.year === p.data.year) {
+    last.items.push(p);
+  } else {
+    groups.push({ year: p.data.year, items: [p] });
+  }
+}
+
 function highlightAuthors(authors: string): string {
   return authors.replaceAll('Saeed Ghorbani', '<strong class="pub__me">Saeed Ghorbani</strong>');
 }
@@ -21,32 +44,72 @@ function toBibtex(p: CollectionEntry<'publications'>): string {
 ---
 <section id="publications" class="pubs container">
   <SectionHeading kicker="Research" title="Selected publications" />
+
+  <div class="pubs__filters">
+    <button type="button" class="pubs__pill is-active" data-filter="all">All</button>
+    {topics.map((t) => (
+      <button type="button" class="pubs__pill" data-filter={slugify(t)}>{t}</button>
+    ))}
+  </div>
+
   <div class="pubs__list">
-    {pubs.map((p) => (
-      <article class="pub">
-        <div class="pub__badge"><span class="pub__abbr">{p.data.abbr ?? p.data.venue}</span></div>
-        <div class="pub__main">
-          <h3 class="pub__title">{p.data.title}</h3>
-          {p.data.award && <span class="pub__award">{p.data.award}</span>}
-          <p class="pub__authors" set:html={highlightAuthors(p.data.authors)} />
-          <p class="pub__venue"><em>{p.data.venue} {p.data.year}</em></p>
-          <div class="pub__actions">
-            {p.data.abstract && <button type="button" class="pub__btn" data-toggle="abs">ABS</button>}
-            <button type="button" class="pub__btn" data-toggle="bib">BIB</button>
-            {p.data.links?.pdf && <a class="pub__btn" href={p.data.links.pdf} target="_blank" rel="noopener">PDF</a>}
-            {p.data.links?.code && <a class="pub__btn" href={p.data.links.code} target="_blank" rel="noopener">CODE</a>}
-            {p.data.links?.project && <a class="pub__btn" href={p.data.links.project} target="_blank" rel="noopener">WEBSITE</a>}
-          </div>
-          {p.data.abstract && <div class="pub__panel pub__abstract" hidden><p>{p.data.abstract}</p></div>}
-          <div class="pub__panel pub__bibtex" hidden><pre>{toBibtex(p)}</pre></div>
-        </div>
-      </article>
+    {groups.map((g) => (
+      <div class="pubs__group" data-year={g.year}>
+        <h3 class="pubs__year">{g.year}</h3>
+        {g.items.map((p) => (
+          <article class="pub" data-topics={p.data.topics.map(slugify).join(' ')}>
+            <div class="pub__badge"><span class="pub__abbr">{p.data.abbr ?? p.data.venue}</span></div>
+            <div class="pub__main">
+              <h3 class="pub__title">{p.data.title}</h3>
+              {p.data.award && <span class="pub__award">{p.data.award}</span>}
+              <p class="pub__authors" set:html={highlightAuthors(p.data.authors)} />
+              <p class="pub__venue"><em>{p.data.venue} {p.data.year}</em></p>
+              <div class="pub__actions">
+                {p.data.abstract && <button type="button" class="pub__btn" data-toggle="abs">ABS</button>}
+                <button type="button" class="pub__btn" data-toggle="bib">BIB</button>
+                {p.data.links?.pdf && <a class="pub__btn" href={p.data.links.pdf} target="_blank" rel="noopener">PDF</a>}
+                {p.data.links?.code && <a class="pub__btn" href={p.data.links.code} target="_blank" rel="noopener">CODE</a>}
+                {p.data.links?.project && <a class="pub__btn" href={p.data.links.project} target="_blank" rel="noopener">WEBSITE</a>}
+              </div>
+              {p.data.abstract && <div class="pub__panel pub__abstract" hidden><p>{p.data.abstract}</p></div>}
+              <div class="pub__panel pub__bibtex" hidden><pre>{toBibtex(p)}</pre></div>
+            </div>
+          </article>
+        ))}
+      </div>
     ))}
   </div>
 
   <style>
     .pubs { padding-block: var(--space-xl); }
     .pubs__list { display: grid; gap: var(--space-md); }
+
+    .pubs__filters { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: var(--space-lg); }
+    .pubs__pill {
+      font: inherit;
+      font-size: var(--step--1);
+      color: var(--text-muted);
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 0.4rem 0.9rem;
+      cursor: pointer;
+      transition: all .2s var(--ease-out);
+    }
+    .pubs__pill:hover { color: var(--text); border-color: color-mix(in srgb, var(--accent-from) 45%, var(--border)); }
+    .pubs__pill.is-active { color: var(--badge-text); background: var(--accent-gradient); border-color: transparent; }
+
+    .pubs__group { margin-bottom: var(--space-lg); }
+    .pubs__year {
+      font-family: var(--font-display);
+      font-size: var(--step-1);
+      color: var(--text-muted);
+      margin-bottom: var(--space-sm);
+      padding-bottom: 0.35rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .pub.is-hidden, .pubs__group.is-hidden { display: none; }
 
     .pub {
       display: grid;
@@ -133,15 +196,57 @@ function toBibtex(p: CollectionEntry<'publications'>): string {
   </style>
 
   <script>
-    document.querySelectorAll('.pub__btn[data-toggle]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const sel = btn.getAttribute('data-toggle') === 'abs' ? '.pub__abstract' : '.pub__bibtex';
-        const panel = btn.closest('.pub')?.querySelector<HTMLElement>(sel);
-        if (panel) {
-          panel.hidden = !panel.hidden;
-          btn.classList.toggle('is-open', !panel.hidden);
+    declare global {
+      interface Window {
+        __pubsDelegated?: boolean;
+      }
+    }
+
+    // Document-level event delegation, attached ONCE. Because the listener
+    // lives on `document` and matches via .closest(), it keeps working after
+    // view-transition DOM swaps with no re-binding. The guard prevents a second
+    // attachment if this module ever re-evaluates.
+    if (!window.__pubsDelegated) {
+      window.__pubsDelegated = true;
+
+      document.addEventListener('click', (event) => {
+        const target = event.target as Element | null;
+        if (!target) return;
+
+        // ABS / BIB panel toggles.
+        const toggleBtn = target.closest<HTMLElement>('.pub__btn[data-toggle]');
+        if (toggleBtn) {
+          const sel = toggleBtn.getAttribute('data-toggle') === 'abs' ? '.pub__abstract' : '.pub__bibtex';
+          const panel = toggleBtn.closest('.pub')?.querySelector<HTMLElement>(sel);
+          if (panel) {
+            panel.hidden = !panel.hidden;
+            toggleBtn.classList.toggle('is-open', !panel.hidden);
+          }
+          return;
+        }
+
+        // Topic filter pills.
+        const pill = target.closest<HTMLButtonElement>('.pubs__pill');
+        if (pill) {
+          const filters = pill.closest('.pubs__filters');
+          if (filters) {
+            filters.querySelectorAll('.pubs__pill').forEach((p) => p.classList.remove('is-active'));
+          }
+          pill.classList.add('is-active');
+
+          const filter = pill.getAttribute('data-filter') || 'all';
+          const scope = filters?.parentElement ?? document;
+          scope.querySelectorAll<HTMLElement>('.pub').forEach((card) => {
+            const topics = (card.getAttribute('data-topics') || '').split(/\s+/);
+            const show = filter === 'all' || topics.includes(filter);
+            card.classList.toggle('is-hidden', !show);
+          });
+          scope.querySelectorAll<HTMLElement>('.pubs__group').forEach((group) => {
+            const visible = group.querySelectorAll('.pub:not(.is-hidden)').length;
+            group.classList.toggle('is-hidden', visible === 0);
+          });
         }
       });
-    });
+    }
   </script>
 </section>

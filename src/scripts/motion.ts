@@ -4,7 +4,18 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
 
+// Module-level Lenis ref so repeated initMotion() calls (e.g. after a view
+// transition) don't stack instances / duplicate ScrollTriggers.
+let lenis: Lenis | null = null;
+
 export function initMotion(): void {
+  // Tear down anything created by a previous call before recreating.
+  if (lenis) {
+    lenis.destroy();
+    lenis = null;
+  }
+  ScrollTrigger.getAll().forEach((t) => t.kill());
+
   const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // Reveal elements regardless; with reduced motion we just show them immediately.
@@ -15,13 +26,16 @@ export function initMotion(): void {
     return;
   }
 
-  const lenis = new Lenis({ duration: 1.1, smoothWheel: true });
+  const instance = new Lenis({ duration: 1.1, smoothWheel: true });
+  lenis = instance;
   function raf(time: number) {
-    lenis.raf(time);
+    // Stop the loop once this instance has been destroyed/replaced.
+    if (lenis !== instance) return;
+    instance.raf(time);
     requestAnimationFrame(raf);
   }
   requestAnimationFrame(raf);
-  lenis.on('scroll', ScrollTrigger.update);
+  instance.on('scroll', ScrollTrigger.update);
 
   revealEls.forEach((el) => {
     gsap.fromTo(

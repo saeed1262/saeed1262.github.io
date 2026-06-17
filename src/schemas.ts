@@ -8,6 +8,7 @@ export const publicationSchema = z.object({
   abbr: z.string().optional(),
   award: z.string().optional(),
   abstract: z.string().optional(),
+  topics: z.array(z.string()).default([]),
   links: z
     .object({
       pdf: z.url().optional(),

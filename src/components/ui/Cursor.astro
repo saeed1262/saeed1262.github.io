@@ -1,4 +1,4 @@
-<div id="cursor" class="cursor" aria-hidden="true"></div>
+<div id="cursor" class="cursor" aria-hidden="true" transition:persist></div>
 <style>
   .cursor { position: fixed; top: 0; left: 0; width: 18px; height: 18px; border: 1px solid var(--accent-from); border-radius: 50%; pointer-events: none; z-index: 50; transform: translate(-50%, -50%); transition: width 0.2s, height 0.2s; mix-blend-mode: difference; }
   @media (max-width: 768px), (prefers-reduced-motion: reduce) { .cursor { display: none; } }

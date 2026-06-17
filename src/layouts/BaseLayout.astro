@@ -4,6 +4,7 @@ import '@/styles/fonts.css';
 import '@/styles/global.css';
 // Tailwind v4 (theme + utilities only, no preflight) for the React island hero.
 import '@/styles/tailwind.css';
+import { ClientRouter } from 'astro:transitions';
 import { site } from '@/data/site';
 import SiteHeader from '@/components/SiteHeader.astro';
 import SiteFooter from '@/components/SiteFooter.astro';
@@ -17,21 +18,65 @@ interface Props {
 const { title, description = site.description, ogImage = '/images/og-default.png' } = Astro.props;
 const pageTitle = title ? `${title} — ${site.name}` : `${site.name} — ${site.role}`;
 const canonical = new URL(Astro.url.pathname, site.url).toString();
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Person',
+      name: site.name,
+      url: site.url,
+      jobTitle: site.position,
+      worksFor: { '@type': 'Organization', name: site.company },
+      alumniOf: { '@type': 'CollegeOrUniversity', name: 'York University' },
+      description: site.description,
+      sameAs: [
+        site.links.github,
+        site.links.linkedin,
+        site.links.twitter,
+        site.links.scholar,
+      ],
+      knowsAbout: [
+        'Machine Learning',
+        'Computer Vision',
+        'Deep Learning',
+        'Agentic AI',
+        'Generative Models',
+      ],
+    },
+    {
+      '@type': 'WebSite',
+      name: site.name,
+      url: site.url,
+    },
+  ],
+};
 ---
 <!doctype html>
 <html lang="en" class="dark">
   <head>
     <script is:inline>
       (function () {
-        try {
-          var t = localStorage.getItem('theme');
-          if (t === 'light') document.documentElement.classList.remove('dark');
-          else document.documentElement.classList.add('dark');
-        } catch (e) { document.documentElement.classList.add('dark'); }
+        function applyTheme() {
+          try {
+            var t = localStorage.getItem('theme');
+            if (t === 'light') document.documentElement.classList.remove('dark');
+            else document.documentElement.classList.add('dark');
+          } catch (e) { document.documentElement.classList.add('dark'); }
+        }
+        applyTheme();
+        // Re-apply after view-transition swaps (the swapped page's <html> defaults to dark).
+        if (!window.__themeSwapBound) {
+          window.__themeSwapBound = true;
+          document.addEventListener('astro:after-swap', applyTheme);
+        }
       })();
     </script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" href="/favicon.png" sizes="96x96" />
+    <link rel="apple-touch-icon" href="/favicon.png" />
     <title>{pageTitle}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
@@ -41,18 +86,39 @@ const canonical = new URL(Astro.url.pathname, site.url).toString();
     <meta property="og:image" content={new URL(ogImage, site.url).toString()} />
     <meta property="og:url" content={canonical} />
     <meta name="twitter:card" content="summary_large_image" />
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    <ClientRouter />
     <noscript>
       <style>[data-reveal] { opacity: 1 !important; }</style>
     </noscript>
   </head>
   <body>
+    <div id="scroll-progress" transition:persist aria-hidden="true"></div>
     <Cursor />
     <SiteHeader />
     <slot />
     <SiteFooter />
     <script>
       import { initMotion } from '@/scripts/motion';
-      initMotion();
+      import { initChrome } from '@/scripts/chrome';
+      function run() {
+        initMotion();
+        initChrome();
+      }
+      // Fires on first load AND after each client-side navigation.
+      document.addEventListener('astro:page-load', run);
     </script>
+    <style is:global>
+      #scroll-progress {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 2px;
+        width: 0;
+        z-index: 60;
+        background: var(--accent-gradient);
+        transition: width 0.1s linear;
+      }
+    </style>
   </body>
 </html>
