@@ -275,7 +275,8 @@ export default function EnhancedBackgroundPaths({
                 {eyebrow}
               </motion.p>
             )}
-            <h1 className="text-6xl sm:text-8xl md:text-9xl font-black mb-4 tracking-tighter leading-none">
+            <div className="group relative inline-block">
+            <h1 className="text-6xl sm:text-8xl md:text-9xl font-black tracking-tighter leading-none">
               {words.map((word, wordIndex) => (
                 <span key={wordIndex} className="inline-block mr-6 last:mr-0">
                   {word.split("").map((letter, letterIndex) => (
@@ -303,6 +304,11 @@ export default function EnhancedBackgroundPaths({
                 </span>
               ))}
             </h1>
+              {/* animated wavy underline that draws in on hover (accent, theme-aware) */}
+              <svg aria-hidden="true" viewBox="0 0 300 20" preserveAspectRatio="none" className="pointer-events-none absolute left-0 top-full mt-2 h-4 w-full overflow-visible">
+                <path d="M 0,10 Q 75,0 150,10 Q 225,20 300,10" pathLength={1} fill="none" strokeLinecap="round" style={{ stroke: "var(--accent-from)", strokeWidth: 2 }} className="[stroke-dasharray:1] [stroke-dashoffset:1] transition-[stroke-dashoffset] duration-500 ease-out group-hover:[stroke-dashoffset:0] motion-reduce:transition-none" />
+              </svg>
+            </div>
           </div>
         </motion.div>
       </div>
