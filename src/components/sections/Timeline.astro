@@ -13,43 +13,69 @@ const items = (await getCollection('news')).sort(
   <!-- data-lenis-prevent lets this box scroll natively instead of being hijacked
        by the page's Lenis smooth-scroll -->
   <div class="news-window" data-lenis-prevent>
-    <ol class="news-list">
-      {items.map((item) => (
-        <li class="news-card">
-          <time class="news-card__date">{formatDate(item.data.date)}</time>
-          <p class="news-card__text" set:html={inlineMarkdownToHtml(item.data.text)} />
-        </li>
-      ))}
-    </ol>
+    <table class="news-table">
+      <tbody>
+        {items.map((item) => (
+          <tr class="news-row">
+            <th scope="row" class="news-row__date">{formatDate(item.data.date)}</th>
+            <td class="news-row__text" set:html={inlineMarkdownToHtml(item.data.text)} />
+          </tr>
+        ))}
+      </tbody>
+    </table>
   </div>
   <style>
     .timeline { padding-block: var(--space-xl); }
     .news-window {
-      max-height: 24rem;
+      max-height: 26rem;
       overflow-y: auto;
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: var(--space-sm);
+      padding-right: 0.4rem;
       scrollbar-width: thin;
       scrollbar-color: var(--border) transparent;
     }
     .news-window::-webkit-scrollbar { width: 8px; }
     .news-window::-webkit-scrollbar-thumb { background: var(--border); border-radius: 8px; }
     .news-window::-webkit-scrollbar-track { background: transparent; }
-    .news-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-sm); }
-    .news-card {
+
+    .news-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0 0.6rem; /* gap between row-cards */
+    }
+    /* row-card: cells carry the bg + rounding so the row reads as one pill */
+    .news-row__date,
+    .news-row__text {
       background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: var(--space-sm) var(--space-md);
-      transition: border-color 0.3s var(--ease-out), transform 0.3s var(--ease-out);
+      vertical-align: middle;
+      transition: background 0.25s var(--ease-out);
     }
-    .news-card:hover {
-      border-color: color-mix(in srgb, var(--accent-from) 45%, var(--border));
-      transform: translateX(4px);
+    .news-row__date {
+      white-space: nowrap;
+      width: 8.5rem;
+      padding: 0.85rem 1rem 0.85rem 1.1rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      text-align: left;
+      border-left: 3px solid var(--accent-from);
+      border-radius: 10px 0 0 10px;
     }
-    .news-card__date { color: var(--accent-from); font-size: var(--step--1); }
-    .news-card__text { color: var(--text); margin-top: 0.25rem; }
-    .news-card__text :global(a) { color: var(--accent-from); text-decoration: underline; }
+    .news-row__text {
+      padding: 0.85rem 1.25rem 0.85rem 1rem;
+      font-size: var(--step-0);
+      line-height: 1.55;
+      color: var(--text);
+      border-radius: 0 10px 10px 0;
+    }
+    .news-row:hover .news-row__date,
+    .news-row:hover .news-row__text {
+      background: color-mix(in srgb, var(--surface) 82%, var(--accent-from) 12%);
+    }
+    .news-row__text :global(a) { color: var(--accent-from); text-decoration: underline; }
+    @media (max-width: 560px) {
+      .news-row__date { width: 6rem; white-space: normal; }
+    }
   </style>
 </section>
