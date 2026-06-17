@@ -3,7 +3,7 @@ export const site = {
   title: 'Saeed Ghorbani',
   role: 'Machine Learning Engineer & Scientist',
   position: 'Senior Machine Learning Engineer',
-  company: 'Roper',
+  company: 'Roper Technologies',
   location: 'Toronto, Canada',
   email: 'saeed.ghorbani1262@gmail.com',
   description:

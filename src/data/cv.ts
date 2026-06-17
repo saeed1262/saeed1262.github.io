@@ -26,7 +26,8 @@ export const cv: CVSection[] = [
     title: 'Work Experience',
     type: 'time_table',
     contents: [
-      { title: 'Senior Research Scientist', institution: 'Wētā FX, Toronto, Canada', year: '2026 - Present' },
+      { title: 'Senior Machine Learning Engineer', institution: 'Roper Technologies, Toronto, Canada', year: '2026 - Present' },
+      { title: 'Senior Research Scientist', institution: 'Wētā FX, Toronto, Canada', year: '2026' },
       { title: 'Research Scientist', institution: 'Amazon Games, Toronto, Canada', year: '2025 - 2026' },
       { title: 'Research & Development Scientist', institution: 'Ubisoft La Forge, Toronto/Montreal, Canada', year: '2022 - 2025' },
       { title: 'R&D Programmer Intern', institution: 'Ubisoft La Forge, Toronto/Montreal, Canada', year: '2021 - 2022' },
