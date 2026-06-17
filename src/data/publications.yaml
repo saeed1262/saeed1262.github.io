@@ -4,6 +4,7 @@
   authors: "Saeed Ghorbani"
   venue: "arXiv"
   year: 2025
+  topics: [Generative Models]
   abstract: >-
     We introduce an integrated framework for generating narratives across multiple
     modalities simultaneously. Rather than using sequential pipelines, the system
@@ -23,6 +24,7 @@
   authors: "Vandad Davoodnia, Saeed Ghorbani, Marc-André Carbonneau, Alexandre Messier, Ali Etemad"
   venue: "European Conference on Computer Vision (ECCV)"
   year: 2024
+  topics: [Computer Vision, Pose Estimation]
   abstract: >-
     We introduce UPose3D, a novel approach for multi-view 3D human pose estimation,
     addressing challenges in accuracy and scalability. Our method advances existing
@@ -45,6 +47,7 @@
   authors: "Vandad Davoodnia, Saeed Ghorbani, Alexandre Messier, Ali Etemad"
   venue: "ECCV Workshop on CV for Metaverse"
   year: 2024
+  topics: [Computer Vision, Pose Estimation]
   abstract: >-
     We present a markerless motion capture pipeline for 3D human pose and shape
     estimation. Our two-stage approach first leverages existing 2D keypoint detectors
@@ -65,6 +68,7 @@
   authors: "Chanhaeng Lee, Mykhailo Perepichka, Saeed Ghorbani, Sudhir Mudur, Eric Paquette, Tiberiu Popa"
   venue: "European Conference on Computer Vision (ECCV)"
   year: 2024
+  topics: [Generative Models]
   abstract: >-
     We present a neural network approach for real-time garment simulation on human
     figures. A two-stage training framework first compresses cloth vertex data into a
@@ -81,6 +85,7 @@
   authors: "Saeed Ghorbani, Ylva Ferstl, Daniel Holden, Nikolaus F. Troje, Marc-André Carbonneau"
   venue: "Computer Graphics Forum"
   year: 2023
+  topics: [Gesture Generation, Generative Models]
   abstract: >-
     We present ZeroEGGS, a neural network framework for speech-driven gesture
     generation with zero-shot style control by example. Style can be controlled via
@@ -104,6 +109,7 @@
   authors: "Saeed Ghorbani, Ylva Ferstl, Marc-André Carbonneau"
   venue: "International Conference on Multimodal Interaction (ICMI)"
   year: 2022
+  topics: [Gesture Generation]
   abstract: >-
     We present our entry to the GENEA Challenge 2022 on data-driven co-speech gesture
     generation. Our system is a neural network that generates gesture animation from an
@@ -121,6 +127,7 @@
   authors: "Vandad Davoodnia, Saeed Ghorbani, Ali Etemad"
   venue: "Applied Intelligence (Springer)"
   year: 2022
+  topics: [Pose Estimation, Computer Vision]
   abstract: >-
     In-bed pose estimation has shown value in fields such as hospital patient
     monitoring, sleep studies, and smart homes. We explore different strategies for
@@ -139,6 +146,7 @@
   authors: "Vandad Davoodnia, Saeed Ghorbani, Ali Etemad"
   venue: "IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)"
   year: 2021
+  topics: [Pose Estimation, Computer Vision]
   abstract: >-
     We address the challenge of pose estimation from in-bed pressure sensing systems by
     presenting a novel end-to-end framework that accurately locates body parts from
@@ -157,6 +165,7 @@
   authors: "Saeed Ghorbani, Kimia Mahdaviani, Anne Thaler, Konrad Kording, Douglas James Cook, Gunnar Blohm, Nikolaus F. Troje"
   venue: "PLOS ONE"
   year: 2021
+  topics: [Datasets, Human Motion]
   abstract: >-
     We introduce MoVi, a large human Motion and Video dataset made publicly available.
     It contains 60 female and 30 male actors performing a collection of 20 predefined
@@ -178,6 +187,7 @@
   authors: "Alireza Sepas-Moghaddam, Saeed Ghorbani, Nikolaus F. Troje, Ali Etemad"
   venue: "International Conference on Pattern Recognition (ICPR)"
   year: 2021
+  topics: [Computer Vision, Human Motion]
   abstract: >-
     We propose a novel deep network for gait recognition that learns to transfer
     multi-scale partial gait representations using capsules to obtain more
@@ -197,6 +207,7 @@
   authors: "Saeed Ghorbani, Calden Wloka, Ali Etemad, Marcus A. Brubaker, Nikolaus F. Troje"
   venue: "Computer Graphics Forum (Symposium on Computer Animation)"
   year: 2020
+  topics: [Human Motion, Generative Models]
   abstract: >-
     We present a probabilistic framework to generate character animations based on weak
     control signals, such that the synthesized motions are realistic while retaining
@@ -217,6 +228,7 @@
   authors: "Saeed Ghorbani, Ali Etemad, Nikolaus F. Troje"
   venue: "Computer Graphics International (CGI)"
   year: 2019
+  topics: [Human Motion]
   award: "Best Paper Award"
   abstract: >-
     Optical marker-based motion capture is a vital tool in applications such as motion
@@ -235,6 +247,7 @@
   authors: "Saeed Ghorbani, Ali Etemad, Nikolaus F. Troje"
   venue: "CVR Vision Conference"
   year: 2019
+  topics: [Human Motion, Computer Vision]
   award: "Best Poster Award"
   links:
     pdf: "https://www.biomotionlab.ca/Abstracts/Ghorbani_CVR2019.pdf"
@@ -245,6 +258,7 @@
   authors: "Ali Ghayoor, Saeed Ghorbani, Ali Asghar Beheshti Shirazi"
   venue: "International Conference on Wireless Communications & Signal Processing (WCSP)"
   year: 2010
+  topics: [Computer Vision]
   abstract: >-
     We present a method for sub-pixel image registration based on physical forces,
     treating images like charged materials that attract each other. Registration
