@@ -65,12 +65,19 @@ const letters = [...site.name];
   .paths__svg path {
     fill: none;
     stroke-linecap: round;
-    stroke-dasharray: 0.35 0.65; /* pathLength=1 → a dash that marches along the curve */
-    animation: path-flow var(--dur, 20s) linear var(--delay, 0s) infinite;
+    /* pathLength=1, full-length dash: offset 1 → hidden, 0 → fully drawn, -1 → drawn out.
+       So the path draws in, then draws out the far end — the original's pathLength [0,1,0] feel,
+       with opacity fading in/out so lines gently shift and fade. */
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: path-draw var(--dur, 20s) ease-in-out var(--delay, 0s) infinite;
   }
-  @keyframes path-flow {
-    from { stroke-dashoffset: 1; }
-    to { stroke-dashoffset: 0; }
+  @keyframes path-draw {
+    0% { stroke-dashoffset: 1; opacity: 0; }
+    40% { opacity: 1; }
+    50% { stroke-dashoffset: 0; }
+    60% { opacity: 1; }
+    100% { stroke-dashoffset: -1; opacity: 0; }
   }
   /* soft radial vignette so the center text stays readable over the lines */
   .hero::after {
@@ -110,7 +117,7 @@ const letters = [...site.name];
   @keyframes fade-in { to { opacity: 1; } }
 
   @media (prefers-reduced-motion: reduce) {
-    .paths__svg path { animation: none; stroke-dasharray: none; }
+    .paths__svg path { animation: none; stroke-dasharray: none; stroke-dashoffset: 0; opacity: 1; }
     .hero__eyebrow, .hero__cue { opacity: 1; animation: none; }
     .hero__letter { opacity: 1; transform: none; animation: none; }
   }
