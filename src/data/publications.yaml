@@ -1,4 +1,5 @@
 - id: aether-weaver-2025
+  abbr: "arXiv"
   title: "Aether Weaver: Multimodal Affective Narrative Co-Generation with Dynamic Scene Graphs"
   authors: "Saeed Ghorbani"
   venue: "arXiv"
@@ -17,6 +18,7 @@
     pdf: "https://arxiv.org/abs/2507.21893"
 
 - id: upose3d-2024
+  abbr: "ECCV"
   title: "UPose3D: Uncertainty-Aware 3D Human Pose Estimation with Cross-View and Temporal Cues"
   authors: "Vandad Davoodnia, Saeed Ghorbani, Marc-André Carbonneau, Alexandre Messier, Ali Etemad"
   venue: "European Conference on Computer Vision (ECCV)"
@@ -38,6 +40,7 @@
     project: "https://vdavoodnia.github.io/projects/upose3d/"
 
 - id: skelformer-2024
+  abbr: "ECCVW"
   title: "SkelFormer: Markerless 3D Pose and Shape Estimation using Skeletal Transformers"
   authors: "Vandad Davoodnia, Saeed Ghorbani, Alexandre Messier, Ali Etemad"
   venue: "ECCV Workshop on CV for Metaverse"
@@ -57,6 +60,7 @@
     project: "https://vdavoodnia.github.io/projects/skelformer/"
 
 - id: neural-cloth-deformation-2024
+  abbr: "ECCV"
   title: "Real-Time Neural Cloth Deformation using a Compact Latent Space and a Latent Vector Predictor"
   authors: "Chanhaeng Lee, Mykhailo Perepichka, Saeed Ghorbani, Sudhir Mudur, Eric Paquette, Tiberiu Popa"
   venue: "European Conference on Computer Vision (ECCV)"
@@ -72,6 +76,7 @@
     pdf: "https://doi.org/10.1007/978-3-031-92387-6_25"
 
 - id: zeroeggs-2023
+  abbr: "CGF"
   title: "ZeroEGGS: Zero-shot Example-based Gesture Generation from Speech"
   authors: "Saeed Ghorbani, Ylva Ferstl, Daniel Holden, Nikolaus F. Troje, Marc-André Carbonneau"
   venue: "Computer Graphics Forum"
@@ -94,6 +99,7 @@
     project: "https://saeed1262.github.io/projects/zeggs/"
 
 - id: exemplar-gesture-genea-2022
+  abbr: "ICMI"
   title: "Exemplar-based Stylized Gesture Generation from Speech: An Entry to the GENEA Challenge 2022"
   authors: "Saeed Ghorbani, Ylva Ferstl, Marc-André Carbonneau"
   venue: "International Conference on Multimodal Interaction (ICMI)"
@@ -110,6 +116,7 @@
     pdf: "https://openreview.net/pdf?id=fO_Q4q1dFAA"
 
 - id: smart-beds-pose-2022
+  abbr: "APIN"
   title: "Estimating Pose from Pressure Data for Smart Beds with Deep Image-based Pose Estimators"
   authors: "Vandad Davoodnia, Saeed Ghorbani, Ali Etemad"
   venue: "Applied Intelligence (Springer)"
@@ -127,6 +134,7 @@
     high pose estimation accuracy.
 
 - id: in-bed-pose-icassp-2021
+  abbr: "ICASSP"
   title: "In-bed Pressure-based Pose Estimation using Image Space Representation Learning"
   authors: "Vandad Davoodnia, Saeed Ghorbani, Ali Etemad"
   venue: "IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)"
@@ -144,6 +152,7 @@
     pdf: "https://arxiv.org/pdf/1908.08919.pdf"
 
 - id: movi-2021
+  abbr: "PLOS ONE"
   title: "MoVi: A Large Multi-Purpose Human Motion and Video Dataset"
   authors: "Saeed Ghorbani, Kimia Mahdaviani, Anne Thaler, Konrad Kording, Douglas James Cook, Gunnar Blohm, Nikolaus F. Troje"
   venue: "PLOS ONE"
@@ -164,6 +173,7 @@
     project: "https://www.biomotionlab.ca/movi/"
 
 - id: gait-recognition-icpr-2021
+  abbr: "ICPR"
   title: "Gait Recognition using Multi-Scale Partial Representation Transformation with Capsules"
   authors: "Alireza Sepas-Moghaddam, Saeed Ghorbani, Nikolaus F. Troje, Ali Etemad"
   venue: "International Conference on Pattern Recognition (ICPR)"
@@ -182,6 +192,7 @@
     pdf: "https://arxiv.org/pdf/2010.09084.pdf"
 
 - id: probabilistic-character-motion-2020
+  abbr: "CGF"
   title: "Probabilistic Character Motion Synthesis using a Hierarchical Deep Latent Variable Model"
   authors: "Saeed Ghorbani, Calden Wloka, Ali Etemad, Marcus A. Brubaker, Nikolaus F. Troje"
   venue: "Computer Graphics Forum (Symposium on Computer Animation)"
@@ -201,6 +212,7 @@
     project: "https://saeed1262.github.io/projects/motionModel/"
 
 - id: auto-labelling-markers-cgi-2019
+  abbr: "CGI"
   title: "Auto-labelling of Markers in Optical Motion Capture by Permutation Learning"
   authors: "Saeed Ghorbani, Ali Etemad, Nikolaus F. Troje"
   venue: "Computer Graphics International (CGI)"
@@ -218,6 +230,7 @@
     pdf: "https://arxiv.org/pdf/1907.13580.pdf"
 
 - id: marker-tracking-learning-to-rank-cvr-2019
+  abbr: "CVR"
   title: "Automatic Initialization and Tracking of Markers in Optical Motion Capture by Learning to Rank"
   authors: "Saeed Ghorbani, Ali Etemad, Nikolaus F. Troje"
   venue: "CVR Vision Conference"
@@ -227,6 +240,7 @@
     pdf: "https://www.biomotionlab.ca/Abstracts/Ghorbani_CVR2019.pdf"
 
 - id: subpixel-image-registration-wcsp-2010
+  abbr: "WCSP"
   title: "Sub-pixel Image Registration based on Physical Forces"
   authors: "Ali Ghayoor, Saeed Ghorbani, Ali Asghar Beheshti Shirazi"
   venue: "International Conference on Wireless Communications & Signal Processing (WCSP)"
