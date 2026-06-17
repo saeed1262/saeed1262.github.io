@@ -270,7 +270,7 @@ export default function EnhancedBackgroundPaths({
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8 }}
-                className="mb-5 text-xs sm:text-sm uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400"
+                className="mb-5 text-xs sm:text-sm uppercase tracking-[0.25em] text-slate-600 dark:text-slate-400"
               >
                 {eyebrow}
               </motion.p>
@@ -291,7 +291,7 @@ export default function EnhancedBackgroundPaths({
                         duration: 0.8
                       }}
                       className="inline-block text-transparent bg-clip-text 
-                                          bg-gradient-to-br from-slate-900 via-slate-700 to-slate-500
+                                          bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700
                                           dark:from-white dark:via-slate-200 dark:to-slate-400
                                           hover:from-blue-600 hover:to-purple-600 dark:hover:from-blue-400 dark:hover:to-purple-400
                                           transition-all duration-700 cursor-default"
