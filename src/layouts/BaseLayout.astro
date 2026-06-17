@@ -57,11 +57,19 @@ const jsonLd = {
   <head>
     <script is:inline>
       (function () {
-        try {
-          var t = localStorage.getItem('theme');
-          if (t === 'light') document.documentElement.classList.remove('dark');
-          else document.documentElement.classList.add('dark');
-        } catch (e) { document.documentElement.classList.add('dark'); }
+        function applyTheme() {
+          try {
+            var t = localStorage.getItem('theme');
+            if (t === 'light') document.documentElement.classList.remove('dark');
+            else document.documentElement.classList.add('dark');
+          } catch (e) { document.documentElement.classList.add('dark'); }
+        }
+        applyTheme();
+        // Re-apply after view-transition swaps (the swapped page's <html> defaults to dark).
+        if (!window.__themeSwapBound) {
+          window.__themeSwapBound = true;
+          document.addEventListener('astro:after-swap', applyTheme);
+        }
       })();
     </script>
     <meta charset="utf-8" />
