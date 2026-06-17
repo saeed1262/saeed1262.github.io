@@ -1,7 +1,6 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Button } from "@/components/ui/button"
 import { useState, useEffect } from "react"
 
 // Geometric Grid Paths
@@ -212,8 +211,10 @@ function SpiralPaths() {
 
 export default function EnhancedBackgroundPaths({
   title = "Neural Dynamics",
+  eyebrow = "",
 }: {
   title?: string
+  eyebrow?: string
 }) {
   const [currentPattern, setCurrentPattern] = useState(0)
   const patterns = ['neural', 'flow', 'geometric', 'spiral']
@@ -254,25 +255,6 @@ export default function EnhancedBackgroundPaths({
       {/* Gradient Overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-white/60 via-transparent to-white/60 dark:from-slate-900/60 dark:via-transparent dark:to-slate-900/60" />
 
-      {/* Pattern Indicator */}
-      <div className="absolute top-8 right-8 flex gap-2 z-20">
-        {patterns.map((_, i) => (
-          <motion.div
-            key={i}
-            className={`w-2 h-2 rounded-full transition-colors duration-300 ${
-              i === currentPattern 
-                ? 'bg-slate-800 dark:bg-white' 
-                : 'bg-slate-300 dark:bg-slate-600'
-            }`}
-            animate={{ 
-              scale: i === currentPattern ? 1.2 : 1,
-              opacity: i === currentPattern ? 1 : 0.5
-            }}
-            transition={{ duration: 0.3 }}
-          />
-        ))}
-      </div>
-
       {/* Main Content */}
       <div className="relative z-10 container mx-auto px-4 md:px-6 text-center">
         <motion.div
@@ -283,6 +265,16 @@ export default function EnhancedBackgroundPaths({
         >
           {/* Main Title */}
           <div className="mb-8">
+            {eyebrow && (
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+                className="mb-5 text-xs sm:text-sm uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400"
+              >
+                {eyebrow}
+              </motion.p>
+            )}
             <h1 className="text-6xl sm:text-8xl md:text-9xl font-black mb-4 tracking-tighter leading-none">
               {words.map((word, wordIndex) => (
                 <span key={wordIndex} className="inline-block mr-6 last:mr-0">
@@ -311,69 +303,7 @@ export default function EnhancedBackgroundPaths({
                 </span>
               ))}
             </h1>
-            
-            {/* Subtitle */}
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1, duration: 1 }}
-              className="text-xl md:text-2xl text-slate-600 dark:text-slate-300 font-light tracking-wide max-w-2xl mx-auto"
-            >
-              Experience the future of interactive design with dynamic pattern generation
-            </motion.p>
           </div>
-
-          {/* CTA Button */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 1.5, duration: 0.8, type: "spring", stiffness: 100 }}
-            className="inline-block group"
-          >
-            <div className="relative p-[2px] bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-2xl group-hover:from-blue-600 group-hover:via-purple-600 group-hover:to-pink-600 transition-all duration-300">
-              <Button
-                variant="ghost"
-                size="lg"
-                className="relative rounded-[14px] px-12 py-6 text-lg font-semibold
-                            bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800
-                            text-slate-900 dark:text-white transition-all duration-300
-                            group-hover:-translate-y-1 group-hover:shadow-2xl
-                            border-0 backdrop-blur-sm"
-              >
-                <motion.span 
-                  className="flex items-center gap-3"
-                  whileHover={{ x: 2 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                >
-                  <span className="relative">
-                    Explore Patterns
-                    <motion.span
-                      className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 group-hover:w-full transition-all duration-300"
-                      initial={{ width: 0 }}
-                      whileHover={{ width: "100%" }}
-                    />
-                  </span>
-                  <motion.span
-                    animate={{ x: [0, 4, 0] }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                    className="text-xl"
-                  >
-                    →
-                  </motion.span>
-                </motion.span>
-              </Button>
-            </div>
-          </motion.div>
-
-          {/* Pattern Info */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 2, duration: 1 }}
-            className="mt-12 text-sm text-slate-500 dark:text-slate-400 font-mono tracking-wider"
-          >
-            Current Pattern: <span className="text-slate-700 dark:text-slate-200 font-semibold capitalize">{patterns[currentPattern]}</span>
-          </motion.div>
         </motion.div>
       </div>
 
