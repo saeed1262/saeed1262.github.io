@@ -5,6 +5,7 @@ export const publicationSchema = z.object({
   authors: z.string(),
   venue: z.string(),
   year: z.number(),
+  abbr: z.string().optional(),
   award: z.string().optional(),
   abstract: z.string().optional(),
   links: z

@@ -1,41 +1,146 @@
 ---
 import { getCollection } from 'astro:content';
-import Reveal from '@/components/ui/Reveal.astro';
-import Card from '@/components/ui/Card.astro';
+import type { CollectionEntry } from 'astro:content';
 import SectionHeading from '@/components/ui/SectionHeading.astro';
 
 const pubs = (await getCollection('publications')).sort((a, b) => b.data.year - a.data.year);
+
+function highlightAuthors(authors: string): string {
+  return authors.replaceAll('Saeed Ghorbani', '<strong class="pub__me">Saeed Ghorbani</strong>');
+}
+
+function toBibtex(p: CollectionEntry<'publications'>): string {
+  const d = p.data;
+  return `@article{${p.id},
+  title   = {${d.title}},
+  author  = {${d.authors}},
+  journal = {${d.venue}},
+  year    = {${d.year}}
+}`;
+}
 ---
 <section id="publications" class="pubs container">
   <SectionHeading kicker="Research" title="Selected publications" />
   <div class="pubs__list">
     {pubs.map((p) => (
-      <Reveal>
-        <Card class="pub">
-          <div class="pub__head">
-            <h3 class="pub__title">{p.data.title}</h3>
-            {p.data.award && <span class="pub__award">{p.data.award}</span>}
+      <article class="pub">
+        <div class="pub__badge"><span class="pub__abbr">{p.data.abbr ?? p.data.venue}</span></div>
+        <div class="pub__main">
+          <h3 class="pub__title">{p.data.title}</h3>
+          {p.data.award && <span class="pub__award">{p.data.award}</span>}
+          <p class="pub__authors" set:html={highlightAuthors(p.data.authors)} />
+          <p class="pub__venue"><em>{p.data.venue} {p.data.year}</em></p>
+          <div class="pub__actions">
+            {p.data.abstract && <button type="button" class="pub__btn" data-toggle="abs">ABS</button>}
+            <button type="button" class="pub__btn" data-toggle="bib">BIB</button>
+            {p.data.links?.pdf && <a class="pub__btn" href={p.data.links.pdf} target="_blank" rel="noopener">PDF</a>}
+            {p.data.links?.code && <a class="pub__btn" href={p.data.links.code} target="_blank" rel="noopener">CODE</a>}
+            {p.data.links?.project && <a class="pub__btn" href={p.data.links.project} target="_blank" rel="noopener">WEBSITE</a>}
           </div>
-          <p class="pub__meta">{p.data.authors} · {p.data.venue} {p.data.year}</p>
-          {p.data.abstract && <p class="pub__abstract">{p.data.abstract}</p>}
-          <div class="pub__links">
-            {p.data.links.pdf && <a href={p.data.links.pdf} target="_blank" rel="noopener">PDF</a>}
-            {p.data.links.code && <a href={p.data.links.code} target="_blank" rel="noopener">Code</a>}
-            {p.data.links.project && <a href={p.data.links.project} target="_blank" rel="noopener">Project</a>}
-          </div>
-        </Card>
-      </Reveal>
+          {p.data.abstract && <div class="pub__panel pub__abstract" hidden><p>{p.data.abstract}</p></div>}
+          <div class="pub__panel pub__bibtex" hidden><pre>{toBibtex(p)}</pre></div>
+        </div>
+      </article>
     ))}
   </div>
+
   <style>
     .pubs { padding-block: var(--space-xl); }
-    .pubs__list { display: grid; gap: var(--space-sm); }
-    .pub__head { display: flex; justify-content: space-between; gap: var(--space-sm); align-items: baseline; }
-    .pub__title { font-size: var(--step-1); }
-    .pub__award { color: var(--accent-from); font-size: var(--step--1); white-space: nowrap; }
-    .pub__meta { color: var(--text-muted); font-size: var(--step--1); margin-top: 0.25rem; }
-    .pub__abstract { margin-top: var(--space-xs); color: var(--text-muted); }
-    .pub__links { display: flex; gap: var(--space-sm); margin-top: var(--space-sm); }
-    .pub__links a { color: var(--accent-from); font-size: var(--step--1); }
+    .pubs__list { display: grid; gap: var(--space-md); }
+
+    .pub {
+      display: grid;
+      grid-template-columns: 7rem 1fr;
+      gap: var(--space-md);
+      align-items: start;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: var(--space-md);
+    }
+
+    .pub__abbr {
+      display: inline-block;
+      background: var(--accent-gradient);
+      color: #06070b;
+      font-weight: 700;
+      font-size: 0.72rem;
+      letter-spacing: 0.05em;
+      padding: 0.3rem 0.85rem;
+      border-radius: 999px;
+      box-shadow: 0 4px 14px color-mix(in srgb, var(--accent-from) 30%, transparent);
+    }
+
+    .pub__title { font-size: var(--step-1); font-weight: 600; line-height: 1.25; }
+    .pub__award { color: var(--accent-from); font-size: var(--step--1); }
+
+    .pub__authors { margin-top: 0.35rem; color: var(--text-muted); font-size: var(--step-0); }
+    .pub__authors :global(.pub__me) {
+      color: var(--text);
+      font-weight: 600;
+      text-decoration: underline;
+      text-decoration-color: var(--accent-from);
+    }
+
+    .pub__venue { color: var(--text-muted); font-size: var(--step--1); margin-top: 0.15rem; }
+
+    .pub__actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: var(--space-sm);
+      padding-top: var(--space-sm);
+      border-top: 1px dashed var(--border);
+    }
+
+    .pub__btn {
+      font: inherit;
+      font-size: 0.7rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.32rem 0.7rem;
+      cursor: pointer;
+      text-decoration: none;
+      transition: border-color .2s, color .2s, background .2s;
+    }
+    .pub__btn:hover, .pub__btn.is-open {
+      border-color: color-mix(in srgb, var(--accent-from) 55%, var(--border));
+      color: var(--accent-from);
+    }
+
+    .pub__panel { margin-top: var(--space-sm); color: var(--text-muted); font-size: var(--step--1); line-height: 1.6; }
+    .pub__bibtex pre {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: var(--space-sm);
+      overflow: auto;
+      white-space: pre;
+      font-size: 0.78rem;
+    }
+
+    [hidden] { display: none; }
+
+    @media (max-width: 640px) {
+      .pub { grid-template-columns: 1fr; }
+      .pub__badge { text-align: left; }
+    }
   </style>
+
+  <script>
+    document.querySelectorAll('.pub__btn[data-toggle]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const sel = btn.getAttribute('data-toggle') === 'abs' ? '.pub__abstract' : '.pub__bibtex';
+        const panel = btn.closest('.pub')?.querySelector<HTMLElement>(sel);
+        if (panel) {
+          panel.hidden = !panel.hidden;
+          btn.classList.toggle('is-open', !panel.hidden);
+        }
+      });
+    });
+  </script>
 </section>
