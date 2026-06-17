@@ -1,15 +1,48 @@
 ---
 import { site } from '@/data/site';
 import AnimatedUnderline from '@/components/ui/AnimatedUnderline.astro';
+
+// Build a set of flowing SVG paths (Aceternity "Background Paths" idea), generated
+// at build time and animated purely by CSS (stroke-dashoffset flow loop — no JS).
+function buildPaths(position: number) {
+  return Array.from({ length: 36 }, (_, i) => ({
+    d: `M-${380 - i * 5 * position} -${189 + i * 6}C-${380 - i * 5 * position} -${189 + i * 6} -${312 - i * 5 * position} ${216 - i * 6} ${152 - i * 5 * position} ${343 - i * 6}C${616 - i * 5 * position} ${470 - i * 6} ${684 - i * 5 * position} ${875 - i * 6} ${684 - i * 5 * position} ${875 - i * 6}`,
+    width: 0.5 + i * 0.03,
+    opacity: 0.1 + i * 0.022,
+    dur: 16 + (i % 12),
+    delay: -(i * 0.6),
+  }));
+}
+const groupA = buildPaths(1);
+const groupB = buildPaths(-1);
+const letters = [...site.name];
 ---
 <section class="hero" aria-label="Intro">
-  <div class="lamp" aria-hidden="true">
-    <span class="lamp__glow"></span>
-    <span class="lamp__line"></span>
+  <div class="paths" aria-hidden="true">
+    <svg class="paths__svg paths__svg--a" viewBox="0 0 696 316" fill="none" preserveAspectRatio="xMidYMid slice">
+      {groupA.map((p) => (
+        <path d={p.d} stroke="currentColor" stroke-width={p.width} stroke-opacity={p.opacity}
+          pathLength="1" style={`--dur:${p.dur}s;--delay:${p.delay}s`} />
+      ))}
+    </svg>
+    <svg class="paths__svg paths__svg--b" viewBox="0 0 696 316" fill="none" preserveAspectRatio="xMidYMid slice">
+      {groupB.map((p) => (
+        <path d={p.d} stroke="currentColor" stroke-width={p.width} stroke-opacity={p.opacity}
+          pathLength="1" style={`--dur:${p.dur + 3}s;--delay:${p.delay - 1}s`} />
+      ))}
+    </svg>
   </div>
   <div class="hero__content container">
     <p class="hero__eyebrow">{site.role}</p>
-    <h1 class="hero__title"><AnimatedUnderline>{site.name}</AnimatedUnderline></h1>
+    <h1 class="hero__title" aria-label={site.name}>
+      <AnimatedUnderline>
+        {letters.map((ch, i) => (
+          <span class="hero__letter" aria-hidden="true" style={`animation-delay:${(i * 0.045).toFixed(3)}s`}>
+            {ch === ' ' ? ' ' : ch}
+          </span>
+        ))}
+      </AnimatedUnderline>
+    </h1>
     <a class="hero__cue" href="#about">Scroll ↓</a>
   </div>
 </section>
@@ -21,71 +54,64 @@ import AnimatedUnderline from '@/components/ui/AnimatedUnderline.astro';
     display: grid;
     place-items: center;
     overflow: hidden;
-    /* page-spanning blue glow that fades smoothly to black at the edges — no frame */
-    background:
-      radial-gradient(135% 120% at 50% 30%,
-        color-mix(in srgb, var(--accent-from) 26%, transparent) 0%,
-        color-mix(in srgb, var(--accent-from) 13%, transparent) 36%,
-        color-mix(in srgb, var(--accent-to) 6%, transparent) 58%,
-        transparent 82%),
-      var(--bg-deep);
+    background: var(--bg-deep);
     isolation: isolate;
   }
-  .lamp {
+  /* --- flowing background paths --- */
+  .paths { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+  .paths__svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .paths__svg--a { color: var(--accent-from); }
+  .paths__svg--b { color: var(--accent-to); }
+  .paths__svg path {
+    fill: none;
+    stroke-linecap: round;
+    stroke-dasharray: 0.35 0.65; /* pathLength=1 → a dash that marches along the curve */
+    animation: path-flow var(--dur, 20s) linear var(--delay, 0s) infinite;
+  }
+  @keyframes path-flow {
+    from { stroke-dashoffset: 1; }
+    to { stroke-dashoffset: 0; }
+  }
+  /* soft radial vignette so the center text stays readable over the lines */
+  .hero::after {
+    content: '';
     position: absolute;
-    top: 38%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: min(60rem, 92vw);
+    inset: 0;
     z-index: 0;
+    background: radial-gradient(60% 50% at 50% 50%, color-mix(in srgb, var(--bg-deep) 78%, transparent), transparent 75%);
     pointer-events: none;
   }
-  /* soft bright core right under the light line (heavily blurred = no hard edge) */
-  .lamp__glow {
-    position: absolute;
-    top: -3rem;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 36rem;
-    max-width: 88vw;
-    height: 12rem;
-    border-radius: 999px;
-    background: var(--accent-from);
-    filter: blur(120px);
+
+  /* --- content --- */
+  .hero__content { position: relative; z-index: 1; text-align: center; }
+  .hero__eyebrow {
+    color: var(--text-muted);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-size: var(--step--1);
     opacity: 0;
-    animation: lamp-glow 1.3s var(--ease-out) 0.2s forwards;
+    animation: fade-in 0.8s var(--ease-out) 0.1s forwards;
   }
-  /* the bright focal light line */
-  .lamp__line {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%) scaleX(0);
-    height: 2px;
-    width: min(46rem, 90vw);
-    background: linear-gradient(90deg, transparent, var(--accent-from) 26%, var(--accent-to) 74%, transparent);
-    box-shadow: 0 0 30px 5px color-mix(in srgb, var(--accent-from) 55%, transparent);
-    animation: lamp-line 1.1s var(--ease-out) 0.3s forwards;
-  }
-  @keyframes lamp-glow { to { opacity: 0.5; } }
-  @keyframes lamp-line { to { transform: translateX(-50%) scaleX(1); } }
-  /* content sits just beneath the light line */
-  .hero__content {
-    position: relative;
-    z-index: 1;
-    text-align: center;
-    margin-top: 6rem;
-    transform: translateY(2rem);
-    opacity: 0;
-    animation: hero-rise 0.9s var(--ease-out) 0.5s forwards;
-  }
-  @keyframes hero-rise { to { opacity: 1; transform: none; } }
-  .hero__eyebrow { color: var(--text-muted); letter-spacing: 0.2em; text-transform: uppercase; font-size: var(--step--1); }
   .hero__title { font-size: var(--step-5); font-weight: 700; }
-  .hero__cue { display: inline-block; margin-top: var(--space-md); color: var(--text-muted); }
+  .hero__letter {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(0.4em);
+    animation: letter-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1.2) forwards;
+  }
+  .hero__cue {
+    display: inline-block;
+    margin-top: var(--space-md);
+    color: var(--text-muted);
+    opacity: 0;
+    animation: fade-in 0.8s var(--ease-out) 0.9s forwards;
+  }
+  @keyframes letter-in { to { opacity: 1; transform: none; } }
+  @keyframes fade-in { to { opacity: 1; } }
+
   @media (prefers-reduced-motion: reduce) {
-    .lamp__glow { opacity: 0.5; animation: none; }
-    .lamp__line { transform: translateX(-50%) scaleX(1); animation: none; }
-    .hero__content { opacity: 1; transform: none; animation: none; }
+    .paths__svg path { animation: none; stroke-dasharray: none; }
+    .hero__eyebrow, .hero__cue { opacity: 1; animation: none; }
+    .hero__letter { opacity: 1; transform: none; animation: none; }
   }
 </style>
