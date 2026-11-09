@@ -1,7 +1,7 @@
 import { defineCollection } from 'astro:content';
 import { glob, file } from 'astro/loaders';
 import { parse as parseYaml } from 'yaml';
-import { publicationSchema, projectSchema, newsSchema } from '@/schemas';
+import { publicationSchema, projectSchema, personalProjectSchema, newsSchema } from '@/schemas';
 
 const yaml = (text: string) => parseYaml(text);
 
@@ -15,9 +15,14 @@ const projects = defineCollection({
   schema: projectSchema,
 });
 
+const personal = defineCollection({
+  loader: file('src/data/personal.yaml', { parser: yaml }),
+  schema: personalProjectSchema,
+});
+
 const news = defineCollection({
   loader: file('src/data/news.yaml', { parser: yaml }),
   schema: newsSchema,
 });
 
-export const collections = { publications, projects, news };
+export const collections = { publications, projects, personal, news };

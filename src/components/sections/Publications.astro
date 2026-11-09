@@ -63,6 +63,7 @@ function toBibtex(p: CollectionEntry<'publications'>): string {
               <h3 class="pub__title">{p.data.title}</h3>
               {p.data.award && <span class="pub__award">{p.data.award}</span>}
               <p class="pub__authors" set:html={highlightAuthors(p.data.authors)} />
+              <div class="pub__meta">
               <p class="pub__venue"><em>{p.data.venue} {p.data.year}</em></p>
               <div class="pub__actions">
                 {p.data.abstract && <button type="button" class="pub__btn" data-toggle="abs">ABS</button>}
@@ -70,6 +71,7 @@ function toBibtex(p: CollectionEntry<'publications'>): string {
                 {p.data.links?.pdf && <a class="pub__btn" href={p.data.links.pdf} target="_blank" rel="noopener">PDF</a>}
                 {p.data.links?.code && <a class="pub__btn" href={p.data.links.code} target="_blank" rel="noopener">CODE</a>}
                 {p.data.links?.project && <a class="pub__btn" href={p.data.links.project} target="_blank" rel="noopener">WEBSITE</a>}
+              </div>
               </div>
               {p.data.abstract && <div class="pub__panel pub__abstract" hidden><p>{p.data.abstract}</p></div>}
               <div class="pub__panel pub__bibtex" hidden><pre>{toBibtex(p)}</pre></div>
@@ -82,9 +84,9 @@ function toBibtex(p: CollectionEntry<'publications'>): string {
 
   <style>
     .pubs { padding-block: var(--space-xl); }
-    .pubs__list { display: grid; gap: var(--space-md); }
+    .pubs__list { display: grid; gap: var(--space-sm); }
 
-    .pubs__filters { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: var(--space-lg); }
+    .pubs__filters { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: var(--space-md); }
     .pubs__pill {
       font: inherit;
       font-size: var(--step--1);
@@ -99,13 +101,12 @@ function toBibtex(p: CollectionEntry<'publications'>): string {
     .pubs__pill:hover { color: var(--text); border-color: color-mix(in srgb, var(--accent-from) 45%, var(--border)); }
     .pubs__pill.is-active { color: var(--badge-text); background: var(--accent-gradient); border-color: transparent; }
 
-    .pubs__group { margin-bottom: var(--space-lg); }
+    .pubs__group { display: grid; gap: 0.6rem; margin-bottom: var(--space-md); }
     .pubs__year {
       font-family: var(--font-display);
-      font-size: var(--step-2);
+      font-size: var(--step-1);
       color: var(--gold-text);
-      margin-bottom: var(--space-sm);
-      padding-bottom: 0.35rem;
+      padding-bottom: 0.25rem;
       border-bottom: 1px solid var(--border);
     }
 
@@ -113,32 +114,33 @@ function toBibtex(p: CollectionEntry<'publications'>): string {
 
     .pub {
       display: grid;
-      grid-template-columns: 7rem 1fr;
-      gap: var(--space-md);
+      grid-template-columns: 4.75rem 1fr;
+      gap: 1rem;
       align-items: start;
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: var(--space-md);
-      box-shadow: var(--shadow-card);
+      border-radius: 12px;
+      padding: 0.9rem 1.15rem;
+      transition: border-color 0.2s;
     }
+    .pub:hover { border-color: color-mix(in srgb, var(--accent-from) 40%, var(--border)); }
 
     .pub__abbr {
       display: inline-block;
       background: var(--accent-gradient);
       color: var(--badge-text);
-      font-weight: 700;
-      font-size: 0.72rem;
-      letter-spacing: 0.05em;
-      padding: 0.3rem 0.85rem;
+      font-weight: 600;
+      font-size: 0.68rem;
+      letter-spacing: 0.04em;
+      padding: 0.2rem 0.6rem;
       border-radius: 999px;
-      box-shadow: 0 4px 14px color-mix(in srgb, var(--accent-from) 30%, transparent);
+      margin-top: 0.15rem;
     }
 
-    .pub__title { font-size: var(--step-1); font-weight: 600; line-height: 1.25; }
+    .pub__title { font-size: 1.05rem; font-weight: 600; line-height: 1.35; }
     .pub__award { color: var(--accent-from); font-size: var(--step--1); }
 
-    .pub__authors { margin-top: 0.35rem; color: var(--text-muted); font-size: var(--step-0); }
+    .pub__authors { margin-top: 0.2rem; color: var(--text-muted); font-size: 0.88rem; line-height: 1.45; }
     .pub__authors :global(.pub__me) {
       color: var(--text);
       font-weight: 600;
@@ -146,27 +148,27 @@ function toBibtex(p: CollectionEntry<'publications'>): string {
       text-decoration-color: var(--accent-from);
     }
 
-    .pub__venue { color: var(--text-muted); font-size: var(--step--1); margin-top: 0.15rem; }
-
-    .pub__actions {
+    .pub__meta {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-top: var(--space-sm);
-      padding-top: var(--space-sm);
-      border-top: 1px dashed var(--border);
+      align-items: center;
+      gap: 0.35rem 0.9rem;
+      margin-top: 0.35rem;
     }
+    .pub__venue { color: var(--text-muted); font-size: 0.82rem; }
+
+    .pub__actions { display: flex; flex-wrap: wrap; gap: 0.35rem; }
 
     .pub__btn {
       font: inherit;
-      font-size: 0.7rem;
+      font-size: 0.66rem;
       letter-spacing: 0.06em;
       text-transform: uppercase;
       color: var(--text-muted);
       background: transparent;
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 0.32rem 0.7rem;
+      border-radius: 6px;
+      padding: 0.15rem 0.5rem;
       cursor: pointer;
       text-decoration: none;
       transition: border-color .2s, color .2s, background .2s;
@@ -190,7 +192,7 @@ function toBibtex(p: CollectionEntry<'publications'>): string {
     [hidden] { display: none; }
 
     @media (max-width: 640px) {
-      .pub { grid-template-columns: 1fr; }
+      .pub { grid-template-columns: 1fr; gap: 0.4rem; padding: 0.85rem 1rem; }
       .pub__badge { text-align: left; }
     }
   </style>
