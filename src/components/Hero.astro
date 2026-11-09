@@ -1,29 +1,130 @@
 ---
+// Opening section: who, what, where to find the work. Static HTML so the
+// name and bio are in the page for search engines and link previews.
+import { Image } from 'astro:assets';
 import { site } from '@/data/site';
-import BackgroundPaths from '@/components/ui/modern-background-paths';
+import headshot from '@/assets/saeed.jpg';
 
 const links = [
-  { label: 'View CV', href: '/cv/', primary: true },
   { label: 'Google Scholar', href: site.links.scholar },
   { label: 'GitHub', href: site.links.github },
+  { label: 'LinkedIn', href: site.links.linkedin },
   { label: 'Email', href: `mailto:${site.email}` },
 ];
 ---
-<BackgroundPaths client:only="react" title={site.name} eyebrow={site.role} summary={site.summary} links={links} />
-<style is:global>
-  .hero-btn {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.6rem 1.15rem;
-    border-radius: 999px;
-    border: 1px solid var(--border);
-    background: color-mix(in srgb, var(--surface) 80%, transparent);
-    color: var(--text);
-    font-size: 0.95rem;
-    font-weight: 500;
-    transition: border-color 0.2s, color 0.2s, transform 0.2s var(--ease-out);
-  }
-  .hero-btn:hover { border-color: var(--accent-from); color: var(--accent-from); transform: translateY(-1px); }
-  .hero-btn--primary { background: var(--accent-from); border-color: transparent; color: var(--badge-text); }
-  .hero-btn--primary:hover { color: var(--badge-text); background: color-mix(in srgb, var(--accent-from) 88%, var(--text)); }
-</style>
+<section id="about" class="intro container">
+  <div class="intro__text">
+    <p class="intro__kicker"><span class="diamond" aria-hidden="true"></span> {site.role}</p>
+    <h1 class="intro__name">{site.name}</h1>
+    <p class="intro__meta">{site.company} · {site.location}</p>
+    <div class="intro__bio">
+      <p>
+        I'm a senior machine learning engineer at Roper Technologies, working on agentic AI.
+        I like working end to end, from research and modeling through to shipping
+        things that hold up in production.
+      </p>
+      <p>
+        My background spans deep learning, computer vision, and generative models.
+        PhD from York University; previously a research scientist at Wētā FX,
+        Amazon Games, and Ubisoft La Forge.
+      </p>
+    </div>
+    <div class="intro__links">
+      <a class="intro__cv" href="/cv/">View CV</a>
+      <ul>
+        {links.map(({ label, href }) => (
+          <li>
+            <a href={href} {...(href.startsWith('http') ? { target: '_blank', rel: 'noopener' } : {})}>{label}</a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </div>
+  <div class="intro__photo">
+    <Image
+      src={headshot}
+      alt="Saeed Ghorbani"
+      width={480}
+      height={480}
+      loading="eager"
+      fetchpriority="high"
+      class="intro__img"
+    />
+  </div>
+  <style>
+    .intro {
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+      gap: var(--space-lg);
+      align-items: center;
+      padding-block: 9rem var(--space-lg);
+      border-bottom: 1px solid var(--border);
+    }
+    .intro__kicker {
+      color: var(--gold-text);
+      font-variant: small-caps;
+      letter-spacing: 0.18em;
+      font-size: var(--step--1);
+    }
+    .intro__name {
+      font-size: var(--step-5);
+      line-height: 1;
+      margin-top: 0.75rem;
+    }
+    .intro__meta {
+      margin-top: 0.9rem;
+      color: var(--text-muted);
+      font-size: var(--step-0);
+    }
+    .intro__bio { margin-top: var(--space-md); max-width: 38rem; }
+    .intro__bio p:first-child { font-size: var(--step-1); line-height: 1.5; }
+    .intro__bio p + p { margin-top: var(--space-sm); color: var(--text-muted); }
+    .intro__links {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-sm) var(--space-md);
+      margin-top: var(--space-md);
+    }
+    .intro__cv {
+      display: inline-flex;
+      padding: 0.6rem 1.25rem;
+      border-radius: 999px;
+      background: var(--accent-from);
+      color: var(--badge-text);
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+    .intro__cv:hover { background: color-mix(in srgb, var(--accent-from) 85%, var(--text)); }
+    .intro__links ul {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem 1.25rem;
+      list-style: none;
+      padding: 0;
+    }
+    .intro__links li a {
+      color: var(--text);
+      font-weight: 500;
+      text-decoration: underline;
+      text-decoration-color: color-mix(in srgb, var(--accent-from) 45%, transparent);
+      text-underline-offset: 0.25em;
+      transition: color 0.2s, text-decoration-color 0.2s;
+    }
+    .intro__links li a:hover { color: var(--accent-from); text-decoration-color: var(--accent-from); }
+    .intro__photo { justify-self: end; width: 100%; max-width: 20rem; }
+    .intro__img {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 1;
+      object-fit: cover;
+      border-radius: 50%;
+      outline: 1px solid var(--gold);
+      outline-offset: 8px;
+    }
+    @media (max-width: 768px) {
+      .intro { grid-template-columns: 1fr; gap: var(--space-md); padding-top: 7rem; }
+      .intro__photo { order: -1; justify-self: start; max-width: 9rem; }
+    }
+  </style>
+</section>
