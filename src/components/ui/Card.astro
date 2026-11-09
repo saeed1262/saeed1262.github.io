@@ -6,6 +6,6 @@ const { class: className } = Astro.props;
   <slot />
   <style>
     .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: var(--space-md); box-shadow: var(--shadow-card); transition: border-color 0.3s, transform 0.3s var(--ease-out); }
-    .card:hover { border-color: color-mix(in srgb, var(--accent-from) 50%, var(--border)); transform: translateY(-4px); }
+    .card:hover { border-color: color-mix(in srgb, var(--accent-from) 50%, var(--border)); box-shadow: var(--shadow-hover); transform: translateY(-4px); }
   </style>
 </article>

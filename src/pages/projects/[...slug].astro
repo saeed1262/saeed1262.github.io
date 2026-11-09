@@ -32,7 +32,7 @@ const hero = imageFor(project.data.image);
     {project.data.url && (
       <p class="project__cta"><Button href={project.data.url} variant="solid">Visit resource →</Button></p>
     )}
-    <div class="project__body"><Content /></div>
+    <div class="project__body prose-page"><Content /></div>
   </article>
   <style>
     .project { padding-block: var(--space-xl); max-width: 48rem; }

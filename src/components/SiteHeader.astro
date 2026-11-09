@@ -16,11 +16,12 @@ import { ThemeToggle } from '@/components/ui/theme-toggle';
   </div>
   <style>
     .nav { position: fixed; top: 0; inset-inline: 0; z-index: 10; display: flex; justify-content: space-between; align-items: center; padding: var(--space-sm) var(--space-md); backdrop-filter: blur(10px); background: color-mix(in srgb, var(--bg) 70%, transparent); border-bottom: 1px solid var(--border); }
-    .nav__brand { font-family: var(--font-display); font-weight: 600; }
+    .nav__brand { font-family: var(--font-display); font-weight: 600; font-size: 1.25rem; }
     .nav__right { display: flex; align-items: center; gap: var(--space-md); }
     .nav__links { display: flex; gap: var(--space-md); font-size: var(--step--1); }
     .nav__links a { transition: color .2s; }
     .nav__links a.is-current { color: var(--accent-from); }
-    @media (max-width: 640px) { .nav__right { gap: var(--space-sm); } .nav__links { gap: var(--space-sm); } }
+    @media (max-width: 640px) { .nav { padding-inline: var(--space-sm); gap: 0.6rem; } .nav__brand { font-size: 1.05rem; line-height: 1.1; } .nav__right { gap: 0.6rem; } .nav__links { gap: 0.7rem; font-size: 0.82rem; } }
+    @media (max-width: 420px) { .nav__links { gap: 0.55rem; font-size: 0.78rem; } .nav__right { gap: 0.45rem; } .nav__brand { font-size: 0; } .nav__brand::before { content: "SG"; font-size: 1.15rem; } }
   </style>
 </header>

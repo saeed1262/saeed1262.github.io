@@ -1,259 +1,114 @@
 "use client"
 
-import { motion } from "framer-motion"
-import { useState, useEffect } from "react"
+import { motion, useReducedMotion } from "framer-motion"
+import { useEffect, useState } from "react"
 
-// Geometric Grid Paths
-function GeometricPaths() {
-  const gridSize = 40
-  const paths = []
-  
-  for (let x = 0; x < 20; x++) {
-    for (let y = 0; y < 12; y++) {
-      if (Math.random() > 0.7) {
-        paths.push({
-          id: `grid-${x}-${y}`,
-          d: `M${x * gridSize},${y * gridSize} L${(x + 1) * gridSize},${y * gridSize} L${(x + 1) * gridSize},${(y + 1) * gridSize} L${x * gridSize},${(y + 1) * gridSize} Z`,
-          delay: Math.random() * 5,
-        })
-      }
-    }
-  }
+// Isfahan tile patterns (defined as mask images in tokens.css). The hero
+// cross-fades between them, the way the plugin lets you pick one.
+const PATTERNS = ["--girih", "--khatam", "--shamseh", "--jali"]
 
+function TileLayer({ pattern, visible }: { pattern: string; visible: boolean }) {
+  const mask = `var(${pattern}) center / 64px 64px, radial-gradient(ellipse at center, #000 20%, transparent 72%)`
   return (
-    <svg className="absolute inset-0 w-full h-full opacity-20" viewBox="0 0 800 480">
-      {paths.map((path) => (
-        <motion.path
-          key={path.id}
-          d={path.d}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1"
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={{ 
-            pathLength: [0, 1, 0], 
-            opacity: [0, 0.6, 0],
-            scale: [1, 1.05, 1]
-          }}
-          transition={{
-            duration: 8,
-            delay: path.delay,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
-      ))}
-    </svg>
+    <motion.div
+      aria-hidden="true"
+      className="absolute inset-0"
+      initial={false}
+      animate={{ opacity: visible ? 1 : 0 }}
+      transition={{ duration: 2.4, ease: "easeInOut" }}
+    >
+      <div
+        className="absolute inset-0"
+        style={{
+          background: "var(--tile)",
+          opacity: "calc(var(--tile-o) * 2.2)",
+          WebkitMask: mask,
+          mask,
+          WebkitMaskComposite: "source-in",
+          maskComposite: "intersect",
+        }}
+      />
+    </motion.div>
   )
 }
 
-// Organic Flow Paths
-function FlowPaths() {
-  const flowPaths = Array.from({ length: 12 }, (_, i) => {
-    const amplitude = 50 + i * 10
-    const offset = i * 60
-    
-    return {
-      id: `flow-${i}`,
-      d: `M-100,${200 + offset} Q200,${200 + offset - amplitude} 500,${200 + offset} T900,${200 + offset}`,
-      strokeWidth: 1 + i * 0.3,
-      opacity: 0.1 + i * 0.05,
-      delay: i * 0.8
-    }
-  })
-
+// A shamseh (sun) rosette: an 8-point star of two squares, petals and rings.
+function Rosette({ still }: { still: boolean }) {
+  const petals = Array.from({ length: 16 }, (_, i) => i * 22.5)
+  const draw = (delay: number) =>
+    still
+      ? {}
+      : {
+          initial: { pathLength: 0, opacity: 0 },
+          animate: { pathLength: 1, opacity: 1 },
+          transition: { duration: 3.2, delay, ease: "easeInOut" as const },
+        }
   return (
-    <svg className="absolute inset-0 w-full h-full opacity-30" viewBox="0 0 800 800">
-      {flowPaths.map((path) => (
-        <motion.path
-          key={path.id}
-          d={path.d}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={path.strokeWidth}
-          strokeLinecap="round"
-          initial={{ pathLength: 0 }}
-          animate={{ 
-            pathLength: [0, 1, 0.8, 0],
-            opacity: [0, path.opacity, path.opacity * 0.7, 0]
-          }}
-          transition={{
-            duration: 15,
-            delay: path.delay,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
-      ))}
-    </svg>
-  )
-}
-
-// Neural Network Paths
-function NeuralPaths() {
-  const nodes = Array.from({ length: 50 }, (_, i) => ({
-    x: Math.random() * 800,
-    y: Math.random() * 600,
-    id: `node-${i}`
-  }))
-
-  const connections: { id: string; d: string; delay: number }[] = []
-  nodes.forEach((node, i) => {
-    const nearbyNodes = nodes.filter((other, j) => {
-      if (i === j) return false
-      const distance = Math.sqrt(Math.pow(node.x - other.x, 2) + Math.pow(node.y - other.y, 2))
-      return distance < 120 && Math.random() > 0.6
-    })
-    
-    nearbyNodes.forEach(target => {
-      connections.push({
-        id: `conn-${i}-${target.id}`,
-        d: `M${node.x},${node.y} L${target.x},${target.y}`,
-        delay: Math.random() * 10
-      })
-    })
-  })
-
-  return (
-    <svg className="absolute inset-0 w-full h-full opacity-15" viewBox="0 0 800 600">
-      {connections.map((conn) => (
-        <motion.path
-          key={conn.id}
-          d={conn.d}
-          stroke="currentColor"
-          strokeWidth="0.5"
-          fill="none"
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={{ 
-            pathLength: [0, 1, 0],
-            opacity: [0, 0.8, 0]
-          }}
-          transition={{
-            duration: 6,
-            delay: conn.delay,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
-      ))}
-      {nodes.map((node) => (
-        <motion.circle
-          key={node.id}
-          cx={node.x}
-          cy={node.y}
-          r="2"
-          fill="currentColor"
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ 
-            scale: [0, 1, 1.2, 1],
-            opacity: [0, 0.6, 0.8, 0.6]
-          }}
-          transition={{
-            duration: 4,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
-      ))}
-    </svg>
-  )
-}
-
-// Spiral Paths
-function SpiralPaths() {
-  const spirals = Array.from({ length: 8 }, (_, i) => {
-    const centerX = 400 + (i % 4 - 1.5) * 200
-    const centerY = 300 + Math.floor(i / 4 - 0.5) * 200
-    const radius = 80 + i * 15
-    const turns = 3 + i * 0.5
-    
-    let path = `M${centerX + radius},${centerY}`
-    for (let angle = 0; angle <= turns * 360; angle += 5) {
-      const radian = (angle * Math.PI) / 180
-      const currentRadius = radius * (1 - angle / (turns * 360))
-      const x = centerX + currentRadius * Math.cos(radian)
-      const y = centerY + currentRadius * Math.sin(radian)
-      path += ` L${x},${y}`
-    }
-    
-    return {
-      id: `spiral-${i}`,
-      d: path,
-      delay: i * 1.2
-    }
-  })
-
-  return (
-    <svg className="absolute inset-0 w-full h-full opacity-25" viewBox="0 0 800 600">
-      {spirals.map((spiral) => (
-        <motion.path
-          key={spiral.id}
-          d={spiral.d}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          initial={{ pathLength: 0 }}
-          animate={{ 
-            pathLength: [0, 1, 0],
-            rotate: [0, 360]
-          }}
-          transition={{
-            pathLength: { duration: 12, repeat: Infinity, ease: "easeInOut" },
-            rotate: { duration: 20, repeat: Infinity, ease: "linear" },
-            delay: spiral.delay
-          }}
-        />
-      ))}
-    </svg>
+    <motion.svg
+      aria-hidden="true"
+      viewBox="0 0 400 400"
+      className="absolute left-1/2 top-1/2 w-[min(92vw,44rem)] -translate-x-1/2 -translate-y-1/2"
+      animate={still ? undefined : { rotate: 360 }}
+      transition={{ duration: 240, repeat: Infinity, ease: "linear" }}
+      style={{ opacity: 0.24 }}
+    >
+      <g fill="none" stroke="var(--accent-from)" strokeWidth="1" strokeLinejoin="round">
+        <motion.circle cx="200" cy="200" r="190" {...draw(0)} />
+        <motion.circle cx="200" cy="200" r="178" strokeDasharray="2 6" {...draw(0.2)} />
+        <motion.path d="M200 40 L360 200 L200 360 L40 200 Z" {...draw(0.4)} />
+        <motion.path d="M87 87 H313 V313 H87 Z" {...draw(0.6)} />
+        {petals.map((a, i) => (
+          <motion.path
+            key={a}
+            d="M200 200 C214 168, 214 128, 200 96 C186 128, 186 168, 200 200 Z"
+            transform={`rotate(${a} 200 200)`}
+            stroke={i % 2 ? "var(--accent-to)" : "var(--accent-from)"}
+            {...draw(0.8 + i * 0.05)}
+          />
+        ))}
+        <motion.circle cx="200" cy="200" r="110" {...draw(1.2)} />
+        <motion.circle cx="200" cy="200" r="22" stroke="var(--accent-to)" {...draw(1.4)} />
+      </g>
+    </motion.svg>
   )
 }
 
 export default function EnhancedBackgroundPaths({
-  title = "Neural Dynamics",
+  title = "Isfahan",
   eyebrow = "",
 }: {
   title?: string
   eyebrow?: string
 }) {
-  const [currentPattern, setCurrentPattern] = useState(0)
-  const patterns = ['neural', 'flow', 'geometric', 'spiral']
+  const still = useReducedMotion() ?? false
+  const [current, setCurrent] = useState(0)
   const words = title.split(" ")
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentPattern((prev) => (prev + 1) % patterns.length)
-    }, 12000)
-    return () => clearInterval(interval)
-  }, [])
-
-  const renderPattern = () => {
-    switch (currentPattern) {
-      case 0: return <NeuralPaths />
-      case 1: return <FlowPaths />
-      case 2: return <GeometricPaths />
-      case 3: return <SpiralPaths />
-      default: return <NeuralPaths />
-    }
-  }
+    if (still) return
+    const id = setInterval(() => setCurrent((p) => (p + 1) % PATTERNS.length), 9000)
+    return () => clearInterval(id)
+  }, [still])
 
   return (
     <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-transparent">
-      {/* Dynamic Background Patterns */}
-      <div className="absolute inset-0 text-slate-600 dark:text-slate-400">
-        <motion.div
-          key={currentPattern}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 2 }}
-        >
-          {renderPattern()}
-        </motion.div>
-      </div>
+      {/* Color wash, then the tile lattice, then the rosette */}
+      <div aria-hidden="true" className="absolute inset-0" style={{ background: "var(--wash)" }} />
+      {PATTERNS.map((p, i) => (
+        <TileLayer key={p} pattern={p} visible={i === current} />
+      ))}
+      <Rosette still={still} />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0"
+        style={{ background: "linear-gradient(to bottom, transparent 60%, var(--bg))" }}
+      />
 
-      {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-white/55 via-transparent to-white/55 dark:from-[#0a0b0f]/70 dark:via-transparent dark:to-[#0a0b0f]/70" />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0"
+        style={{ background: "radial-gradient(ellipse 38% 22% at center, var(--bg) 0%, transparent 100%)", opacity: 0.85 }}
+      />
 
       {/* Main Content */}
       <div className="relative z-10 container mx-auto px-4 md:px-6 text-center">
@@ -263,77 +118,55 @@ export default function EnhancedBackgroundPaths({
           transition={{ duration: 1.5, ease: "easeOut" }}
           className="max-w-5xl mx-auto"
         >
-          {/* Main Title */}
           <div className="mb-8">
             {eyebrow && (
               <motion.p
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8 }}
-                className="mb-5 text-xs sm:text-sm uppercase tracking-[0.25em] text-slate-600 dark:text-slate-400"
+                className="mb-5 text-sm sm:text-base tracking-[0.25em]"
+                style={{ color: "var(--gold-text)", fontVariant: "small-caps" }}
               >
                 {eyebrow}
               </motion.p>
             )}
             <div className="group relative inline-block">
-            <h1 className="text-6xl sm:text-8xl md:text-9xl font-black tracking-tighter leading-none">
-              {words.map((word, wordIndex) => (
-                <span key={wordIndex} className="inline-block mr-6 last:mr-0">
-                  {word.split("").map((letter, letterIndex) => (
-                    <motion.span
-                      key={`${wordIndex}-${letterIndex}`}
-                      initial={{ y: 100, opacity: 0, rotateX: -90 }}
-                      animate={{ y: 0, opacity: 1, rotateX: 0 }}
-                      transition={{
-                        delay: wordIndex * 0.15 + letterIndex * 0.05,
-                        type: "spring",
-                        stiffness: 100,
-                        damping: 20,
-                        duration: 0.8
-                      }}
-                      className="inline-block text-transparent bg-clip-text 
-                                          bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700
-                                          dark:from-white dark:via-slate-200 dark:to-slate-400
-                                          hover:from-blue-600 hover:to-purple-600 dark:hover:from-blue-400 dark:hover:to-purple-400
-                                          transition-all duration-700 cursor-default"
-                      whileHover={{ scale: 1.05, y: -2 }}
-                    >
-                      {letter}
-                    </motion.span>
-                  ))}
-                </span>
-              ))}
-            </h1>
-              {/* animated wavy underline that draws in on hover (accent, theme-aware) */}
-              <svg aria-hidden="true" viewBox="0 0 300 20" preserveAspectRatio="none" className="pointer-events-none absolute left-0 top-full mt-2 h-4 w-full overflow-visible">
-                <path d="M 0,10 Q 75,0 150,10 Q 225,20 300,10" pathLength={1} fill="none" strokeLinecap="round" style={{ stroke: "var(--accent-from)", strokeWidth: 2 }} className="[stroke-dasharray:1] [stroke-dashoffset:1] transition-[stroke-dashoffset] duration-500 ease-out group-hover:[stroke-dashoffset:0] motion-reduce:transition-none" />
+              <h1
+                className="text-6xl sm:text-8xl md:text-9xl leading-none"
+                style={{ fontFamily: "var(--font-display)", fontWeight: 600 }}
+              >
+                {words.map((word, wordIndex) => (
+                  <span key={wordIndex} className="inline-block" style={{ marginRight: wordIndex < words.length - 1 ? "0.25em" : 0 }}>
+                    {word.split("").map((letter, letterIndex) => (
+                      <motion.span
+                        key={`${wordIndex}-${letterIndex}`}
+                        initial={{ y: 100, opacity: 0, rotateX: -90 }}
+                        animate={{ y: 0, opacity: 1, rotateX: 0 }}
+                        transition={{
+                          delay: wordIndex * 0.15 + letterIndex * 0.05,
+                          type: "spring",
+                          stiffness: 100,
+                          damping: 20,
+                          duration: 0.8,
+                        }}
+                        className="inline-block cursor-default transition-colors duration-500 hover:text-[var(--accent-from)]"
+                        style={{ color: "var(--text)" }}
+                        whileHover={{ scale: 1.05, y: -2 }}
+                      >
+                        {letter}
+                      </motion.span>
+                    ))}
+                  </span>
+                ))}
+              </h1>
+              {/* a mihrab arch that draws in on hover */}
+              <svg aria-hidden="true" viewBox="0 0 300 24" preserveAspectRatio="none" className="pointer-events-none absolute left-0 top-full mt-3 h-5 w-full overflow-visible">
+                <path d="M0 22 C40 22, 90 16, 130 8 C140 6, 146 3, 150 1 C154 3, 160 6, 170 8 C210 16, 260 22, 300 22" pathLength={1} fill="none" strokeLinecap="round" style={{ stroke: "var(--gold)", strokeWidth: 1.6 }} className="[stroke-dasharray:1] [stroke-dashoffset:1] transition-[stroke-dashoffset] duration-700 ease-out group-hover:[stroke-dashoffset:0] motion-reduce:transition-none" />
               </svg>
             </div>
           </div>
         </motion.div>
       </div>
-
-      {/* Floating Elements */}
-      <motion.div
-        className="absolute top-1/4 left-1/4 w-4 h-4 bg-blue-500/20 rounded-full blur-sm"
-        animate={{
-          y: [0, -20, 0],
-          x: [0, 10, 0],
-          scale: [1, 1.2, 1],
-          opacity: [0.3, 0.7, 0.3]
-        }}
-        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <motion.div
-        className="absolute top-3/4 right-1/3 w-6 h-6 bg-purple-500/20 rounded-full blur-sm"
-        animate={{
-          y: [0, 15, 0],
-          x: [0, -15, 0],
-          scale: [1, 0.8, 1],
-          opacity: [0.5, 0.8, 0.5]
-        }}
-        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-      />
     </div>
   )
 }

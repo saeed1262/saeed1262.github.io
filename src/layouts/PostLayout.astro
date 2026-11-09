@@ -9,7 +9,7 @@ const { title, date, description } = Astro.props;
     <a href="/blog/" class="post__back">← Blog</a>
     <h1>{title}</h1>
     <time class="post__date">{formatDate(date)}</time>
-    <div class="post__body"><slot /></div>
+    <div class="post__body prose-page"><slot /></div>
   </article>
   <style>
     .post { padding-block: var(--space-xl); max-width: 44rem; }

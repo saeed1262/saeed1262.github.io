@@ -1,27 +1,45 @@
+/* Isfahan look: Persian tilework palettes, ported from
+   github.com/saeed1262/isfahan-look.
+   Light = Isfahan "Workday" (crisp lapis and turquoise).
+   Dark  = Isfahan "Evening" (deep indigo, turquoise and gold). */
 :root {
   /* palette (LIGHT theme default values) */
-  --bg: #f6f4ee;
-  --bg-deep: #eae6dd;
+  --bg: #f7f9fc;
+  --bg-deep: #edf1f7;
   --surface: #ffffff;
-  --text: #16171a;
-  --text-muted: #4f5661;
-  --accent-from: #2563eb;
-  --accent-to: #7c3aed;
+  --text: #172033;
+  --text-muted: #5b6680;
+  --accent-from: #1f4e8c; /* lapis */
+  --accent-to: #12999a;   /* turquoise */
   --accent-gradient: linear-gradient(120deg, var(--accent-from), var(--accent-to));
-  --border: #e2ddd3;
+  --border: #d7dfec;
   --badge-text: #ffffff;
-  --shadow-card: 0 1px 2px rgba(17, 20, 24, 0.06), 0 10px 28px rgba(17, 20, 24, 0.07);
+  --shadow-card: 0 1px 2px rgba(31, 78, 140, 0.06), 0 10px 28px rgba(160, 176, 204, 0.3);
+  --shadow-hover: 0 14px 34px rgba(160, 176, 204, 0.5);
+
+  /* Isfahan motifs */
+  --gold: #12999a;
+  --gold-text: #0e7879;
+  --tile: #1f4e8c;
+  --tile-o: 0.13;
+  --wash: linear-gradient(120deg, rgba(31, 78, 140, 0.1), rgba(244, 247, 251, 0) 55%, rgba(18, 153, 154, 0.12));
+  /* Girih lattice: two squares make an 8-point star, with cross arms to
+     the neighbours. White on transparent, used only as a mask. */
+  --girih: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'><g fill='none' stroke='white' stroke-width='1.2'><path d='M30 14 L46 30 L30 46 L14 30 Z'/><path d='M19 19 H41 V41 H19 Z'/><path d='M30 0 V14 M46 30 H60 M30 46 V60 M0 30 H14'/><path d='M8 0 L0 8 M52 0 L60 8 M0 52 L8 60 M60 52 L52 60'/><circle cx='30' cy='30' r='4'/></g></svg>");
+  --khatam: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'><g fill='none' stroke='white' stroke-width='1.2'><path d='M30 0 L35.4 17.1 L51.2 8.8 L42.9 24.6 L60 30 L42.9 35.4 L51.2 51.2 L35.4 42.9 L30 60 L24.6 42.9 L8.8 51.2 L17.1 35.4 L0 30 L17.1 24.6 L8.8 8.8 L24.6 17.1 Z'/><circle cx='30' cy='30' r='3'/><circle cx='0' cy='0' r='3'/><circle cx='60' cy='0' r='3'/><circle cx='0' cy='60' r='3'/><circle cx='60' cy='60' r='3'/></g></svg>");
+  --shamseh: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'><g fill='none' stroke='white' stroke-width='1.2'><path d='M30 24 A8.4 8.4 0 0 1 30 13 A8.4 8.4 0 0 1 30 24 Z M34.2 25.8 A8.4 8.4 0 0 1 42 18 A8.4 8.4 0 0 1 34.2 25.8 Z M36 30 A8.4 8.4 0 0 1 47 30 A8.4 8.4 0 0 1 36 30 Z M34.2 34.2 A8.4 8.4 0 0 1 42 42 A8.4 8.4 0 0 1 34.2 34.2 Z M30 36 A8.4 8.4 0 0 1 30 47 A8.4 8.4 0 0 1 30 36 Z M25.8 34.2 A8.4 8.4 0 0 1 18 42 A8.4 8.4 0 0 1 25.8 34.2 Z M24 30 A8.4 8.4 0 0 1 13 30 A8.4 8.4 0 0 1 24 30 Z M25.8 25.8 A8.4 8.4 0 0 1 18 18 A8.4 8.4 0 0 1 25.8 25.8 Z'/><circle cx='30' cy='30' r='4'/><path d='M0 0 L17.3 17.3 M60 0 L42.7 17.3 M0 60 L17.3 42.7 M60 60 L42.7 42.7'/></g></svg>");
+  --jali: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'><g fill='none' stroke='white' stroke-width='1.2'><path d='M0 0 L60 60 M60 0 L0 60'/><circle cx='30' cy='30' r='5'/><circle cx='0' cy='0' r='5'/><circle cx='60' cy='0' r='5'/><circle cx='0' cy='60' r='5'/><circle cx='60' cy='60' r='5'/><path d='M30 6 L33 9 L30 12 L27 9 Z M30 48 L33 51 L30 54 L27 51 Z M6 30 L9 27 L12 30 L9 33 Z M48 30 L51 27 L54 30 L51 33 Z'/></g></svg>");
 
   /* type */
-  --font-display: 'Space Grotesk', system-ui, sans-serif;
-  --font-body: 'Inter', system-ui, sans-serif;
+  --font-display: 'Isfahan Cormorant', 'Cormorant Garamond', Georgia, serif;
+  --font-body: 'Isfahan Literata', Literata, Georgia, serif;
   --step--1: clamp(0.83rem, 0.8rem + 0.16vw, 0.94rem);
-  --step-0: clamp(1rem, 0.95rem + 0.25vw, 1.13rem);
-  --step-1: clamp(1.2rem, 1.1rem + 0.5vw, 1.5rem);
-  --step-2: clamp(1.44rem, 1.3rem + 0.9vw, 2rem);
-  --step-3: clamp(1.73rem, 1.5rem + 1.6vw, 2.66rem);
-  --step-4: clamp(2.07rem, 1.7rem + 2.8vw, 3.55rem);
-  --step-5: clamp(2.49rem, 1.9rem + 4.6vw, 4.74rem);
+  --step-0: clamp(1rem, 0.95rem + 0.25vw, 1.1rem);
+  --step-1: clamp(1.3rem, 1.2rem + 0.5vw, 1.6rem);
+  --step-2: clamp(1.6rem, 1.4rem + 0.9vw, 2.2rem);
+  --step-3: clamp(2rem, 1.7rem + 1.6vw, 3rem);
+  --step-4: clamp(2.4rem, 1.9rem + 2.8vw, 4rem);
+  --step-5: clamp(2.9rem, 2.1rem + 4.6vw, 5.4rem);
 
   /* spacing */
   --space-xs: 0.5rem;
@@ -38,14 +56,21 @@
 
 /* DARK theme color overrides (dark is the SSR default) */
 html.dark {
-  --bg: #0a0b0f;
-  --bg-deep: #050608;
-  --surface: #12141c;
-  --text: #f4f4f5;
-  --text-muted: #9ca3af;
-  --border: #21242e;
-  --accent-from: #22d3ee;
-  --accent-to: #818cf8;
-  --badge-text: #06070b;
-  --shadow-card: 0 2px 10px rgba(0, 0, 0, 0.25);
+  --bg: #111733;
+  --bg-deep: #0d1329;
+  --surface: #18213f;
+  --text: #e7e9f4;
+  --text-muted: #99a2c3;
+  --border: #26305a;
+  --accent-from: #3cc8c2; /* turquoise */
+  --accent-to: #e7b85a;   /* gold */
+  --badge-text: #0b1a2a;
+  --shadow-card: 0 2px 4px rgba(0, 0, 0, 0.3), 0 12px 30px rgba(0, 0, 0, 0.35);
+  --shadow-hover: 0 16px 36px rgba(0, 0, 0, 0.5);
+
+  --gold: #e7b85a;
+  --gold-text: #e7b85a;
+  --tile: #7f93e6;
+  --tile-o: 0.28;
+  --wash: linear-gradient(120deg, rgba(60, 80, 170, 0.35), rgba(24, 33, 63, 0) 55%, rgba(19, 90, 110, 0.3));
 }
