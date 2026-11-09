@@ -5,6 +5,7 @@ declare global {
   interface Window {
     __chromeScroll?: () => void;
     __navObs?: IntersectionObserver;
+    __initialHashDone?: boolean;
   }
 }
 
@@ -88,7 +89,23 @@ function setupActiveNav(): void {
   window.__navObs = observer;
 }
 
+// On a fresh visit to a link like /#projects, Astro's router can stop the
+// browser's own jump to the section. Do the jump once ourselves. Only for a
+// new navigation, so reload and back/forward keep their saved position.
+function scrollToInitialHash(): void {
+  if (window.__initialHashDone) return;
+  window.__initialHashDone = true;
+  const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
+  if (nav && nav.type !== 'navigate') return;
+  const id = decodeURIComponent(location.hash.slice(1));
+  const target = id ? document.getElementById(id) : null;
+  if (target && Math.abs(target.getBoundingClientRect().top) > 2) {
+    target.scrollIntoView({ behavior: 'instant', block: 'start' });
+  }
+}
+
 export function initChrome(): void {
+  scrollToInitialHash();
   setupScrollProgress();
   setupActiveNav();
 }

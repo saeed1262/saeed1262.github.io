@@ -9,10 +9,13 @@ export function ThemeToggle({ className, class: classProp }: ThemeToggleProps) {
   const classes = className ?? classProp
   const [isDark, setIsDark] = useState(true)
   useEffect(() => {
-    const stored = typeof localStorage !== "undefined" ? localStorage.getItem("theme") : null
-    const dark = stored ? stored === "dark" : document.documentElement.classList.contains("dark")
-    setIsDark(dark)
-    document.documentElement.classList.toggle("dark", dark)
+    // The head script already picked the theme (saved choice, else system);
+    // mirror it, and keep mirroring if the system theme changes later.
+    const root = document.documentElement
+    setIsDark(root.classList.contains("dark"))
+    const obs = new MutationObserver(() => setIsDark(root.classList.contains("dark")))
+    obs.observe(root, { attributes: true, attributeFilter: ["class"] })
+    return () => obs.disconnect()
   }, [])
   const toggle = () => {
     const next = !isDark
