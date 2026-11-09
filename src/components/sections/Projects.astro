@@ -38,9 +38,10 @@ function imageFor(file?: string) {
     .projects { padding-block: var(--space-xl); }
     .projects__grid { display: grid; gap: var(--space-md); grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
     .project__img { border-radius: 12px; margin-bottom: var(--space-sm); object-fit: cover; width: 100%; height: auto; }
+    .project h3 { font-size: var(--step-1); }
     .project p { color: var(--text-muted); margin-block: 0.5rem; }
     .project__tags { display: flex; flex-wrap: wrap; gap: 0.4rem; list-style: none; padding: 0; margin: 0.5rem 0; }
-    .project__tags li { font-size: var(--step--1); color: var(--accent-from); border: 1px solid var(--border); border-radius: 999px; padding: 0.15rem 0.6rem; }
+    .project__tags li { font-size: var(--step--1); color: var(--accent-from); background: color-mix(in srgb, var(--accent-from) 12%, transparent); border: 1px solid transparent; border-radius: 999px; padding: 0.15rem 0.6rem; }
     .project a { color: var(--accent-from); }
   </style>
 </section>

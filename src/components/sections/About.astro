@@ -34,7 +34,7 @@ import headshot from '@/assets/saeed.jpg';
             loading="lazy"
           />
         </div>
-        <div class="profile">
+        <div class="profile mihrab">
           <p class="profile__role">{site.position}</p>
           <p class="profile__org">{site.company}</p>
           <p class="profile__loc">{site.location}</p>
@@ -46,7 +46,8 @@ import headshot from '@/assets/saeed.jpg';
   <style>
     .about { padding-block: var(--space-xl); }
     .about__grid { display: grid; gap: var(--space-lg); grid-template-columns: 1.4fr 1fr; align-items: center; }
-    .about__bio p + p { margin-top: var(--space-sm); color: var(--text-muted); }
+    .about :global(.about__bio) p:first-child { font-size: var(--step-1); line-height: 1.5; }
+    .about :global(.about__bio) p + p { margin-top: var(--space-sm); color: var(--text-muted); }
     .about__card { display: grid; gap: var(--space-md); justify-items: center; }
     .about__frame { cursor: pointer; width: 100%; }
     /* profile card: role / company / location / contact */
@@ -59,7 +60,7 @@ import headshot from '@/assets/saeed.jpg';
       box-shadow: var(--shadow-card);
       text-align: center;
     }
-    .profile__role { font-family: var(--font-display); font-weight: 600; font-size: var(--step-1); }
+    .profile__role { font-family: var(--font-display); font-weight: 600; font-size: var(--step-2); line-height: 1.1; }
     .profile__org { color: var(--text); margin-top: 0.25rem; }
     .profile__loc { color: var(--text-muted); font-size: var(--step--1); margin-top: 0.15rem; }
     .profile__contact { display: inline-block; margin-top: var(--space-sm); color: var(--accent-from); font-weight: 500; }
