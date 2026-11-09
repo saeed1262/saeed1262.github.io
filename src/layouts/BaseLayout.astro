@@ -56,15 +56,22 @@ const jsonLd = {
   <head>
     <script is:inline>
       (function () {
+        // A saved choice from the toggle wins; otherwise follow the system.
+        var mq = window.matchMedia('(prefers-color-scheme: dark)');
+        function stored() {
+          try { return localStorage.getItem('theme'); } catch (e) { return null; }
+        }
         function applyTheme() {
-          try {
-            var t = localStorage.getItem('theme');
-            if (t === 'light') document.documentElement.classList.remove('dark');
-            else document.documentElement.classList.add('dark');
-          } catch (e) { document.documentElement.classList.add('dark'); }
+          var t = stored();
+          var dark = t ? t === 'dark' : mq.matches;
+          document.documentElement.classList.toggle('dark', dark);
         }
         applyTheme();
-        // Re-apply after view-transition swaps (the swapped page's <html> defaults to dark).
+        if (!window.__themeMqBound) {
+          window.__themeMqBound = true;
+          mq.addEventListener('change', function () { if (!stored()) applyTheme(); });
+        }
+        // Re-apply after view-transition swaps (the swapped page's <html> starts as dark).
         if (!window.__themeSwapBound) {
           window.__themeSwapBound = true;
           document.addEventListener('astro:after-swap', applyTheme);
@@ -87,9 +94,6 @@ const jsonLd = {
     <meta name="twitter:card" content="summary_large_image" />
     <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
     <ClientRouter />
-    <noscript>
-      <style>[data-reveal] { opacity: 1 !important; }</style>
-    </noscript>
   </head>
   <body>
     <div id="scroll-progress" transition:persist aria-hidden="true"></div>

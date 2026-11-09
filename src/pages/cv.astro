@@ -3,10 +3,17 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 import SectionHeading from '@/components/ui/SectionHeading.astro';
 import Reveal from '@/components/ui/Reveal.astro';
 import { cv } from '@/data/cv';
+import { site } from '@/data/site';
 ---
 <BaseLayout title="CV" description="Curriculum vitae of Saeed Ghorbani — education, experience, awards, and talks.">
   <main class="cv container">
-    <h1 class="cv__title">Curriculum Vitae</h1>
+    <div class="cv__head">
+      <h1 class="cv__title">Curriculum Vitae</h1>
+      <button type="button" class="cv__pdf no-print" onclick="window.print()">Save as PDF</button>
+    </div>
+    <p class="cv__contact print-only">
+      {site.name} · {site.location} · {site.email} · {site.url.replace('https://', '')}
+    </p>
     {cv.map((section) => (
       <section class="cv__section">
         <SectionHeading title={section.title} />
@@ -37,17 +44,44 @@ import { cv } from '@/data/cv';
   </main>
   <style>
     .cv { padding-block: var(--space-xl); max-width: 52rem; }
-    .cv__title { font-size: var(--step-4); margin-bottom: var(--space-lg); }
+    .cv__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-sm); margin-bottom: var(--space-lg); }
+    .cv__title { font-size: var(--step-4); }
+    .cv__pdf {
+      font: inherit;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 0.55rem 1.15rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .cv__pdf:hover { border-color: var(--accent-from); color: var(--accent-from); }
     .cv__section { margin-bottom: var(--space-lg); }
     .cv__map { display: grid; gap: var(--space-sm); }
     .cv__row { display: grid; grid-template-columns: 12rem 1fr; gap: var(--space-sm); }
     .cv__row dt { color: var(--text-muted); }
     .cv__list { list-style: none; padding: 0; display: grid; gap: var(--space-md); }
-    .cv__item { display: flex; justify-content: space-between; gap: var(--space-md); align-items: baseline; border-bottom: 1px solid var(--border); padding-bottom: var(--space-sm); }
+    /* Each <li> is rendered by Reveal, so it needs :global to be styled here. */
+    .cv__list :global(.cv__item) { display: flex; justify-content: space-between; gap: var(--space-md); align-items: baseline; border-bottom: 1px solid var(--border); padding-bottom: var(--space-sm); }
     .cv__item-main { display: flex; flex-direction: column; gap: 0.2rem; }
     .cv__item-title { font-weight: 500; }
     .cv__item-inst { color: var(--text-muted); font-size: var(--step--1); }
     .cv__item-year { color: var(--accent-from); font-size: var(--step--1); white-space: nowrap; }
     @media (max-width: 560px) { .cv__row { grid-template-columns: 1fr; gap: 0.2rem; } }
+    @media print {
+      .cv { padding-block: 0; max-width: none; }
+      .cv__head { margin-bottom: 0.25rem; }
+      .cv__title { font-size: 26pt; }
+      .cv__contact { color: var(--text-muted); margin-bottom: 1.5rem; }
+      .cv__section { margin-bottom: 1.25rem; }
+      .cv__section :global(.sh) { margin-bottom: 0.75rem; }
+      .cv__section :global(.sh__title) { font-size: 16pt; }
+      .cv__list { display: block; }
+      .cv__list :global(.cv__item) { break-inside: avoid; padding-bottom: 0.4rem; margin-bottom: 0.5rem; }
+      .cv__section :global(.sh) { break-after: avoid; }
+      .cv__row { grid-template-columns: 9rem 1fr; }
+    }
   </style>
 </BaseLayout>

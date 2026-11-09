@@ -1,62 +1,35 @@
-import Lenis from 'lenis';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+// Gentle fade-in for [data-reveal] elements, with native scrolling.
+// Content is never hidden by default: only elements that start below the
+// viewport are faded, and print or no-JS always shows everything.
+// initMotion() is idempotent: safe to call on every astro:page-load.
 
-gsap.registerPlugin(ScrollTrigger);
-
-// Module-level Lenis ref so repeated initMotion() calls (e.g. after a view
-// transition) don't stack instances / duplicate ScrollTriggers.
-let lenis: Lenis | null = null;
+let observer: IntersectionObserver | null = null;
 
 export function initMotion(): void {
-  // Tear down anything created by a previous call before recreating.
-  if (lenis) {
-    lenis.destroy();
-    lenis = null;
-  }
-  ScrollTrigger.getAll().forEach((t) => t.kill());
+  observer?.disconnect();
+  observer = null;
 
-  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-  // Reveal elements regardless; with reduced motion we just show them immediately.
-  const revealEls = document.querySelectorAll<HTMLElement>('[data-reveal]');
+  const below = Array.from(document.querySelectorAll<HTMLElement>('[data-reveal]')).filter(
+    (el) => el.getBoundingClientRect().top > window.innerHeight,
+  );
+  if (below.length === 0) return;
 
-  if (prefersReduced) {
-    revealEls.forEach((el) => (el.style.opacity = '1'));
-    return;
-  }
+  const io = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        entry.target.classList.remove('is-pending');
+        io.unobserve(entry.target);
+      }
+    },
+    { rootMargin: '0px 0px -8% 0px' },
+  );
 
-  const instance = new Lenis({ duration: 1.1, smoothWheel: true });
-  lenis = instance;
-  function raf(time: number) {
-    // Stop the loop once this instance has been destroyed/replaced.
-    if (lenis !== instance) return;
-    instance.raf(time);
-    requestAnimationFrame(raf);
-  }
-  requestAnimationFrame(raf);
-  instance.on('scroll', ScrollTrigger.update);
-
-  revealEls.forEach((el) => {
-    gsap.fromTo(
-      el,
-      { opacity: 0, y: 32 },
-      {
-        opacity: 1,
-        y: 0,
-        duration: 0.8,
-        ease: 'power3.out',
-        scrollTrigger: { trigger: el, start: 'top 85%' },
-      },
-    );
+  below.forEach((el) => {
+    el.classList.add('is-pending');
+    io.observe(el);
   });
-
-  // Parallax for any [data-parallax] element.
-  document.querySelectorAll<HTMLElement>('[data-parallax]').forEach((el) => {
-    gsap.to(el, {
-      yPercent: -15,
-      ease: 'none',
-      scrollTrigger: { trigger: el, start: 'top bottom', end: 'bottom top', scrub: true },
-    });
-  });
+  observer = io;
 }
