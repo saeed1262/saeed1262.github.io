@@ -16,7 +16,7 @@ const projects = defineCollection({
 });
 
 const personal = defineCollection({
-  loader: file('src/data/personal.yaml', { parser: yaml }),
+  loader: glob({ pattern: '**/*.md', base: './src/content/personal' }),
   schema: personalProjectSchema,
 });
 
