@@ -9,7 +9,7 @@ declare global {
   }
 }
 
-const SECTION_IDS = ['about', 'news', 'publications', 'projects'];
+const SECTION_IDS = ['about', 'news', 'publications', 'projects', 'personal'];
 
 function setupScrollProgress(): void {
   const bar = document.getElementById('scroll-progress');

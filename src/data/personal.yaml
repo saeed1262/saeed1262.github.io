@@ -1,0 +1,20 @@
+# Personal projects, shown on the home page in this order.
+- id: isfahan-look
+  title: "Isfahan"
+  kind: "Obsidian plugin"
+  description: >-
+    Persian tilework for Obsidian. Lapis and turquoise palettes that follow the
+    sun where you live, tile patterns from Persian architecture, serif type, and
+    a reading view that looks like a printed book. This website wears the same look.
+  image: "isfahan.png"
+  imageAlt: "An Obsidian note in Isfahan's Workday palette: a tile band behind the title, a property ribbon and serif text"
+  tags:
+    - "Obsidian"
+    - "JavaScript"
+    - "CSS"
+    - "Design"
+  links:
+    - label: "GitHub"
+      url: "https://github.com/saeed1262/isfahan-look"
+    - label: "Latest release"
+      url: "https://github.com/saeed1262/isfahan-look/releases/latest"

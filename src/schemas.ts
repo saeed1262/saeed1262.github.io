@@ -27,6 +27,17 @@ export const projectSchema = z.object({
   tags: z.array(z.string()).default([]),
 });
 
+// Side projects, listed in src/data/personal.yaml (shown in file order).
+export const personalProjectSchema = z.object({
+  title: z.string(),
+  kind: z.string().optional(), // e.g. "Obsidian plugin"
+  description: z.string(),
+  image: z.string().optional(), // file name in src/assets/personal/
+  imageAlt: z.string().optional(),
+  tags: z.array(z.string()).default([]),
+  links: z.array(z.object({ label: z.string(), url: z.url() })).default([]),
+});
+
 export const newsSchema = z.object({
   date: z.string(), // ISO yyyy-mm-dd
   text: z.string(),
