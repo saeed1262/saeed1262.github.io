@@ -1,0 +1,112 @@
+---
+import { getCollection, render } from 'astro:content';
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+
+export async function getStaticPaths() {
+  const projects = await getCollection('personal');
+  return projects.map((p) => ({ params: { slug: p.id }, props: { project: p } }));
+}
+
+const { project } = Astro.props;
+const { data } = project;
+const { Content } = await render(project);
+
+const images = import.meta.glob<{ default: ImageMetadata }>('/src/assets/personal/**/*', { eager: true });
+const imageFor = (file?: string) => (file ? images[`/src/assets/personal/${file}`]?.default : undefined);
+const hero = imageFor(data.image);
+const [primary, ...secondary] = data.links;
+const ext = { target: '_blank', rel: 'noopener' };
+---
+<BaseLayout title={data.title} description={data.description}>
+  <article class="pp-page container">
+    <a href="/#personal" class="pp-page__back">← Personal projects</a>
+
+    <header class="pp-page__head">
+      {data.kind && <p class="pp-page__kind"><span class="diamond" aria-hidden="true"></span> {data.kind}</p>}
+      <h1 class="pp-page__title">{data.title}</h1>
+      <p class="pp-page__lead">{data.description}</p>
+      {data.tags.length > 0 && <ul class="pp-page__tags">{data.tags.map((t) => <li>{t}</li>)}</ul>}
+      {primary && (
+        <div class="pp-page__links">
+          <a class="pp-page__primary" href={primary.url} {...ext}>View on {primary.label} →</a>
+          {secondary.map((l) => <a href={l.url} {...ext}>{l.label}</a>)}
+        </div>
+      )}
+    </header>
+
+    {hero && (
+      <figure class="pp-page__hero">
+        <Image src={hero} alt={data.imageAlt ?? data.title} width={1200} loading="eager" fetchpriority="high" />
+      </figure>
+    )}
+
+    <div class="pp-page__body prose-page"><Content /></div>
+
+    {data.gallery.map((group) => (
+      <section class="pp-page__gallery">
+        <h2>{group.title}</h2>
+        <div class="pp-page__grid">
+          {group.items.map((item) => {
+            const img = imageFor(item.image);
+            return img && (
+              <figure>
+                <a href={img.src} target="_blank" rel="noopener" aria-label={`Open full size: ${item.caption}`}>
+                  <Image src={img} alt={item.alt ?? item.caption} width={900} loading="lazy" />
+                </a>
+                <figcaption>{item.caption}</figcaption>
+              </figure>
+            );
+          })}
+        </div>
+      </section>
+    ))}
+  </article>
+  <style>
+    .pp-page { padding-block: var(--space-xl); max-width: 60rem; }
+    .pp-page__back { color: var(--accent-from); font-size: var(--step--1); }
+    .pp-page__head { margin-top: var(--space-md); max-width: 46rem; }
+    .pp-page__kind { color: var(--gold-text); font-variant: small-caps; letter-spacing: 0.16em; font-size: var(--step--1); }
+    .pp-page__title { font-size: var(--step-5); line-height: 1; margin-top: 0.5rem; }
+    .pp-page__lead { font-size: var(--step-1); line-height: 1.5; color: var(--text-muted); margin-top: var(--space-sm); }
+    .pp-page__tags { display: flex; flex-wrap: wrap; gap: 0.4rem; list-style: none; padding: 0; margin-top: var(--space-sm); }
+    .pp-page__tags li { font-size: var(--step--1); color: var(--accent-from); background: color-mix(in srgb, var(--accent-from) 12%, transparent); border-radius: 999px; padding: 0.15rem 0.6rem; }
+    .pp-page__links { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-sm) var(--space-md); margin-top: var(--space-md); }
+    .pp-page__links a { color: var(--text); font-weight: 500; text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--accent-from) 45%, transparent); text-underline-offset: 0.25em; }
+    .pp-page__links a:hover { color: var(--accent-from); }
+    .pp-page__links .pp-page__primary { text-decoration: none; padding: 0.6rem 1.25rem; border-radius: 999px; background: var(--accent-from); color: var(--badge-text); }
+    .pp-page__links .pp-page__primary:hover { color: var(--badge-text); background: color-mix(in srgb, var(--accent-from) 85%, var(--text)); }
+
+    .pp-page__hero { margin-top: var(--space-lg); }
+    .pp-page__hero :global(img),
+    .pp-page__grid :global(img) {
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-card);
+    }
+
+    .pp-page__body { margin-top: var(--space-lg); max-width: 46rem; }
+    .pp-page__body :global(p) { margin-bottom: var(--space-sm); }
+    .pp-page__body :global(h2) { font-size: var(--step-2); margin-block: var(--space-md) var(--space-sm); }
+    .pp-page__body :global(ul) { margin-bottom: var(--space-sm); padding-left: 1.2rem; }
+    .pp-page__body :global(li) { margin-bottom: 0.5rem; }
+    .pp-page__body :global(a) { color: var(--accent-from); text-decoration: underline; }
+    .pp-page__body :global(code) { font-size: 0.88em; background: color-mix(in srgb, var(--accent-from) 10%, transparent); border-radius: 4px; padding: 0.05em 0.35em; }
+    .pp-page__body :global(table) { width: 100%; border-collapse: collapse; margin-block: var(--space-sm) var(--space-md); font-size: var(--step--1); }
+    .pp-page__body :global(th) { text-align: left; font-variant: small-caps; letter-spacing: 0.06em; color: var(--text-muted); font-weight: 600; }
+    .pp-page__body :global(th),
+    .pp-page__body :global(td) { padding: 0.55rem 0.75rem 0.55rem 0; border-bottom: 1px solid var(--border); vertical-align: top; }
+
+    .pp-page__gallery { margin-top: var(--space-lg); }
+    .pp-page__gallery h2 { font-size: var(--step-2); margin-bottom: var(--space-sm); }
+    .pp-page__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-md); }
+    .pp-page__grid figcaption { margin-top: 0.6rem; color: var(--text-muted); font-size: var(--step--1); }
+    @media (max-width: 640px) {
+      .pp-page__grid { grid-template-columns: 1fr; }
+      .pp-page__body :global(table) { display: block; overflow-x: auto; }
+    }
+  </style>
+</BaseLayout>

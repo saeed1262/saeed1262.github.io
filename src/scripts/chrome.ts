@@ -54,9 +54,18 @@ function setupActiveNav(): void {
     (el): el is HTMLElement => el !== null,
   );
 
-  // Non-home pages have no section anchors: just clear all active states.
+  // Other pages: highlight the menu item they belong to, by path
+  // (/cv/ -> CV, /projects/... -> Projects, /personal/... -> Personal).
   if (sections.length === 0) {
     clearActive();
+    const path = location.pathname;
+    const owner: Record<string, string> = { '/cv/': '/cv/', '/projects/': '/#projects', '/personal/': '/#personal' };
+    const match = Object.keys(owner).find((prefix) => path.startsWith(prefix));
+    const link = match && navLinks.find((a) => a.getAttribute('href') === owner[match]);
+    if (link) {
+      link.classList.add('is-current');
+      link.setAttribute('aria-current', 'page');
+    }
     return;
   }
 

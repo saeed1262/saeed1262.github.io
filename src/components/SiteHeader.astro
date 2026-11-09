@@ -8,8 +8,9 @@ import { ThemeToggle } from '@/components/ui/theme-toggle';
   <div class="nav__right">
     <nav class="nav__links">
       <a href="/#about"><AnimatedUnderline>About</AnimatedUnderline></a>
-      <a href="/#publications"><AnimatedUnderline>Publications</AnimatedUnderline></a>
+      <a href="/#publications"><AnimatedUnderline><span class="nav__long">Publications</span><span class="nav__short">Papers</span></AnimatedUnderline></a>
       <a href="/#projects"><AnimatedUnderline>Projects</AnimatedUnderline></a>
+      <a href="/#personal"><AnimatedUnderline>Personal</AnimatedUnderline></a>
       <a href="/cv/"><AnimatedUnderline>CV</AnimatedUnderline></a>
     </nav>
     <ThemeToggle client:load class="nav__toggle" />
@@ -21,6 +22,9 @@ import { ThemeToggle } from '@/components/ui/theme-toggle';
     .nav__links { display: flex; gap: var(--space-md); font-size: var(--step--1); }
     .nav__links a { transition: color .2s; }
     .nav__links a.is-current { color: var(--accent-from); }
+    .nav__short { display: none; }
+    /* Phones: a shorter label so all five links fit beside the theme toggle. */
+    @media (max-width: 480px) { .nav__long { display: none; } .nav__short { display: inline; } }
     @media (max-width: 640px) { .nav { padding-inline: var(--space-sm); gap: 0.6rem; } .nav__brand { font-size: 1.05rem; line-height: 1.1; } .nav__right { gap: 0.6rem; } .nav__links { gap: 0.7rem; font-size: 0.82rem; } }
     @media (max-width: 420px) { .nav__links { gap: 0.55rem; font-size: 0.78rem; } .nav__right { gap: 0.45rem; } .nav__brand { font-size: 0; } .nav__brand::before { content: "SG"; font-size: 1.15rem; } }
   </style>

@@ -27,15 +27,26 @@ export const projectSchema = z.object({
   tags: z.array(z.string()).default([]),
 });
 
-// Side projects, listed in src/data/personal.yaml (shown in file order).
+// Side projects: one Markdown file each in src/content/personal/, with a
+// page at /personal/<file name>/. Image paths are relative to
+// src/assets/personal/.
 export const personalProjectSchema = z.object({
   title: z.string(),
   kind: z.string().optional(), // e.g. "Obsidian plugin"
+  order: z.number().default(0), // lower comes first on the home page
   description: z.string(),
-  image: z.string().optional(), // file name in src/assets/personal/
+  image: z.string().optional(),
   imageAlt: z.string().optional(),
   tags: z.array(z.string()).default([]),
   links: z.array(z.object({ label: z.string(), url: z.url() })).default([]),
+  gallery: z
+    .array(
+      z.object({
+        title: z.string(),
+        items: z.array(z.object({ image: z.string(), caption: z.string(), alt: z.string().optional() })),
+      }),
+    )
+    .default([]),
 });
 
 export const newsSchema = z.object({
