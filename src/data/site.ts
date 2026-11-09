@@ -8,8 +8,6 @@ export const site = {
   email: 'saeed.ghorbani1262@gmail.com',
   description:
     'Senior machine learning engineer at Roper working on agentic AI, with a research background in deep learning, computer vision, and generative models.',
-  summary:
-    'I build agentic AI systems at Roper Technologies, drawing on a research background in generative models, computer vision and human motion.',
   url: 'https://saeed1262.github.io',
   links: {
     github: 'https://github.com/saeed1262',
