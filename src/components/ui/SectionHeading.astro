@@ -2,12 +2,13 @@
 interface Props { kicker?: string; title: string; }
 const { kicker, title } = Astro.props;
 ---
-<header class="sh tile-band">
+<header class="sh">
   {kicker && <p class="sh__kicker"><span class="diamond" aria-hidden="true"></span> {kicker}</p>}
   <h2 class="sh__title">{title}</h2>
   <style>
     .sh { margin-bottom: var(--space-lg); }
     .sh__kicker { color: var(--gold-text); font-variant: small-caps; letter-spacing: 0.18em; text-transform: uppercase; font-size: var(--step--1); }
     .sh__title { font-size: var(--step-3); }
+    .sh::after { content: ""; display: block; width: 3.5rem; height: 2px; margin-top: 0.9rem; background: var(--gold); border-radius: 2px; }
   </style>
 </header>

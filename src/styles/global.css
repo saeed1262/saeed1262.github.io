@@ -30,21 +30,8 @@ h1, h2 { font-weight: 600; letter-spacing: 0; }
 h3 { font-family: var(--font-body); font-weight: 650; line-height: 1.25; }
 ::selection { background: color-mix(in srgb, var(--accent-from) 22%, transparent); }
 em, i { color: var(--gold-text); }
-
-/* A faint lattice over the whole page background. */
 /* The tile bands bleed past the container; never let them widen the page. */
-body { position: relative; overflow-x: clip; }
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background: var(--tile);
-  opacity: calc(var(--tile-o) * 0.2);
-  -webkit-mask: var(--girih) 0 0 / 64px 64px;
-  mask: var(--girih) 0 0 / 64px 64px;
-}
+body { overflow-x: clip; }
 
 /* Tile band: a color wash with the lattice on top, fading down and at
    the sides. Add .tile-band to any positioned block. */
