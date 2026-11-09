@@ -73,16 +73,21 @@ function Rosette({ still }: { still: boolean }) {
   )
 }
 
+type HeroLink = { label: string; href: string; primary?: boolean }
+
 export default function EnhancedBackgroundPaths({
   title = "Isfahan",
   eyebrow = "",
+  summary = "",
+  links = [],
 }: {
   title?: string
   eyebrow?: string
+  summary?: string
+  links?: HeroLink[]
 }) {
   const still = useReducedMotion() ?? false
   const [current, setCurrent] = useState(0)
-  const words = title.split(" ")
 
   useEffect(() => {
     if (still) return
@@ -91,7 +96,7 @@ export default function EnhancedBackgroundPaths({
   }, [still])
 
   return (
-    <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-transparent">
+    <div className="relative min-h-[82svh] w-full flex items-center justify-center overflow-hidden bg-transparent pt-24 pb-16">
       {/* Color wash, then the tile lattice, then the rosette */}
       <div aria-hidden="true" className="absolute inset-0" style={{ background: "var(--wash)" }} />
       {PATTERNS.map((p, i) => (
@@ -107,7 +112,7 @@ export default function EnhancedBackgroundPaths({
       <div
         aria-hidden="true"
         className="absolute inset-0"
-        style={{ background: "radial-gradient(ellipse 38% 22% at center, var(--bg) 0%, transparent 100%)", opacity: 0.85 }}
+        style={{ background: "radial-gradient(ellipse 48% 40% at center, var(--bg) 0%, transparent 100%)", opacity: 0.85 }}
       />
 
       {/* Main Content */}
@@ -125,46 +130,61 @@ export default function EnhancedBackgroundPaths({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8 }}
                 className="mb-5 text-sm sm:text-base tracking-[0.25em]"
-                style={{ color: "var(--gold-text)", fontVariant: "small-caps" }}
+                style={{ color: "var(--gold-text)", fontVariant: "small-caps", marginBottom: "1.25rem" }}
               >
                 {eyebrow}
               </motion.p>
             )}
             <div className="group relative inline-block">
-              <h1
+              <motion.h1
+                initial={still ? false : { opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 1.1, ease: "easeOut", delay: 0.15 }}
                 className="text-6xl sm:text-8xl md:text-9xl leading-none"
-                style={{ fontFamily: "var(--font-display)", fontWeight: 600 }}
+                style={{ fontFamily: "var(--font-display)", fontWeight: 600, color: "var(--text)" }}
               >
-                {words.map((word, wordIndex) => (
-                  <span key={wordIndex} className="inline-block" style={{ marginRight: wordIndex < words.length - 1 ? "0.25em" : 0 }}>
-                    {word.split("").map((letter, letterIndex) => (
-                      <motion.span
-                        key={`${wordIndex}-${letterIndex}`}
-                        initial={{ y: 100, opacity: 0, rotateX: -90 }}
-                        animate={{ y: 0, opacity: 1, rotateX: 0 }}
-                        transition={{
-                          delay: wordIndex * 0.15 + letterIndex * 0.05,
-                          type: "spring",
-                          stiffness: 100,
-                          damping: 20,
-                          duration: 0.8,
-                        }}
-                        className="inline-block cursor-default transition-colors duration-500 hover:text-[var(--accent-from)]"
-                        style={{ color: "var(--text)" }}
-                        whileHover={{ scale: 1.05, y: -2 }}
-                      >
-                        {letter}
-                      </motion.span>
-                    ))}
-                  </span>
-                ))}
-              </h1>
+                {title}
+              </motion.h1>
               {/* a mihrab arch that draws in on hover */}
               <svg aria-hidden="true" viewBox="0 0 300 24" preserveAspectRatio="none" className="pointer-events-none absolute left-0 top-full mt-3 h-5 w-full overflow-visible">
                 <path d="M0 22 C40 22, 90 16, 130 8 C140 6, 146 3, 150 1 C154 3, 160 6, 170 8 C210 16, 260 22, 300 22" pathLength={1} fill="none" strokeLinecap="round" style={{ stroke: "var(--gold)", strokeWidth: 1.6 }} className="[stroke-dasharray:1] [stroke-dashoffset:1] transition-[stroke-dashoffset] duration-700 ease-out group-hover:[stroke-dashoffset:0] motion-reduce:transition-none" />
               </svg>
             </div>
           </div>
+          {summary && (
+            <motion.p
+              initial={still ? false : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.9, ease: "easeOut", delay: 0.5 }}
+              className="mx-auto max-w-2xl text-lg sm:text-xl leading-relaxed"
+              style={{ color: "var(--text-muted)", marginTop: "2.75rem" }}
+            >
+              {summary}
+            </motion.p>
+          )}
+          {links.length > 0 && (
+            <motion.div
+              initial={still ? false : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.9, ease: "easeOut", delay: 0.7 }}
+              className="flex flex-wrap items-center justify-center gap-3"
+              style={{ marginTop: "2rem" }}
+            >
+              {links.map((l) => {
+                const external = l.href.startsWith("http")
+                return (
+                  <a
+                    key={l.label}
+                    href={l.href}
+                    {...(external ? { target: "_blank", rel: "noopener" } : {})}
+                    className={`hero-btn${l.primary ? " hero-btn--primary" : ""}`}
+                  >
+                    {l.label}
+                  </a>
+                )
+              })}
+            </motion.div>
+          )}
         </motion.div>
       </div>
     </div>

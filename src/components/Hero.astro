@@ -1,5 +1,29 @@
 ---
 import { site } from '@/data/site';
 import BackgroundPaths from '@/components/ui/modern-background-paths';
+
+const links = [
+  { label: 'View CV', href: '/cv/', primary: true },
+  { label: 'Google Scholar', href: site.links.scholar },
+  { label: 'GitHub', href: site.links.github },
+  { label: 'Email', href: `mailto:${site.email}` },
+];
 ---
-<BackgroundPaths client:only="react" title={site.name} eyebrow={site.role} />
+<BackgroundPaths client:only="react" title={site.name} eyebrow={site.role} summary={site.summary} links={links} />
+<style is:global>
+  .hero-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.6rem 1.15rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: color-mix(in srgb, var(--surface) 80%, transparent);
+    color: var(--text);
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: border-color 0.2s, color 0.2s, transform 0.2s var(--ease-out);
+  }
+  .hero-btn:hover { border-color: var(--accent-from); color: var(--accent-from); transform: translateY(-1px); }
+  .hero-btn--primary { background: var(--accent-from); border-color: transparent; color: var(--badge-text); }
+  .hero-btn--primary:hover { color: var(--badge-text); background: color-mix(in srgb, var(--accent-from) 88%, var(--text)); }
+</style>

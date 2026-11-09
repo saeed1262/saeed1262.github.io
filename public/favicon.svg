@@ -1,12 +1,8 @@
 <svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#22d3ee"/>
-      <stop offset="1" stop-color="#818cf8"/>
-    </linearGradient>
-  </defs>
-  <rect width="64" height="64" rx="14" fill="url(#bg)"/>
-  <text x="32" y="33" font-family="Helvetica, Arial, sans-serif" font-size="38" font-weight="700"
-        fill="#0a0b0f" text-anchor="middle" dominant-baseline="central"
-        letter-spacing="-2">SG</text>
+  <!-- Isfahan khatam: an 8-point star of two squares on deep indigo -->
+  <rect width="64" height="64" rx="14" fill="#18213f"/>
+  <path d="M16 16 H48 V48 H16 Z" fill="#3cc8c2"/>
+  <path d="M32 9.4 L54.6 32 L32 54.6 L9.4 32 Z" fill="#3cc8c2"/>
+  <circle cx="32" cy="32" r="10" fill="#18213f"/>
+  <circle cx="32" cy="32" r="5" fill="#e7b85a"/>
 </svg>
