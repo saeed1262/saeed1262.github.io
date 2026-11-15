@@ -1,0 +1,188 @@
+---
+// Joint-pair coherence differences (ZeroEGGS − real) drawn on the actor's
+// average upper-body pose, one tempo band at a time.
+---
+<figure class="viz body-net">
+  <div class="viz__head">
+    <p class="viz__title">Which joints keep time differently</p>
+    <p class="viz__sub">Every line is a joint pair. Warm: ZeroEGGS keeps them more in lockstep than the actor. Cool: less. Faint: no clear difference.</p>
+  </div>
+  <div class="viz-controls">
+    <label class="viz-slider">Tempo
+      <input type="range" min="0" max="4" step="1" value="0" data-band aria-label="Tempo band" />
+    </label>
+    <strong class="body-net__band" data-band-label></strong>
+    <button type="button" class="viz-btn" data-play>Play slow → fast</button>
+  </div>
+  <div class="body-net__wrap">
+    <div class="viz__plot" data-plot></div>
+    <div class="body-net__side">
+      <p class="viz-readout"><span data-count>–</span><small data-count-note></small></p>
+      <div class="body-net__scale">
+        <span><i style="background: var(--div-pos)"></i>more in lockstep</span>
+        <span><i style="background: var(--div-neg)"></i>more independent</span>
+        <span><i style="background: var(--div-mid)"></i>no clear difference</span>
+      </div>
+    </div>
+  </div>
+  <figcaption class="viz__caption">
+    Joint positions are the actor's average pose (front view). A pair counts as clearly different when its
+    95% interval, from resampling the held-out takes, excludes zero. Hover or tab to a line for numbers.
+  </figcaption>
+  <details>
+    <summary>Show the biggest differences in this band as a table</summary>
+    <div class="table-wrap"><table data-table></table></div>
+  </details>
+  <style>
+    .body-net__wrap { display: grid; grid-template-columns: minmax(0, 1fr) 13rem; gap: 1rem; align-items: center; }
+    .body-net__wrap .viz__plot { max-width: 520px; margin: 0 auto; }
+    .body-net__band { color: var(--ink); font-variant-numeric: tabular-nums; min-width: 6.5rem; }
+    .body-net__scale { display: grid; gap: 0.35rem; margin-top: 1rem; font-size: 0.82rem; color: var(--ink-2); }
+    .body-net__scale span { display: inline-flex; align-items: center; gap: 0.45rem; }
+    .body-net__scale i { width: 18px; height: 3px; border-radius: 2px; display: inline-block; }
+    @media (max-width: 640px) { .body-net__wrap { grid-template-columns: 1fr; } }
+  </style>
+</figure>
+
+<script>
+  import data from '@/data/blog/fake-motion.json';
+  import { onEachPage, responsive, svgEl, svgText, linear, makeTooltip, fmtSigned, reducedMotion } from '@/scripts/viz';
+
+  const R = data.real;
+  const NAMES: Record<string, string> = {
+    Spine2: 'chest', Neck: 'neck', Head: 'head', LeftShoulder: 'left collarbone', LeftArm: 'left shoulder',
+    LeftForeArm: 'left elbow', LeftHand: 'left wrist', RightShoulder: 'right collarbone', RightArm: 'right shoulder',
+    RightForeArm: 'right elbow', RightHand: 'right wrist',
+  };
+  const LABELLED = new Set(['Head', 'Spine2', 'LeftArm', 'RightArm', 'LeftForeArm', 'RightForeArm', 'LeftHand', 'RightHand']);
+  const BONES: [string, string][] = [
+    ['Spine2', 'Neck'], ['Neck', 'Head'], ['Spine2', 'LeftShoulder'], ['LeftShoulder', 'LeftArm'], ['LeftArm', 'LeftForeArm'],
+    ['LeftForeArm', 'LeftHand'], ['Spine2', 'RightShoulder'], ['RightShoulder', 'RightArm'], ['RightArm', 'RightForeArm'], ['RightForeArm', 'RightHand'],
+  ];
+  const BAND_LABELS = R.bands.map(([lo, hi]: number[]) => `${lo}–${hi} Hz`);
+  const BAND_WORDS = ['slowest', 'slow', 'gesture tempo', 'fast', 'fastest'];
+
+  onEachPage('.body-net', (root) => {
+    const plot = root.querySelector<HTMLElement>('[data-plot]')!;
+    const slider = root.querySelector<HTMLInputElement>('[data-band]')!;
+    const bandLabel = root.querySelector<HTMLElement>('[data-band-label]')!;
+    const countEl = root.querySelector<HTMLElement>('[data-count]')!;
+    const countNote = root.querySelector<HTMLElement>('[data-count-note]')!;
+    const playBtn = root.querySelector<HTMLButtonElement>('[data-play]')!;
+    const table = root.querySelector<HTMLTableElement>('[data-table]')!;
+    const tip = makeTooltip(plot);
+    let width = 0;
+    let timer: number | undefined;
+
+    const idx = (j: string) => R.joints.indexOf(j);
+
+    function fillTable(band: number) {
+      table.replaceChildren();
+      const hr = table.createTHead().insertRow();
+      for (const h of ['Joint pair', 'Actor', 'ZeroEGGS', 'Difference [95% interval]']) { const th = document.createElement('th'); th.textContent = h; hr.appendChild(th); }
+      const tb = table.createTBody();
+      const rows = R.pairs.map((p: number[], k: number) => ({ p, d: R.pairBands[k][band] }))
+        .filter((r: any) => r.d.lo > 0 || r.d.hi < 0)
+        .sort((a: any, b: any) => Math.abs(b.d.diff) - Math.abs(a.d.diff)).slice(0, 8);
+      for (const r of rows) {
+        const tr = tb.insertRow();
+        tr.insertCell().textContent = `${NAMES[R.joints[r.p[0]]]} – ${NAMES[R.joints[r.p[1]]]}`;
+        tr.insertCell().textContent = r.d.real.toFixed(2);
+        tr.insertCell().textContent = r.d.zeroeggs.toFixed(2);
+        tr.insertCell().textContent = `${fmtSigned(r.d.diff)} [${fmtSigned(r.d.lo)}, ${fmtSigned(r.d.hi)}]`;
+      }
+    }
+
+    function draw() {
+      if (!width) return;
+      const band = Number(slider.value);
+      bandLabel.textContent = `${BAND_LABELS[band]} · ${BAND_WORDS[band]}`;
+      const cells = R.pairBands.map((pb: any) => pb[band]);
+      const clear = cells.filter((c: any) => c.lo > 0 || c.hi < 0);
+      const up = clear.filter((c: any) => c.diff > 0).length;
+      countEl.textContent = `${clear.length} of ${cells.length}`;
+      countNote.textContent = `joint pairs clearly differ: ${up} more in lockstep, ${clear.length - up} more independent`;
+      fillTable(band);
+
+      plot.replaceChildren(tip.el);
+      const h = Math.round(width * 1.05);
+      const pad = 36;
+      const xs = R.pose.map((p: number[]) => p[0]), ys = R.pose.map((p: number[]) => p[1]);
+      const span = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys));
+      const cx = (Math.max(...xs) + Math.min(...xs)) / 2, cy = (Math.max(...ys) + Math.min(...ys)) / 2;
+      const sx = linear(cx - span / 2, cx + span / 2, pad, width - pad);
+      const sy = linear(cy - span / 2, cy + span / 2, h - pad, pad);
+      const P = (j: number) => [sx(R.pose[j][0]), sy(R.pose[j][1])];
+      const svg = svgEl('svg', { viewBox: `0 0 ${width} ${h}`, role: 'img',
+        'aria-label': `Body diagram for ${BAND_LABELS[band]}: ${clear.length} of 55 joint pairs differ clearly` }, plot);
+
+      // Skeleton underneath.
+      const bones = svgEl('g', {}, svg);
+      for (const [a, b] of BONES) {
+        const [x1, y1] = P(idx(a)), [x2, y2] = P(idx(b));
+        svgEl('line', { x1, y1, x2, y2, 'stroke-width': 10, 'stroke-linecap': 'round', style: 'stroke: var(--div-mid)', opacity: 0.45 }, bones);
+      }
+      // Pair lines, faint first so strong ones sit on top.
+      const order = R.pairs.map((_: number[], k: number) => k).sort((a: number, b: number) => Math.abs(cells[a].diff) - Math.abs(cells[b].diff));
+      const edges = svgEl('g', {}, svg);
+      for (const k of order) {
+        const [a, b] = R.pairs[k];
+        const c = cells[k];
+        const isClear = c.lo > 0 || c.hi < 0;
+        const [x1, y1] = P(a), [x2, y2] = P(b);
+        const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+        const dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy) || 1;
+        const bow = Math.min(40, len * 0.18);
+        const qx = mx - (dy / len) * bow, qy = my + (dx / len) * bow;
+        const d = `M${x1},${y1}Q${qx},${qy} ${x2},${y2}`;
+        const mag = Math.min(1, Math.abs(c.diff) / 0.2);
+        const color = !isClear ? 'var(--div-mid)' : c.diff > 0 ? 'var(--div-pos)' : 'var(--div-neg)';
+        const line = svgEl('path', { d, fill: 'none', 'stroke-linecap': 'round', 'stroke-width': isClear ? 1.2 + 4.5 * mag : 1,
+          style: `stroke: ${color}`, opacity: isClear ? 0.35 + 0.65 * mag : 0.5 }, edges);
+        const hit = svgEl('path', { d, fill: 'none', 'stroke-width': 12, stroke: 'transparent', tabindex: 0,
+          'aria-label': `${NAMES[R.joints[a]]} and ${NAMES[R.joints[b]]}: ${fmtSigned(c.diff)}` }, edges);
+        const show = (ev?: PointerEvent) => {
+          const r = svg.getBoundingClientRect();
+          const s = r.width / width;
+          const px = ev ? ev.clientX - r.left : qx * s, py = ev ? ev.clientY - r.top : qy * s;
+          line.setAttribute('opacity', '1');
+          tip.show(px, py, `${NAMES[R.joints[a]]} – ${NAMES[R.joints[b]]}`, [
+            { value: fmtSigned(c.diff), label: isClear ? 'clear difference' : 'no clear difference', color },
+            { value: `${c.real.toFixed(2)} → ${c.zeroeggs.toFixed(2)}`, label: 'actor → ZeroEGGS coherence' },
+            { value: `${fmtSigned(c.lo)} to ${fmtSigned(c.hi)}`, label: '95% interval' },
+          ]);
+        };
+        const hide = () => { tip.hide(); line.setAttribute('opacity', String(isClear ? 0.35 + 0.65 * mag : 0.5)); };
+        hit.addEventListener('pointermove', (e) => show(e));
+        hit.addEventListener('focus', () => show());
+        hit.addEventListener('pointerleave', hide);
+        hit.addEventListener('blur', hide);
+      }
+      // Joints and labels on top.
+      R.joints.forEach((j: string, k: number) => {
+        const [x, y] = P(k);
+        svgEl('circle', { cx: x, cy: y, r: j === 'Head' ? 9 : 5.5, 'stroke-width': 2, style: 'fill: var(--viz-surface); stroke: var(--ink-2)', 'pointer-events': 'none' }, svg);
+        if (LABELLED.has(j)) {
+          const left = R.pose[k][0] > 2, right = R.pose[k][0] < -2;
+          svgText(svg, x + (left ? 12 : right ? -12 : 0), y + (left || right ? 4 : -14), NAMES[j].replace('left ', 'L ').replace('right ', 'R '),
+            { 'text-anchor': left ? 'start' : right ? 'end' : 'middle', 'font-size': 11, 'pointer-events': 'none' });
+        }
+      });
+    }
+
+    slider.addEventListener('input', () => { stop(); draw(); });
+    function stop() { if (timer) { clearInterval(timer); timer = undefined; playBtn.textContent = 'Play slow → fast'; } }
+    playBtn.addEventListener('click', () => {
+      if (timer) return stop();
+      slider.value = '0'; draw();
+      playBtn.textContent = 'Stop';
+      timer = window.setInterval(() => {
+        if (!root.isConnected) return stop();
+        const v = Number(slider.value) + 1;
+        if (v > 4) return stop();
+        slider.value = String(v); draw();
+      }, reducedMotion() ? 2600 : 1600);
+    });
+    responsive(plot, (w) => { width = w; draw(); });
+  });
+</script>

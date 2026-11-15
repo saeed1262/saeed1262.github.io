@@ -1,0 +1,84 @@
+---
+// Average coherence difference (ZeroEGGS − real) per frequency band, with
+// 95% intervals from resampling held-out takes.
+---
+<figure class="viz cross-chart">
+  <div class="viz__head">
+    <p class="viz__title">Too locked when slow, too loose when fast</p>
+    <p class="viz__sub">Coherence of ZeroEGGS minus the actor's, averaged over all 55 joint pairs, from slow to fast tempos</p>
+  </div>
+  <div class="viz__plot" data-plot></div>
+  <figcaption class="viz__caption">
+    Above zero, ZeroEGGS's joints keep time together more steadily than the actor's; below zero, less.
+    Shaded: 95% interval from resampling the held-out takes.
+  </figcaption>
+  <details>
+    <summary>Show as a table</summary>
+    <div class="table-wrap"><table data-table></table></div>
+  </details>
+</figure>
+
+<script>
+  import data from '@/data/blog/fake-motion.json';
+  import { onEachPage, responsive, svgEl, svgText, linear, makeTooltip, fmtSigned } from '@/scripts/viz';
+
+  const C = data.real.crossover;
+  const BANDS = data.real.bands.map(([lo, hi]: number[]) => `${lo}–${hi} Hz`);
+
+  onEachPage('.cross-chart', (root) => {
+    const plot = root.querySelector<HTMLElement>('[data-plot]')!;
+    const tip = makeTooltip(plot);
+    const table = root.querySelector<HTMLTableElement>('[data-table]')!;
+    const hr = table.createTHead().insertRow();
+    for (const h of ['Band', 'ZeroEGGS − real', '95% interval']) { const th = document.createElement('th'); th.textContent = h; hr.appendChild(th); }
+    const tb = table.createTBody();
+    BANDS.forEach((b: string, i: number) => {
+      const tr = tb.insertRow();
+      tr.insertCell().textContent = b;
+      tr.insertCell().textContent = fmtSigned(C.mean[i], 3);
+      tr.insertCell().textContent = `${fmtSigned(C.lo[i], 3)} to ${fmtSigned(C.hi[i], 3)}`;
+    });
+
+    responsive(plot, (width) => {
+      plot.replaceChildren(tip.el);
+      const h = Math.round(Math.min(300, Math.max(220, width * 0.4)));
+      const m = { l: 44, r: 16, t: 12, b: 34 };
+      const n = BANDS.length;
+      const x = linear(0, n - 1, m.l + 28, width - m.r - 28);
+      const y = linear(-0.08, 0.13, h - m.b, m.t);
+      const svg = svgEl('svg', { viewBox: `0 0 ${width} ${h}`, role: 'img',
+        'aria-label': 'Coherence difference falls from +0.08 in the slowest band to −0.04 in the fastest' }, plot);
+      for (const t of [-0.05, 0, 0.05, 0.1]) {
+        svgEl('line', { x1: m.l, x2: width - m.r, y1: y(t), y2: y(t), class: t === 0 ? 'axis' : 'grid' }, svg);
+        svgText(svg, m.l - 6, y(t) + 4, t === 0 ? '0' : fmtSigned(t, 2), { 'text-anchor': 'end' });
+      }
+      BANDS.forEach((b: string, i: number) => svgText(svg, x(i), h - m.b + 18, width < 480 ? b.replace(' Hz', '') : b, { 'text-anchor': 'middle' }));
+      svgText(svg, width - m.r, h - 2, 'slow → fast', { 'text-anchor': 'end', 'font-size': 10.5 });
+
+      // Direction labels in the empty corners (upper right, lower left).
+      svgText(svg, width - m.r - 4, y(0.1) + 4, '↑ ZeroEGGS more in lockstep', { class: 't-ink', 'font-size': 11, 'text-anchor': 'end' });
+      svgText(svg, m.l + 8, y(-0.05) + 4, '↓ ZeroEGGS more independent', { class: 't-ink', 'font-size': 11 });
+
+      const area = C.hi.map((v: number, i: number) => `${i ? 'L' : 'M'}${x(i)},${y(v)}`).join('') +
+        C.lo.map((_: number, k: number) => { const i = n - 1 - k; return `L${x(i)},${y(C.lo[i])}`; }).join('') + 'Z';
+      svgEl('path', { d: area, style: 'fill: var(--c-zeggs)', opacity: 0.12 }, svg);
+      svgEl('path', { d: C.mean.map((v: number, i: number) => `${i ? 'L' : 'M'}${x(i)},${y(v)}`).join(''), fill: 'none',
+        'stroke-width': 2, 'stroke-linejoin': 'round', style: 'stroke: var(--c-zeggs)' }, svg);
+      C.mean.forEach((v: number, i: number) => {
+        svgEl('circle', { cx: x(i), cy: y(v), r: 5, 'stroke-width': 2, style: 'fill: var(--c-zeggs); stroke: var(--viz-surface)' }, svg);
+        if (i === 0 || i === n - 1) svgText(svg, x(i) + (i === 0 ? 10 : -10), y(v) + (i === 0 ? -8 : 16), fmtSigned(v, 2), { class: 't-strong', 'text-anchor': i === 0 ? 'start' : 'end' });
+        const hit = svgEl('rect', { x: x(i) - 24, y: m.t, width: 48, height: h - m.t - m.b, fill: 'transparent', tabindex: 0,
+          'aria-label': `${BANDS[i]}: ${fmtSigned(v, 3)}` }, svg);
+        const show = () => {
+          const s = plot.getBoundingClientRect().width / width;
+          tip.show(x(i) * s, y(v) * s, BANDS[i], [
+            { value: fmtSigned(v, 3), label: 'ZeroEGGS − real', color: 'var(--c-zeggs)' },
+            { value: `${fmtSigned(C.lo[i], 3)} to ${fmtSigned(C.hi[i], 3)}`, label: '95% interval' },
+          ]);
+        };
+        hit.addEventListener('pointerenter', show); hit.addEventListener('focus', show);
+        hit.addEventListener('pointerleave', () => tip.hide()); hit.addEventListener('blur', () => tip.hide());
+      });
+    });
+  });
+</script>

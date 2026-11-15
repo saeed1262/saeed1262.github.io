@@ -1,0 +1,44 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import SectionHeading from '@/components/ui/SectionHeading.astro';
+import { posts } from '@/data/posts';
+import { formatDateFull } from '@/utils/format';
+---
+<BaseLayout title="Blog" description="Writing by Saeed Ghorbani on motion, machine learning and generative models.">
+  <main class="blog container">
+    <SectionHeading kicker="Writing" title="Blog" />
+    <ul class="blog__list">
+      {posts.map((p) => (
+        <li>
+          <a class="entry" href={`/blog/${p.slug}/`}>
+            <p class="entry__meta">
+              <time datetime={p.date}>{formatDateFull(p.date)}</time> · {p.readingMinutes} min read
+            </p>
+            <h2 class="entry__title">{p.title}</h2>
+            <p class="entry__desc">{p.description}</p>
+            <ul class="entry__tags">{p.tags.map((t) => <li>{t}</li>)}</ul>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </main>
+  <style>
+    .blog { padding-block: 9rem var(--space-xl); max-width: 48rem; }
+    .blog__list { list-style: none; padding: 0; display: grid; gap: var(--space-md); }
+    .entry {
+      display: block;
+      padding: var(--space-md);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow-card);
+      transition: border-color 0.2s, transform 0.2s var(--ease-out);
+    }
+    .entry:hover { border-color: color-mix(in srgb, var(--accent-from) 50%, var(--border)); transform: translateY(-2px); }
+    .entry__meta { color: var(--text-muted); font-size: var(--step--1); }
+    .entry__title { font-size: var(--step-2); line-height: 1.15; margin-top: 0.4rem; }
+    .entry__desc { color: var(--text-muted); margin-top: 0.6rem; }
+    .entry__tags { display: flex; flex-wrap: wrap; gap: 0.4rem; list-style: none; padding: 0; margin-top: var(--space-sm); }
+    .entry__tags li { font-size: var(--step--1); color: var(--accent-from); background: color-mix(in srgb, var(--accent-from) 12%, transparent); border-radius: 999px; padding: 0.15rem 0.6rem; }
+  </style>
+</BaseLayout>

@@ -1,0 +1,223 @@
+---
+import PostLayout from '@/layouts/PostLayout.astro';
+import CoherenceDemo from '@/components/blog/CoherenceDemo.astro';
+import WalkerDemo from '@/components/blog/WalkerDemo.astro';
+import DetectionChart from '@/components/blog/DetectionChart.astro';
+import SpectrumChart from '@/components/blog/SpectrumChart.astro';
+import CrossoverChart from '@/components/blog/CrossoverChart.astro';
+import BodyNetwork from '@/components/blog/BodyNetwork.astro';
+import { posts } from '@/data/posts';
+import '@/styles/viz.css';
+
+const post = posts.find((p) => p.slug === 'fake-motion-fingerprint')!;
+---
+<PostLayout title={post.title} date={new Date(post.date)} description={post.description} readingMinutes={post.readingMinutes}>
+  <p>
+    AI-generated images carry fingerprints. Look at them in the frequency domain and many generators leave
+    regular traces that a simple classifier can pick up<a href="#ref-frank" class="cite">[1]</a>.
+    Generated <em>motion</em>, for game characters, avatars and digital humans, is getting good too.
+    So I wondered: does it have a fingerprint as well? And does that fingerprint survive the cleanup filtering
+    every motion-capture pipeline applies anyway?
+  </p>
+  <p>
+    To find out, I picked the model I know best: ZeroEGGS, a speech-to-gesture model I developed with colleagues
+    at Ubisoft La Forge<a href="#ref-zeggs" class="cite">[2]</a>. My hypothesis was half wrong, and the half that
+    was wrong turned out to be the more interesting part.
+  </p>
+
+  <h2>Two ways to fingerprint motion</h2>
+  <p>
+    Treat each joint's position over time as a signal and split it into tempos: slow sway, the 1–3 Hz rhythm of
+    gesture strokes, quick twitches and beats. Then there are two natural things to measure.
+  </p>
+  <ul>
+    <li><strong>Energy:</strong> how much each joint moves at each tempo, its power spectrum. This is the motion
+      version of the image trick.</li>
+    <li><strong>Coordination:</strong> how steadily two joints keep time with each other at each tempo. The
+      standard measure is <em>coherence</em>, plus the timing offset between the pair.</li>
+  </ul>
+  <p>
+    My bet was on coordination. A generator can learn what a good elbow motion looks like, and what a good wrist
+    motion looks like, without learning that they move as one arm. Coherence also has two properties that matter
+    here. It ignores how big a movement is, and filtering every joint with the same filter leaves it unchanged,
+    as long as some signal survives. Energy has neither property.
+  </p>
+
+  <CoherenceDemo />
+
+  <p>
+    The question itself isn't new. In 2005, Ren, Patrick, Efros, Hodgins and Rehg trained statistical models to
+    tell natural motion from keyframed, edited and noisy motion<a href="#ref-ren" class="cite">[3]</a>. Spectra
+    are used to score predicted motion<a href="#ref-npss" class="cite">[4]</a>, and there are detectors for
+    AI-generated <em>videos</em> of people<a href="#ref-farid" class="cite">[5]</a>. What I couldn't find was a
+    frequency fingerprint applied to skeleton motion from a modern generator and tested against cleanup.
+  </p>
+
+  <h2>First, a toy walker</h2>
+  <p>
+    Before touching real data I built a simulated walker: ten joint angles driven by one shared stride rhythm,
+    plus postural sway, a little tremor and sensor noise. Then I made five kinds of fake walk, and one control
+    that is real motion low-pass filtered at 6 Hz, the way studios clean mocap. A good detector should
+    <em>not</em> flag that one.
+  </p>
+
+  <WalkerDemo />
+
+  <p>
+    The detector only ever sees real walks. It learns what their fingerprints look like and flags anything that
+    doesn't fit, which is the realistic setting when you don't know which generator you're up against.
+  </p>
+
+  <DetectionChart mode="toy" />
+
+  <p>
+    The two fingerprints fail in opposite places. Energy flags every cleaned real walk as fake, and misses the
+    Frankenstein, learned-style and wrong-arm walkers almost entirely. Coordination ignores the cleanup (0.52)
+    and catches all three (1.00). Jitter is the one fake energy handles better, which makes sense: it adds
+    movement without changing much about timing.
+  </p>
+  <p>Two lessons from the toy carried over to everything after it.</p>
+  <ul>
+    <li><strong>You can only measure coordination where there's signal.</strong> Above about twice the cleanup
+      cutoff the filtered motion is essentially gone, and what's left is leakage from the big stride motion. In
+      my first run that alone made coordination flag every cleaned walk. So the analysis stops below that point.</li>
+    <li><strong>Steady isn't the same as right.</strong> Coherence only checks that two joints keep a steady
+      relationship. Arms swinging with the wrong leg are perfectly steady, so the fingerprint also records each
+      pair's timing offset.</li>
+  </ul>
+  <p>
+    The toy has an obvious limit: I built the "real" motion myself, so it shows how the method works, not that
+    real generators fail this way. For that I needed real data.
+  </p>
+
+  <h2>Real gestures: the actor vs ZeroEGGS</h2>
+  <p>
+    The ZEGGS dataset has about 2¼ hours of one actor speaking in 19 styles, from neutral to sarcastic to
+    laughing<a href="#ref-zeggs" class="cite">[2]</a>. ZeroEGGS was trained on 46 of its 67 takes and never saw
+    the other 21. That gives a clean test. For each unseen take I fed its audio to the pretrained model, with a
+    style example from a <em>different</em> take of the same style, so the only thing taken from the unseen take
+    was its speech. I compared 30-second windows of eleven upper-body joints, from chest and head out to the
+    wrists.
+  </p>
+  <p>
+    I kept the two controls. Cleaned real motion should pass, and a Frankenstein built from the actor's joints
+    across different takes should be caught. If those misbehave, nothing else can be trusted.
+  </p>
+
+  <DetectionChart mode="real" />
+
+  <p>
+    The controls behave: coordination ignores cleanup and catches every Frankenstein window. But the ZeroEGGS row
+    did not go the way I expected. The detector that only knows real motion catches ZeroEGGS best by
+    <strong>energy shape</strong> (0.82), the energy fingerprint with each joint's overall size divided out.
+    Coordination scores only 0.62, and its interval includes chance.
+  </p>
+  <p>The spectrum shows why.</p>
+
+  <SpectrumChart />
+
+  <p>
+    ZeroEGGS is too smooth. Across all joints it has about 40× less movement at 4–8 Hz than the actor: the
+    quick, small motions of a real body mostly aren't there. That's a familiar trait of learned motion models,
+    which tend to average away fast detail, and it's the cheapest giveaway there is.
+  </p>
+
+  <h2>So is coordination fine?</h2>
+  <p>
+    Not quite. My real-only detector averages about 2,500 coordination numbers per window, and a difference
+    concentrated in a few joint pairs gets lost in that average. A classifier trained with labelled examples is the
+    fairest test of whether a difference exists at all. Tested only on takes it never saw, it separates ZeroEGGS
+    from the actor best with <strong>coordination: 0.99</strong>, ahead of energy (0.95) and energy shape
+    (0.94). It also confirms the toy's warning: from energy it flags cleaned real motion as fake (0.77), from
+    coordination barely (0.56).
+  </p>
+  <p>The difference has a clear shape.</p>
+
+  <CrossoverChart />
+
+  <p>
+    At slow tempos ZeroEGGS keeps the upper body <em>more</em> in lockstep than the actor does. At fast tempos it
+    keeps it <em>less</em>. Drawn on the body it looks like this:
+  </p>
+
+  <BodyNetwork />
+
+  <p>
+    In the slowest band the elbows are the story. In ZeroEGGS they move with the chest and the opposite shoulder
+    about twice as steadily as in the actor (right elbow and chest: 0.19 for the actor, 0.39 for ZeroEGGS). In the
+    fastest band the head stands out: its quick movements are less tied to the shoulders and arms (head and left
+    shoulder: 0.67 for the actor, 0.55 for ZeroEGGS). The flip is near-total: in the slowest band 38 of the 55
+    pairs are clearly more in lockstep than the actor and only 4 less; in the fastest band 37 are clearly more
+    independent and only 5 more locked.
+  </p>
+  <p>
+    My reading, and it is a reading rather than a result: the model moves the arms and torso more as one block on
+    slow time scales, where a person's slow drifts are more independent. On fast time scales a person's quick
+    movements, a beat or a laugh, ripple through head and shoulders together, while the model's fast movements are
+    weaker and less shared. Put simply, real people are loose when slow and tightly linked when fast; ZeroEGGS is
+    the other way round.
+  </p>
+
+  <h2>What I got wrong along the way</h2>
+  <ul>
+    <li><strong>The hypothesis.</strong> I expected coordination to be the giveaway. Without examples of fakes,
+      smoothness is the easier one; coordination differences are real but subtler.</li>
+    <li><strong>My first toy fake was caught for the wrong reason.</strong> Scrambling each joint's timing with
+      a standard trick also injected broadband noise from the clip's edges, so energy "caught" it through an
+      artifact. I replaced it with the Frankenstein walker.</li>
+    <li><strong>My first detector was too blunt.</strong> Averaging thousands of coordination numbers hid real
+      differences, which the trained classifier then found.</li>
+  </ul>
+  <p>
+    I also checked the things that could fake these results. The two skeletons have identical bone lengths, so the
+    smaller ZeroEGGS motion isn't a units mix-up. And ZeroEGGS's weak fast motion sits far above any noise floor,
+    so noise can't explain its lower fast-tempo coherence.
+  </p>
+
+  <h2>Caveats</h2>
+  <ul>
+    <li>One actor, one model, one random seed. This is a case study of ZeroEGGS, not a claim about generated
+      motion in general.</li>
+    <li>The cleanup control is weak on this data: the mocap was already smooth above 6 Hz, so a 6 Hz filter
+      changes little.</li>
+    <li>The Speech style has no training takes, so its three takes used another unseen Speech take as the style
+      example.</li>
+  </ul>
+
+  <h2>Takeaways</h2>
+  <ul>
+    <li><strong>To spot generated motion without examples of it,</strong> check smoothness first. For now it's
+      the cheapest tell.</li>
+    <li><strong>To compare motion across cleanup pipelines,</strong> prefer coordination. Energy confuses
+      cleaning with faking; coherence doesn't, as long as you stay where the signal survives.</li>
+    <li><strong>To improve a generator,</strong> look at coordination across tempos. For ZeroEGGS it points at
+      something specific: loosen the slow coupling between arms and torso, and let fast movements travel through
+      the upper body.</li>
+  </ul>
+
+  <h2 id="references">References</h2>
+  <ol class="refs">
+    <li id="ref-frank">J. Frank, T. Eisenhofer, L. Schönherr, A. Fischer, D. Kolossa, T. Holz.
+      <a href="https://arxiv.org/abs/2003.08685">Leveraging Frequency Analysis for Deep Fake Image Recognition</a>. ICML 2020.</li>
+    <li id="ref-zeggs">S. Ghorbani, Y. Ferstl, D. Holden, N. F. Troje, M.-A. Carbonneau.
+      <a href="https://doi.org/10.1111/cgf.14734">ZeroEGGS: Zero-shot Example-based Gesture Generation from Speech</a>.
+      Computer Graphics Forum, 2023. Dataset and model: <a href="https://github.com/ubisoft/ubisoft-laforge-ZeroEGGS">github.com/ubisoft/ubisoft-laforge-ZeroEGGS</a>.</li>
+    <li id="ref-ren">L. Ren, A. Patrick, A. A. Efros, J. K. Hodgins, J. M. Rehg.
+      <a href="https://www.ri.cmu.edu/publications/a-data-driven-approach-to-quantifying-natural-human-motion">A Data-Driven Approach to Quantifying Natural Human Motion</a>. SIGGRAPH 2005.</li>
+    <li id="ref-npss">A. Gopalakrishnan, A. Mali, D. Kifer, C. L. Giles, A. G. Ororbia.
+      <a href="https://openaccess.thecvf.com/content_CVPR_2019/html/Gopalakrishnan_A_Neural_Temporal_Model_for_Human_Motion_Prediction_CVPR_2019_paper.html">A Neural Temporal Model for Human Motion Prediction</a>. CVPR 2019.</li>
+    <li id="ref-farid">M. Boháček, H. Farid.
+      <a href="https://arxiv.org/abs/2412.00526">Human Action CLIPs: Detecting AI-generated Human Motion</a>. 2024.</li>
+  </ol>
+  <p class="license-note">
+    The ZEGGS dataset and the ZeroEGGS model are © Ubisoft and licensed CC BY-NC-ND 4.0. The figures here show
+    statistics computed from them; no motion from the dataset is reproduced. The walkers are a simulation.
+  </p>
+
+  <style>
+    .cite { font-size: 0.72em; vertical-align: super; margin-left: 0.1em; text-decoration: none !important; }
+    .refs { font-size: var(--step--1); color: var(--text-muted); }
+    .refs li { margin-bottom: 0.5rem; }
+    .license-note { font-size: var(--step--1); color: var(--text-muted); margin-top: var(--space-md); }
+  </style>
+</PostLayout>
