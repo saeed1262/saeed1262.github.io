@@ -16,6 +16,6 @@ export const posts: Post[] = [
     description:
       'A frequency-domain look at real and generated gestures: what energy and coordination reveal, what fooled me, and where ZeroEGGS differs from a real actor.',
     tags: ['motion', 'generative models', 'signal processing'],
-    readingMinutes: 12,
+    readingMinutes: 15,
   },
 ];

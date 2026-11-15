@@ -1,0 +1,135 @@
+---
+// Phase portraits of the toy walker: left hip angle against left shoulder
+// angle over 20 s, for the real, Frankenstein and wrong-arm-swing walkers.
+// Same simulation as the post's toy experiment; nothing from real data.
+---
+<figure class="viz phase-fig">
+  <div class="viz__head">
+    <p class="viz__title">One joint plotted against another</p>
+    <p class="viz__sub">Left hip angle (across) against left shoulder angle (up), over 20 seconds of each toy walker</p>
+  </div>
+  <div class="phase-fig__grid" data-grid></div>
+  <figcaption class="viz__caption">
+    The real walker traces a tight loop leaning down to the right: the arm swings opposite the leg.
+    The Frankenstein walker's hip and shoulder come from different walks with slightly different cadences, so they drift in and out of step and the trace fills a whole box.
+    The wrong-arm walker is just as tight as the real one, but leans the other way: steady timing, wrong offset.
+  </figcaption>
+  <style is:global>
+    /* Global: the panels are created by the script below, so scoped styles wouldn't reach them. */
+    .phase-fig__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+    .phase-fig__panel svg { width: 100%; height: auto; display: block; }
+    .phase-fig__name { display: flex; align-items: center; gap: 0.4rem; font-weight: 600; color: var(--ink); font-size: 0.9rem; margin-bottom: 0.25rem; }
+    .phase-fig__name i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex: none; }
+    .phase-fig__stats { font-size: 0.8rem; color: var(--ink-2); line-height: 1.45; margin-top: 0.3rem; font-variant-numeric: tabular-nums; }
+    .phase-fig__stats strong { color: var(--ink); font-weight: 650; }
+    @media (max-width: 600px) { .phase-fig__grid { grid-template-columns: 1fr 1fr; } }
+  </style>
+</figure>
+
+<script>
+  import { onEachPage, svgEl, svgText, linear, rng, gaussian } from '@/scripts/viz';
+
+  const FS = 60, SECONDS = 20, N = FS * SECONDS;
+  type Kind = 'real' | 'frank' | 'wrong';
+  const PANELS: { kind: Kind; name: string; color: string }[] = [
+    { kind: 'real', name: 'Real', color: 'var(--c-real)' },
+    { kind: 'frank', name: 'Frankenstein', color: 'var(--c-frank)' },
+    { kind: 'wrong', name: 'Wrong arm swing', color: 'var(--c-other)' },
+  ];
+
+  // Stride phase with slowly drifting cadence, like the toy walker.
+  function stridePhase(r: () => number, f0: number) {
+    const ph = new Float64Array(N);
+    const a = Math.exp(-1 / (FS * 3));
+    let drift = 0, p = r() * 2 * Math.PI;
+    for (let i = 0; i < N; i++) {
+      drift = a * drift + 0.03 * Math.sqrt(1 - a * a) * gaussian(r);
+      p += (2 * Math.PI * (f0 + drift)) / FS;
+      ph[i] = p;
+    }
+    return ph;
+  }
+
+  function wobble(r: () => number, amp: number) {
+    // Smooth, small, independent movement on top of the stride.
+    const out = new Float64Array(N);
+    const a = Math.exp(-1 / (FS * 0.6));
+    let v = 0;
+    for (let i = 0; i < N; i++) { v = a * v + amp * Math.sqrt(1 - a * a) * gaussian(r); out[i] = v; }
+    return out;
+  }
+
+  function simulate(kind: Kind) {
+    const r = rng(kind === 'real' ? 11 : kind === 'frank' ? 23 : 37);
+    const legPh = stridePhase(r, 0.92);
+    // Frankenstein: the shoulder comes from a different walk (own cadence and drift).
+    const armPh = kind === 'frank' ? stridePhase(r, 0.81) : legPh;
+    const offset = kind === 'wrong' ? 0 : Math.PI;   // real arms swing opposite the leg
+    const hw = wobble(r, 1.2), sw = wobble(r, 1.2);
+    const hip = new Float64Array(N), sh = new Float64Array(N);
+    for (let i = 0; i < N; i++) {
+      hip[i] = 22 * Math.cos(legPh[i]) + 3 * Math.cos(2 * legPh[i] + 0.6) + hw[i];
+      sh[i] = 18 * Math.cos(armPh[i] + offset) + sw[i];
+    }
+    return { hip, sh, f0: 0.92 };
+  }
+
+  /** Coherence and relative phase between two signals at frequency f. */
+  function atFrequency(x: Float64Array, y: Float64Array, f: number) {
+    const seg = 4 * FS;
+    let re = 0, im = 0, sxx = 0, syy = 0;
+    for (let s = 0; s + seg <= x.length; s += seg / 2) {
+      let xr = 0, xi = 0, yr = 0, yi = 0;
+      for (let k = 0; k < seg; k++) {
+        const w = 0.5 - 0.5 * Math.cos((2 * Math.PI * k) / (seg - 1));
+        const ang = (2 * Math.PI * f * k) / FS;
+        const c = Math.cos(ang), sn = Math.sin(ang);
+        xr += w * x[s + k] * c; xi -= w * x[s + k] * sn;
+        yr += w * y[s + k] * c; yi -= w * y[s + k] * sn;
+      }
+      re += xr * yr + xi * yi; im += xi * yr - xr * yi;
+      sxx += xr * xr + xi * xi; syy += yr * yr + yi * yi;
+    }
+    return { coherence: (re * re + im * im) / (sxx * syy), offsetDeg: (Math.atan2(im, re) * 180) / Math.PI };
+  }
+
+  onEachPage('.phase-fig', (root) => {
+    const grid = root.querySelector<HTMLElement>('[data-grid]')!;
+    for (const p of PANELS) {
+      const { hip, sh, f0 } = simulate(p.kind);
+      const { coherence, offsetDeg } = atFrequency(hip, sh, f0);
+      const panel = document.createElement('div');
+      panel.className = 'phase-fig__panel';
+      const name = document.createElement('p');
+      name.className = 'phase-fig__name';
+      const dot = document.createElement('i');
+      dot.style.background = p.color;
+      name.append(dot, document.createTextNode(p.name));
+      panel.appendChild(name);
+
+      const S = 220, m = 26;
+      const x = linear(-32, 32, m, S - 6), y = linear(-26, 26, S - m, 6);
+      const svg = svgEl('svg', { viewBox: `0 0 ${S} ${S}`, role: 'img',
+        'aria-label': `${p.name}: coherence ${coherence.toFixed(2)} at the stride rhythm` }, panel);
+      for (const v of [-20, 0, 20]) {
+        svgEl('line', { x1: x(v), x2: x(v), y1: 6, y2: S - m, class: v === 0 ? 'axis' : 'grid' }, svg);
+        svgEl('line', { x1: m, x2: S - 6, y1: y(v), y2: y(v), class: v === 0 ? 'axis' : 'grid' }, svg);
+        svgText(svg, x(v), S - m + 14, `${v}°`, { 'text-anchor': 'middle', 'font-size': 10 });
+        svgText(svg, m - 4, y(v) + 3, `${v}°`, { 'text-anchor': 'end', 'font-size': 10 });
+      }
+      let d = '';
+      for (let i = 0; i < N; i += 2) d += `${i ? 'L' : 'M'}${x(hip[i]).toFixed(1)},${y(sh[i]).toFixed(1)}`;
+      svgEl('path', { d, fill: 'none', 'stroke-width': 1.2, 'stroke-linejoin': 'round', opacity: 0.75, style: `stroke: ${p.color}` }, svg);
+
+      const stats = document.createElement('p');
+      stats.className = 'phase-fig__stats';
+      const c = document.createElement('strong');
+      c.textContent = coherence.toFixed(2);
+      const off = document.createElement('strong');
+      off.textContent = coherence > 0.5 ? `${Math.round(Math.abs(offsetDeg))}°` : 'drifts';
+      stats.append('coherence ', c, document.createElement('br'), 'timing offset ', off);
+      panel.appendChild(stats);
+      grid.appendChild(panel);
+    }
+  });
+</script>
