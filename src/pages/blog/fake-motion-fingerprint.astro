@@ -1,5 +1,7 @@
 ---
 import { Code } from 'astro:components';
+import { Image } from 'astro:assets';
+import zeggsImage from '@/assets/projects/zeggs.png';
 import PostLayout from '@/layouts/PostLayout.astro';
 import CoherenceDemo from '@/components/blog/CoherenceDemo.astro';
 import PhasePortrait from '@/components/blog/PhasePortrait.astro';
@@ -7,6 +9,7 @@ import DetectionChart from '@/components/blog/DetectionChart.astro';
 import SpectrumChart from '@/components/blog/SpectrumChart.astro';
 import CrossoverChart from '@/components/blog/CrossoverChart.astro';
 import BodyNetwork from '@/components/blog/BodyNetwork.astro';
+import ZeroEggsDiagram from '@/components/blog/ZeroEggsDiagram.astro';
 import { posts } from '@/data/posts';
 import '@/styles/viz.css';
 
@@ -114,6 +117,7 @@ auc = roc_auc_score(y, prob)`;
   <ul class="toc">
     <li><a href="#two-fingerprints">Two Fingerprints</a></li>
     <li><a href="#toy-walker">A Toy Walker</a></li>
+    <li><a href="#zeroeggs">ZeroEGGS in a Nutshell</a></li>
     <li><a href="#real-gestures">Real Gestures</a></li>
     <li><a href="#whats-different">What's Different About ZeroEGGS</a></li>
     <li><a href="#lessons">Lessons</a></li>
@@ -239,12 +243,58 @@ auc = roc_auc_score(y, prob)`;
     not that real generators actually fail this way. For that we need real data.
   </p>
 
+  <h2 id="zeroeggs">ZeroEGGS in a Nutshell</h2>
+  <p>
+    Before running the real test it's worth a quick recap of what ZeroEGGS actually is, since its design matters
+    when we come to interpret the results.
+  </p>
+  <p>
+    ZeroEGGS takes two inputs: a recording of speech, and a short clip of motion showing the style you want. From
+    those it generates full-body gesture motion that moves in time with the speech, in the style of the example.
+    The "zero-shot" part is that the example clip can be in a style the model never saw during training: give it
+    a few seconds of someone gesturing nervously, and it will try to gesture nervously to any new speech you give it.
+  </p>
+  <figure class="post-figure">
+    <Image src={zeggsImage} alt="The same 3D character gesturing in seven different styles, each rendered in a different colour" width={1400} loading="lazy" />
+    <figcaption>
+      The same character gesturing in seven different styles with ZeroEGGS. © Ubisoft La Forge.
+      There's a video of it in action on the <a href="/projects/zeggs/">project page</a>.
+    </figcaption>
+  </figure>
+  <p>Under the hood it has three parts:</p>
+
+  <ZeroEggsDiagram />
+
+  <ul>
+    <li><strong>A speech encoder:</strong> a stack of 1-D convolutions which turns the audio (a mel spectrogram
+      plus its energy) into a compact speech code for every frame.</li>
+    <li><strong>A style encoder:</strong> uses attention to summarize the example clip into a style embedding of
+      64 numbers. It is variational, which means that instead of a single embedding it predicts a distribution
+      and samples from it. That's what lets the same inputs produce a variety of outputs, and it also means styles
+      can be blended, or exaggerated, by moving around in the embedding space.</li>
+    <li><strong>A recurrent decoder:</strong> a two-layer GRU which writes the motion one frame at a time, each
+      new pose conditioned on the previous one, the speech code and the style embedding. The output is the full
+      skeleton, 75 joints including the fingers, at 60 frames per second.</li>
+  </ul>
+  <p>
+    We published it in Computer Graphics Forum in 2023<a href="#ref-zeggs" class="cite">[2]</a>, and I presented it
+    at SIGGRAPH Asia 2022 in Daegu. In the paper's user study it outperformed the previous state of
+    the art on naturalness of motion, appropriateness for the speech, and style portrayal. Alongside the code and
+    pretrained models we released the ZEGGS dataset, which I'll use below: about 2¼ hours of one actor's
+    monologues in 19 styles, from neutral to sarcastic to laughing, captured with full-body and finger motion.
+  </p>
+  <p>
+    One property is worth keeping in mind for later. Like most models that predict motion frame by frame, the
+    decoder is trained to reconstruct the recorded motion, here with L1 losses on joint positions, rotations and
+    velocities. When the next frame is uncertain, the safest prediction lies somewhere in the middle of the
+    possibilities, and that tends to smooth away small, fast detail.
+  </p>
+
   <h2 id="real-gestures">Real Gestures</h2>
   <h3>Set-up</h3>
   <p>
-    The ZEGGS dataset contains about 2¼ hours of one actor speaking in 19 styles, from neutral to sarcastic to
-    laughing<a href="#ref-zeggs" class="cite">[2]</a>. ZeroEGGS was trained on 46 of its 67 takes and never saw the
-    other 21, which gives us a clean test. For each of those 21 takes I fed its audio to the pretrained model:
+    ZeroEGGS was trained on 46 of the dataset's 67 takes and never saw the other 21, which gives us a clean test.
+    For each of those 21 takes I fed its audio to the pretrained model:
   </p>
   <Code code={codeGenerate} lang="python" themes={themes} defaultColor={false} />
   <p>
@@ -273,8 +323,8 @@ auc = roc_auc_score(y, prob)`;
 
   <p>
     ZeroEGGS is too smooth. Across all joints it has about 40× less movement at 4–8 Hz than the actor: the quick,
-    small motions of a real body are mostly not there. This is a familiar trait of learned motion models, which
-    tend to average away fast detail, and it is by far the cheapest giveaway.
+    small motions of a real body are mostly not there. That's the averaging effect from the primer above, and it
+    is by far the cheapest giveaway.
   </p>
 
   <h2 id="whats-different">What's Different About ZeroEGGS</h2>
@@ -399,6 +449,9 @@ auc = roc_auc_score(y, prob)`;
     .refs { font-size: var(--step--1); color: var(--text-muted); }
     .refs li { margin-bottom: 0.5rem; }
     .license-note { font-size: var(--step--1); color: var(--text-muted); margin-top: var(--space-md); }
+    .post-figure { margin: var(--space-md) calc(50% - min(50vw - 1rem, 29rem)); }
+    .post-figure :global(img) { width: 100%; height: auto; border-radius: 14px; background: #ffffff; border: 1px solid var(--border); margin: 0 !important; }
+    .post-figure figcaption { font-size: 0.82rem; color: var(--text-muted); margin-top: 0.6rem; text-align: center; }
   </style>
   <style is:global>
     /* Code blocks: Shiki dual themes, switched by the site's dark class. */
