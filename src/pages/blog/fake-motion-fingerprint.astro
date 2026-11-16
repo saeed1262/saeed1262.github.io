@@ -59,7 +59,7 @@ def auc(fake_scores, real_scores):
     return u / (len(fake_scores) * len(real_scores))`;
 
 const codeControls = `# Cleaned: real motion, low-pass filtered at 6 Hz like a mocap cleanup
-b, a = signal.butter(4, 6.0, fs=60)
+b, a = signal.butter(4, 6.0, fs=120)   # the toy walker runs at 120 frames per second
 cleaned = signal.filtfilt(b, a, x, axis=-1)
 
 # Frankenstein: every joint is real, but from a different recording
@@ -90,7 +90,7 @@ for take in held_out_takes:
 
 auc = roc_auc_score(y, prob)`;
 ---
-<PostLayout title={post.title} date={new Date(post.date)} description={post.description} readingMinutes={post.readingMinutes}>
+<PostLayout title={post.title} date={new Date(post.date)} description={post.description} readingMinutes={post.readingMinutes} ogImage={post.ogImage}>
   <p>
     Generated motion has got good. Watch a modern speech-to-gesture or text-to-motion model and, at a glance,
     it is often hard to say exactly what is off. AI-generated images, on the other hand, have a well-known
@@ -206,7 +206,7 @@ auc = roc_auc_score(y, prob)`;
     <li><strong>Perfect loop:</strong> a flawless repeating cycle, like a keyframed walk.</li>
     <li><strong>Jitter:</strong> per-frame noise added to a real walk.</li>
   </ul>
-  <p>The two controls are only a few lines each:</p>
+  <p>The cleaned control and the Frankenstein fake are only a few lines each:</p>
   <Code code={codeControls} lang="python" themes={themes} defaultColor={false} />
   <p>
     The easiest way to see what these fakes do to coordination is to plot one joint against another. Here is the

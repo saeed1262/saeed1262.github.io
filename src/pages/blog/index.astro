@@ -1,25 +1,32 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import SectionHeading from '@/components/ui/SectionHeading.astro';
-import { posts } from '@/data/posts';
+import { Image } from 'astro:assets';
+import { posts, postImage } from '@/data/posts';
 import { formatDateFull } from '@/utils/format';
 ---
 <BaseLayout title="Blog" description="Writing by Saeed Ghorbani on motion, machine learning and generative models.">
   <main class="blog container">
     <SectionHeading kicker="Writing" title="Blog" />
     <ul class="blog__list">
-      {posts.map((p) => (
-        <li>
-          <a class="entry" href={`/blog/${p.slug}/`}>
-            <p class="entry__meta">
-              <time datetime={p.date}>{formatDateFull(p.date)}</time> · {p.readingMinutes} min read
-            </p>
-            <h2 class="entry__title">{p.title}</h2>
-            <p class="entry__desc">{p.description}</p>
-            <ul class="entry__tags">{p.tags.map((t) => <li>{t}</li>)}</ul>
-          </a>
-        </li>
-      ))}
+      {posts.map((p) => {
+        const img = postImage(p);
+        return (
+          <li>
+            <a class={`entry${img ? ' entry--thumb' : ''}`} href={`/blog/${p.slug}/`}>
+              {img && <Image src={img} alt="" width={640} loading="lazy" class="entry__img" />}
+              <div class="entry__text">
+                <p class="entry__meta">
+                  <time datetime={p.date}>{formatDateFull(p.date)}</time> · {p.readingMinutes} min read
+                </p>
+                <h2 class="entry__title">{p.title}</h2>
+                <p class="entry__desc">{p.description}</p>
+                <ul class="entry__tags">{p.tags.map((t) => <li>{t}</li>)}</ul>
+              </div>
+            </a>
+          </li>
+        );
+      })}
     </ul>
   </main>
   <style>
@@ -34,6 +41,9 @@ import { formatDateFull } from '@/utils/format';
       box-shadow: var(--shadow-card);
       transition: border-color 0.2s, transform 0.2s var(--ease-out);
     }
+    .entry--thumb { display: grid; grid-template-columns: minmax(0, 15rem) minmax(0, 1fr); gap: var(--space-md); align-items: start; }
+    .entry__img { width: 100%; height: auto; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 10px; border: 1px solid var(--border); }
+    @media (max-width: 640px) { .entry--thumb { grid-template-columns: 1fr; gap: var(--space-sm); } }
     .entry:hover { border-color: color-mix(in srgb, var(--accent-from) 50%, var(--border)); transform: translateY(-2px); }
     .entry__meta { color: var(--text-muted); font-size: var(--step--1); }
     .entry__title { font-size: var(--step-2); line-height: 1.15; margin-top: 0.4rem; }

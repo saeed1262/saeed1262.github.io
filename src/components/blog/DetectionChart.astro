@@ -3,11 +3,11 @@
 interface Props { mode: 'toy' | 'real' }
 const { mode } = Astro.props;
 const title = mode === 'toy'
-  ? 'Toy walker: how often each kind of motion is flagged as fake'
-  : 'Real gestures: how often each kind of motion is flagged as fake';
+  ? 'Toy walker: how well each kind of motion is told apart from real'
+  : 'Real gestures: how well each kind of motion is told apart from real';
 const sub = mode === 'toy'
-  ? 'Detector trained only on real walks. Dot: average over 20 runs; line: ± one standard deviation.'
-  : 'Dot: AUC; line: 95% interval from resampling the 21 held-out takes.';
+  ? 'Detector trained only on real walks. Dot: average score over 20 runs; line: ± one standard deviation.'
+  : 'Dot: score; line: 95% interval from resampling the 21 held-out takes.';
 ---
 <figure class="viz det-chart" data-mode={mode}>
   <div class="viz__head">
@@ -24,7 +24,8 @@ const sub = mode === 'toy'
   )}
   <div class="viz__plot" data-plot></div>
   <figcaption class="viz__caption">
-    0.5 means the detector can't tell the motion from real; 1 means it always flags it.
+    The score (AUC) is the chance that the detector rates a clip of this kind as less real than a real one.
+    0.5 means it can't tell them apart; 1 means every one of them looks less real than every real clip.
     {mode === 'real' && ' “Trained with examples” is a classifier that has seen labelled real and fake windows, always tested on takes it never saw.'}
   </figcaption>
   <details>
@@ -37,7 +38,7 @@ const sub = mode === 'toy'
   import data from '@/data/blog/fake-motion.json';
   import { onEachPage, responsive, svgEl, svgText, linear, makeTooltip } from '@/scripts/viz';
 
-  type Cell = { v: number; lo: number; hi: number } | null;
+  type Cell = { v: number; lo: number; hi: number; sd?: number } | null;
   interface Row { label: string; note?: string; color: string; cells: Cell[] }
 
   const TOY_ROWS: [string, string, string, string?][] = [
@@ -63,7 +64,7 @@ const sub = mode === 'toy'
           label, color, note,
           cells: cols.map((c) => {
             const d = (data.toy as any)[k][c];
-            return { v: d.mean, lo: d.mean - d.sd, hi: d.mean + d.sd };
+            return { v: d.mean, lo: d.mean - d.sd, hi: d.mean + d.sd, sd: d.sd };
           }),
         })),
       };
@@ -90,12 +91,18 @@ const sub = mode === 'toy'
     function fillTable(m: ReturnType<typeof model>) {
       table.replaceChildren();
       const head = table.createTHead().insertRow();
-      for (const h of ['', ...m.cols]) { const th = document.createElement('th'); th.textContent = h ? h[0].toUpperCase() + h.slice(1) : 'Motion'; head.appendChild(th); }
+      // Say in each header what the spread is: ± sd for the toy, a 95% interval for real data.
+      const spread = mode === 'toy' ? 'mean ± sd' : 'score [95% interval]';
+      for (const h of ['', ...m.cols]) { const th = document.createElement('th'); th.textContent = h ? `${h[0].toUpperCase() + h.slice(1)}, ${spread}` : 'Motion'; head.appendChild(th); }
       const body = table.createTBody();
       for (const r of m.rows) {
         const tr = body.insertRow();
         tr.insertCell().textContent = r.label + (r.note ? ` (${r.note})` : '');
-        for (const c of r.cells) tr.insertCell().textContent = c ? `${c.v.toFixed(2)} [${c.lo.toFixed(2)}, ${c.hi.toFixed(2)}]` : 'not a valid test here';
+        for (const c of r.cells) {
+          tr.insertCell().textContent = !c ? 'not a valid test here'
+            : c.sd !== undefined ? `${c.v.toFixed(2)} ± ${c.sd.toFixed(2)}`
+            : `${c.v.toFixed(2)} [${c.lo.toFixed(2)}, ${c.hi.toFixed(2)}]`;
+        }
       }
     }
 
@@ -148,7 +155,9 @@ const sub = mode === 'toy'
             const scale = pr.width / width;
             tip.show(x(c.v) * scale, cy * scale, `${col[0].toUpperCase() + col.slice(1)} fingerprint`, [
               { value: c.v.toFixed(2), label: r.label, color: r.color },
-              { value: `${c.lo.toFixed(2)}–${c.hi.toFixed(2)}`, label: m.unit },
+              c.sd !== undefined
+                ? { value: `± ${c.sd.toFixed(2)}`, label: 'one standard deviation over 20 runs' }
+                : { value: `${c.lo.toFixed(2)}–${c.hi.toFixed(2)}`, label: m.unit },
             ]);
           };
           hit.addEventListener('pointerenter', show);

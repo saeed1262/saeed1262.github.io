@@ -1,10 +1,10 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import { formatDateFull as formatDate } from '@/utils/format';
-interface Props { title: string; date: Date; description?: string; readingMinutes?: number; }
-const { title, date, description, readingMinutes } = Astro.props;
+interface Props { title: string; date: Date; description?: string; readingMinutes?: number; ogImage?: string; }
+const { title, date, description, readingMinutes, ogImage } = Astro.props;
 ---
-<BaseLayout title={title} description={description}>
+<BaseLayout title={title} description={description} ogImage={ogImage}>
   <article class="post container">
     <a href="/blog/" class="post__back">← Blog</a>
     <h1>{title}</h1>
