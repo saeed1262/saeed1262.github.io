@@ -108,9 +108,30 @@ function scrollToInitialHash(): void {
   if (nav && nav.type !== 'navigate') return;
   const id = decodeURIComponent(location.hash.slice(1));
   const target = id ? document.getElementById(id) : null;
-  if (target && Math.abs(target.getBoundingClientRect().top) > 2) {
-    target.scrollIntoView({ behavior: 'instant', block: 'start' });
+  if (!target) return;
+
+  const align = () => {
+    const margin = parseFloat(getComputedStyle(target).scrollMarginTop) || 0;
+    if (Math.abs(target.getBoundingClientRect().top - margin) > 2) {
+      target.scrollIntoView({ behavior: 'instant', block: 'start' });
+    }
+  };
+  align();
+
+  // Charts, images and fonts above the target can still be loading, and each
+  // one pushes it further down. Keep it in place until the page settles, but
+  // stop as soon as the reader scrolls or clicks, and after a few seconds.
+  const ro = new ResizeObserver(align);
+  ro.observe(document.body);
+  const stopper = new AbortController();
+  const stop = () => {
+    ro.disconnect();
+    stopper.abort();
+  };
+  for (const type of ['wheel', 'touchstart', 'keydown', 'pointerdown']) {
+    window.addEventListener(type, stop, { passive: true, signal: stopper.signal });
   }
+  setTimeout(stop, 4000);
 }
 
 export function initChrome(): void {
