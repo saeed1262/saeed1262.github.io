@@ -59,7 +59,7 @@ function setupActiveNav(): void {
   if (sections.length === 0) {
     clearActive();
     const path = location.pathname;
-    const owner: Record<string, string> = { '/cv/': '/cv/', '/projects/': '/#projects', '/personal/': '/#personal' };
+    const owner: Record<string, string> = { '/cv/': '/cv/', '/blog/': '/blog/', '/projects/': '/#projects', '/personal/': '/#personal' };
     const match = Object.keys(owner).find((prefix) => path.startsWith(prefix));
     const link = match && navLinks.find((a) => a.getAttribute('href') === owner[match]);
     if (link) {

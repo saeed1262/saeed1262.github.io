@@ -1,24 +1,30 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
-import { formatDate } from '@/utils/format';
-interface Props { title: string; date: Date; description?: string; }
-const { title, date, description } = Astro.props;
+import { formatDateFull as formatDate } from '@/utils/format';
+interface Props { title: string; date: Date; description?: string; readingMinutes?: number; }
+const { title, date, description, readingMinutes } = Astro.props;
 ---
 <BaseLayout title={title} description={description}>
   <article class="post container">
     <a href="/blog/" class="post__back">← Blog</a>
     <h1>{title}</h1>
-    <time class="post__date">{formatDate(date)}</time>
+    {description && <p class="post__lead">{description}</p>}
+    <p class="post__date"><time datetime={date.toISOString().slice(0, 10)}>{formatDate(date)}</time>{readingMinutes && ` · ${readingMinutes} min read`}</p>
     <div class="post__body prose-page"><slot /></div>
   </article>
   <style>
-    .post { padding-block: var(--space-xl); max-width: 44rem; }
+    .post { padding-block: 9rem var(--space-xl); max-width: 44rem; }
+    .post__lead { font-size: var(--step-1); line-height: 1.5; color: var(--text-muted); margin-top: var(--space-sm); }
     .post__back { color: var(--accent-from); font-size: var(--step--1); }
     .post h1 { font-size: var(--step-4); margin-top: var(--space-sm); }
-    .post__date { color: var(--text-muted); }
+    .post__date { color: var(--text-muted); font-size: var(--step--1); margin-top: var(--space-sm); }
     .post__body { margin-top: var(--space-lg); }
     .post__body :global(p) { margin-bottom: var(--space-sm); }
-    .post__body :global(h2) { margin-block: var(--space-md) var(--space-sm); }
+    .post__body :global(h2) { margin-block: var(--space-lg) var(--space-sm); font-size: var(--step-3); }
+    .post__body :global(h3) { margin-block: var(--space-md) var(--space-xs); font-size: var(--step-1); }
+    .post__body :global(ul), .post__body :global(ol) { margin-bottom: var(--space-sm); padding-left: 1.3rem; }
+    .post__body :global(li) { margin-bottom: 0.4rem; }
+    .post__body :global(blockquote) { margin: var(--space-md) 0; padding: 0.2rem 0 0.2rem 1.2rem; border-left: 3px solid var(--gold); color: var(--text-muted); font-style: italic; }
     .post__body :global(img) { border-radius: 12px; margin-block: var(--space-md); }
     .post__body :global(a) { color: var(--accent-from); text-decoration: underline; }
   </style>

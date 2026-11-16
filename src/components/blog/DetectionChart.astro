@@ -1,0 +1,169 @@
+---
+// Dot plot with uncertainty, one panel per fingerprint, one row per condition.
+interface Props { mode: 'toy' | 'real' }
+const { mode } = Astro.props;
+const title = mode === 'toy'
+  ? 'Toy walker: how often each kind of motion is flagged as fake'
+  : 'Real gestures: how often each kind of motion is flagged as fake';
+const sub = mode === 'toy'
+  ? 'Detector trained only on real walks. Dot: average over 20 runs; line: ± one standard deviation.'
+  : 'Dot: AUC; line: 95% interval from resampling the 21 held-out takes.';
+---
+<figure class="viz det-chart" data-mode={mode}>
+  <div class="viz__head">
+    <p class="viz__title">{title}</p>
+    <p class="viz__sub">{sub}</p>
+  </div>
+  {mode === 'real' && (
+    <div class="viz-controls">
+      <div class="viz-seg" role="group" aria-label="Which detector">
+        <button type="button" data-view="detector" aria-pressed="true">Trained only on real motion</button>
+        <button type="button" data-view="supervised" aria-pressed="false">Trained with examples</button>
+      </div>
+    </div>
+  )}
+  <div class="viz__plot" data-plot></div>
+  <figcaption class="viz__caption">
+    0.5 means the detector can't tell the motion from real; 1 means it always flags it.
+    {mode === 'real' && ' “Trained with examples” is a classifier that has seen labelled real and fake windows, always tested on takes it never saw.'}
+  </figcaption>
+  <details>
+    <summary>Show as a table</summary>
+    <div class="table-wrap"><table data-table></table></div>
+  </details>
+</figure>
+
+<script>
+  import data from '@/data/blog/fake-motion.json';
+  import { onEachPage, responsive, svgEl, svgText, linear, makeTooltip } from '@/scripts/viz';
+
+  type Cell = { v: number; lo: number; hi: number } | null;
+  interface Row { label: string; note?: string; color: string; cells: Cell[] }
+
+  const TOY_ROWS: [string, string, string, string?][] = [
+    ['cleaned (control)', 'Cleaned real', 'var(--c-clean)', 'should look real'],
+    ['Frankenstein', 'Frankenstein', 'var(--c-frank)'],
+    ['learned-style', 'Learned-style', 'var(--c-other)'],
+    ['wrong arm swing', 'Wrong arm swing', 'var(--c-other)'],
+    ['perfect loop', 'Perfect loop', 'var(--c-other)'],
+    ['jitter', 'Jitter', 'var(--c-other)'],
+  ];
+  const REAL_ROWS: [string, string, string, string?][] = [
+    ['cleaned', 'Cleaned real', 'var(--c-clean)', 'should look real'],
+    ['Frankenstein', 'Frankenstein', 'var(--c-frank)', 'should be caught'],
+    ['zeroeggs', 'ZeroEGGS', 'var(--c-zeggs)'],
+  ];
+
+  function model(mode: string, view: string): { cols: string[]; rows: Row[]; unit: string } {
+    if (mode === 'toy') {
+      const cols = ['energy', 'coordination'];
+      return {
+        cols, unit: '± sd',
+        rows: TOY_ROWS.map(([k, label, color, note]) => ({
+          label, color, note,
+          cells: cols.map((c) => {
+            const d = (data.toy as any)[k][c];
+            return { v: d.mean, lo: d.mean - d.sd, hi: d.mean + d.sd };
+          }),
+        })),
+      };
+    }
+    const cols = ['energy', 'energy shape', 'coordination'];
+    const src = (view === 'supervised' ? data.real.supervised : data.real.detector) as any;
+    return {
+      cols, unit: '95% interval',
+      rows: REAL_ROWS.map(([k, label, color, note]) => ({
+        label, color, note,
+        cells: cols.map((c) => (src[k] ? { v: src[k][c].auc, lo: src[k][c].ci[0], hi: src[k][c].ci[1] } : null)),
+      })),
+    };
+  }
+
+  onEachPage('.det-chart', (root) => {
+    const mode = root.dataset.mode!;
+    const plot = root.querySelector<HTMLElement>('[data-plot]')!;
+    const table = root.querySelector<HTMLTableElement>('[data-table]')!;
+    const tip = makeTooltip(plot);
+    let view = 'detector';
+    let width = 0;
+
+    function fillTable(m: ReturnType<typeof model>) {
+      table.replaceChildren();
+      const head = table.createTHead().insertRow();
+      for (const h of ['', ...m.cols]) { const th = document.createElement('th'); th.textContent = h ? h[0].toUpperCase() + h.slice(1) : 'Motion'; head.appendChild(th); }
+      const body = table.createTBody();
+      for (const r of m.rows) {
+        const tr = body.insertRow();
+        tr.insertCell().textContent = r.label + (r.note ? ` (${r.note})` : '');
+        for (const c of r.cells) tr.insertCell().textContent = c ? `${c.v.toFixed(2)} [${c.lo.toFixed(2)}, ${c.hi.toFixed(2)}]` : 'not a valid test here';
+      }
+    }
+
+    function draw() {
+      if (!width) return;
+      const m = model(mode, view);
+      fillTable(m);
+      plot.replaceChildren(tip.el);
+      tip.hide();
+      const narrow = width < 600;
+      const labelW = Math.min(150, Math.max(104, width * 0.24));
+      const rowH = 30, headH = 26, axisH = 30;
+      const nCols = m.cols.length;
+      const panelGap = 18;
+      const panelW = narrow ? width - labelW : (width - labelW - panelGap * (nCols - 1)) / nCols;
+      const panelH = headH + rowH * m.rows.length + axisH;
+      const totalH = narrow ? panelH * nCols + 10 * (nCols - 1) : panelH;
+      const svg = svgEl('svg', { viewBox: `0 0 ${width} ${totalH}`, role: 'img', 'aria-label': root.querySelector('.viz__title')!.textContent ?? '' }, plot);
+
+      m.cols.forEach((col, ci) => {
+        const ox = narrow ? labelW : labelW + ci * (panelW + panelGap);
+        const oy = narrow ? ci * (panelH + 10) : 0;
+        const x = linear(0.4, 1.0, ox + 6, ox + panelW - 10);
+        const g = svgEl('g', {}, svg);
+        svgText(g, ox + 6, oy + 14, col[0].toUpperCase() + col.slice(1), { class: 't-strong' });
+        const top = oy + headH, bottom = top + rowH * m.rows.length;
+        for (const t of [0.5, 0.75, 1]) {
+          svgEl('line', { x1: x(t), x2: x(t), y1: top, y2: bottom, class: t === 0.5 ? 'axis' : 'grid' }, g);
+          svgText(g, x(t), bottom + 14, t === 1 ? '1' : String(t), { 'text-anchor': 'middle' });
+        }
+        svgText(g, x(0.5) + 4, bottom + 26, "can't tell", { 'text-anchor': 'start', 'font-size': 10.5 });
+        m.rows.forEach((r, ri) => {
+          const cy = top + rowH * ri + rowH / 2;
+          if (ci === 0 || narrow) {
+            svgText(g, ox - 10, cy + (r.note ? -1 : 4), r.label, { 'text-anchor': 'end', class: 't-ink' });
+            if (r.note) svgText(g, ox - 10, cy + 11, r.note, { 'text-anchor': 'end', 'font-size': 10 });
+          }
+          svgEl('line', { x1: ox + 6, x2: ox + panelW - 10, y1: cy, y2: cy, class: 'grid', opacity: 0.6 }, g);
+          const c = r.cells[ci];
+          if (!c) {
+            svgText(g, x(0.7), cy + 4, 'not a valid test here', { 'text-anchor': 'middle', 'font-size': 10.5 });
+            return;
+          }
+          svgEl('line', { x1: x(Math.max(0.4, c.lo)), x2: x(Math.min(1, c.hi)), y1: cy, y2: cy, 'stroke-width': 2, 'stroke-linecap': 'round', style: `stroke: ${r.color}`, opacity: 0.55 }, g);
+          svgEl('circle', { cx: x(c.v), cy, r: 5, style: `fill: ${r.color}; stroke: var(--viz-surface)`, 'stroke-width': 2 }, g);
+          const hit = svgEl('rect', { x: ox, y: cy - rowH / 2, width: panelW, height: rowH, fill: 'transparent', tabindex: 0,
+            'aria-label': `${r.label}, ${col}: ${c.v.toFixed(2)}` }, g);
+          const show = () => {
+            const pr = plot.getBoundingClientRect();
+            const scale = pr.width / width;
+            tip.show(x(c.v) * scale, cy * scale, `${col[0].toUpperCase() + col.slice(1)} fingerprint`, [
+              { value: c.v.toFixed(2), label: r.label, color: r.color },
+              { value: `${c.lo.toFixed(2)}–${c.hi.toFixed(2)}`, label: m.unit },
+            ]);
+          };
+          hit.addEventListener('pointerenter', show);
+          hit.addEventListener('focus', show);
+          hit.addEventListener('pointerleave', () => tip.hide());
+          hit.addEventListener('blur', () => tip.hide());
+        });
+      });
+    }
+
+    root.querySelectorAll<HTMLButtonElement>('[data-view]').forEach((b) => b.addEventListener('click', () => {
+      view = b.dataset.view!;
+      root.querySelectorAll<HTMLButtonElement>('[data-view]').forEach((o) => o.setAttribute('aria-pressed', String(o === b)));
+      draw();
+    }));
+    responsive(plot, (w) => { width = w; draw(); });
+  });
+</script>
