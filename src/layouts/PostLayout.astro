@@ -22,6 +22,8 @@ const { title, date, description, readingMinutes } = Astro.props;
     .post__body :global(p) { margin-bottom: var(--space-sm); }
     .post__body :global(h2) { margin-block: var(--space-lg) var(--space-sm); font-size: var(--step-3); }
     .post__body :global(h3) { margin-block: var(--space-md) var(--space-xs); font-size: var(--step-1); }
+    /* Section links stop below the fixed header instead of under it. */
+    .post__body :global([id]) { scroll-margin-top: 5.5rem; }
     .post__body :global(ul), .post__body :global(ol) { margin-bottom: var(--space-sm); padding-left: 1.3rem; }
     .post__body :global(li) { margin-bottom: 0.4rem; }
     .post__body :global(blockquote) { margin: var(--space-md) 0; padding: 0.2rem 0 0.2rem 1.2rem; border-left: 3px solid var(--gold); color: var(--text-muted); font-style: italic; }
