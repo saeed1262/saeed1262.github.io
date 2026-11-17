@@ -100,6 +100,29 @@ export const scene1 = {
   ] as GraphEdge[],
 };
 
+/**
+ * The same scene-1 graph exactly as printed in the paper's supplementary
+ * material: node ids, raw attributes (Elara's location is stored as the
+ * Elderwood's id), edge ids, and the event's participants.
+ */
+export const scene1Raw = {
+  scene: 1,
+  ids: { woods: '729e017b', shrine: 'afe85846', elara: 'de1cf932', elderwood: 'cdbd9338', revelation: '26117842' } as Record<string, string>,
+  attrs: {
+    woods: [['spatial description', 'deep within, ancient trees, bioluminescent flora']],
+    shrine: [['spatial description', 'hidden in the eastern groves'], ['contains relic', 'true'], ['relic power', 'immense']],
+    elara: [['mood', 'wonder and determination'], ['current location id', 'cdbd9338-23a7-43e9-9623-937ba7a923d2']],
+    elderwood: [['description', 'colossal, gnarled roots, breathtaking luminescence'], ['has spirit', 'true']],
+    revelation: [['outcome', 'Spirit revealed growing blight and the existence/location of a powerful relic in a forgotten shrine.']],
+  } as Record<string, [string, string][]>,
+  edges: [
+    { from: 'elara', to: 'elderwood', label: 'IS AT', id: '625524a2' },
+    { from: 'elderwood', to: 'woods', label: 'INSIDE', id: 'aca05c17' },
+    { from: 'shrine', to: 'woods', label: 'INSIDE', id: '7ea31f73' },
+  ],
+  participants: { revelation: ['elara', 'elderwood'] } as Record<string, string[]>,
+};
+
 /** One state of the dynamic scene graph, and what the Director did to reach it. */
 export interface GraphStep {
   key: string;

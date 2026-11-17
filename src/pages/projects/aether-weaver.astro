@@ -8,6 +8,7 @@ import elaraScene from '@/assets/projects/aether-weaver/elara-scene.png';
 import PostLayout from '@/layouts/PostLayout.astro';
 import Architecture from '@/components/projects/aether/Architecture.astro';
 import DirectorPipeline from '@/components/projects/aether/DirectorPipeline.astro';
+import SceneGraphNetwork from '@/components/projects/aether/SceneGraphNetwork.astro';
 import DynamicSceneGraph from '@/components/projects/aether/DynamicSceneGraph.astro';
 import ArcTimeline from '@/components/projects/aether/ArcTimeline.astro';
 import ToneMapper from '@/components/projects/aether/ToneMapper.astro';
@@ -159,6 +160,14 @@ const codeModulate = `def combine(user_tones, stage):
     relic: true". Formally, it is a directed graph <em>G</em> = (<em>V</em>, <em>E</em>, <em>A</em>) of nodes, edges
     and attributes.
   </p>
+  <p>
+    Here is the actual graph the Director produced after the first scene of Elara's story, node for node and edge
+    for edge from the paper. Entities are circles, their attributes hang off them as small labels, arrows are
+    relations, and the dashed lines link the Spirit Revelation event to the two entities that took part in it:
+  </p>
+
+  <SceneGraphNetwork />
+
   <p>
     Scene graphs are a standard way of describing what is in an image in computer
     vision<a href="#ref-johnson" class="cite">[4]</a>. What makes this one <em>dynamic</em> is that it describes a
