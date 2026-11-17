@@ -1,19 +1,33 @@
 ---
 import { Code } from 'astro:components';
 import { Image } from 'astro:assets';
-import elaraCharacter from '@/assets/blog/aether/elara-character.png';
-import elaraScene from '@/assets/blog/aether/elara-scene.png';
+import { getEntry } from 'astro:content';
+import Button from '@/components/ui/Button.astro';
+import elaraCharacter from '@/assets/projects/aether-weaver/elara-character.png';
+import elaraScene from '@/assets/projects/aether-weaver/elara-scene.png';
 import PostLayout from '@/layouts/PostLayout.astro';
-import Architecture from '@/components/blog/aether/Architecture.astro';
-import SceneGraph from '@/components/blog/aether/SceneGraph.astro';
-import ArcTimeline from '@/components/blog/aether/ArcTimeline.astro';
-import ToneMapper from '@/components/blog/aether/ToneMapper.astro';
-import ResultsChart from '@/components/blog/aether/ResultsChart.astro';
-import { posts } from '@/data/posts';
+import Architecture from '@/components/projects/aether/Architecture.astro';
+import DirectorPipeline from '@/components/projects/aether/DirectorPipeline.astro';
+import DynamicSceneGraph from '@/components/projects/aether/DynamicSceneGraph.astro';
+import ArcTimeline from '@/components/projects/aether/ArcTimeline.astro';
+import ToneMapper from '@/components/projects/aether/ToneMapper.astro';
+import ResultsChart from '@/components/projects/aether/ResultsChart.astro';
 import '@/styles/viz.css';
 
-const post = posts.find((p) => p.slug === 'aether-weaver')!;
+// Title, description, tags and paper link come from the project's entry in src/content/projects/.
+const project = (await getEntry('projects', 'aether-weaver'))!;
+const paperUrl = project.data.url ?? 'https://arxiv.org/abs/2507.21893';
 const themes = { light: 'github-light', dark: 'github-dark' } as const;
+
+const bibtex = `@misc{ghorbani2025aetherweaver,
+  title         = {Aether Weaver: Multimodal Affective Narrative Co-Generation with Dynamic Scene Graphs},
+  author        = {Ghorbani, Saeed},
+  year          = {2025},
+  eprint        = {2507.21893},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CV},
+  url           = {https://arxiv.org/abs/2507.21893}
+}`;
 
 const codePrompt = `def narrator_prompt(story, arc, tones, graph):
     stage = arc.stage_at(story.progress)
@@ -26,16 +40,20 @@ const codePrompt = `def narrator_prompt(story, arc, tones, graph):
     ])`;
 
 const codeDirector = `def apply(graph, changes):
+    # Check first: nobody changes place unless the text moves them
+    for a, rel, b in changes.new_edges:
+        if rel == "IS AT" and graph.location(a) not in (None, b) and not changes.moves(a):
+            return flag(f"{a} is at {graph.location(a)}, not {b}")   # back to the Narrator
+
     for node in changes.removed:
         graph.remove_node(node)                 # its edges go with it
     for a, rel, b in changes.new_edges:
-        if rel == "IS AT":                      # nobody can be in two places
-            graph.remove_edges(a, "IS AT")
-            graph.nodes[a]["current location"] = b
+        if rel == "IS AT":
+            graph.remove_edges(a, "IS AT")      # nobody can be in two places
         graph.add_edge(a, rel, b)
     for node, key, value in changes.attributes:
         graph.nodes[node][key] = value
-    return graph.check()                        # problems go back to the Narrator`;
+    return graph`;
 
 const codeStage = `STAGES = [("Exposition", 0.00), ("Rising Action", 0.25), ("Climax", 0.65),
           ("Falling Action", 0.80), ("Resolution", 0.90)]
@@ -50,7 +68,14 @@ const codeModulate = `def combine(user_tones, stage):
         tones = [(t, lower(level) if t in POSITIVE else level) for t, level in tones]
     return tones + stage.cues                   # the stage always adds its own cues`;
 ---
-<PostLayout title={post.title} date={new Date(post.date)} description={post.description} readingMinutes={post.readingMinutes} ogImage={post.ogImage}>
+<PostLayout title={project.data.title} description={project.data.description} ogImage="/images/projects/aether-weaver.jpg" back={{ href: '/#projects', label: 'Projects' }}>
+  <div slot="header" class="aw-header">
+    <ul class="aw-header__tags">{project.data.tags.map((t) => <li>{t}</li>)}</ul>
+    <p class="aw-header__cta">
+      <Button href={paperUrl}>Read the paper →</Button>
+      <Button href="#citation" variant="ghost">Cite</Button>
+    </p>
+  </div>
   <p>
     If you have played with AI storytelling tools you have probably seen something like this. In the text, the
     heroine drops her lantern in the river; two pictures later she is holding it again. A character who is
@@ -73,7 +98,7 @@ const codeModulate = `def combine(user_tones, stage):
   </p>
   <p>
     The article is split into a few parts. First, an overview of the whole loop. Then one section for each of the
-    three components that do the steering: the Director, which remembers the world; the Narrative Arc Controller,
+    three components that do the steering: the Director, which keeps a dynamic scene graph of the story's world; the Narrative Arc Controller,
     which keeps the plot on track; and the Affective Tone Mapper, which keeps the mood consistent across text,
     pictures and sound. After that I'll show how characters stay recognisable from picture to picture, what the
     expert evaluation found, and what I learned along the way. The code snippets are simplified Python sketches of
@@ -81,13 +106,14 @@ const codeModulate = `def combine(user_tones, stage):
   </p>
   <ul class="toc">
     <li><a href="#overview">Overview</a></li>
-    <li><a href="#director">The Director</a></li>
+    <li><a href="#director">The Dynamic Scene Graph</a></li>
     <li><a href="#arc">The Narrative Arc Controller</a></li>
     <li><a href="#tone">The Affective Tone Mapper</a></li>
     <li><a href="#characters">Keeping Characters Recognisable</a></li>
     <li><a href="#results">Does It Work?</a></li>
     <li><a href="#lessons">Lessons</a></li>
     <li><a href="#next">What's Next</a></li>
+    <li><a href="#citation">Citation</a></li>
   </ul>
 
   <h2 id="overview">Overview</h2>
@@ -116,42 +142,86 @@ const codeModulate = `def combine(user_tones, stage):
   <Code code={codePrompt} lang="python" themes={themes} defaultColor={false} />
   <p>Each of those lines comes from a different component, so let's go through them in turn.</p>
 
-  <h2 id="director">The Director</h2>
+  <h2 id="director">The Dynamic Scene Graph</h2>
   <p>
-    The Director's job is to remember the world. It keeps a <em>scene graph</em>: nodes for the things in the story
-    (characters, objects, locations and events), directed edges for how they relate ("Elara IS AT the Elderwood"),
-    and attributes on both ("Elara's mood: wonder and determination"). Scene graphs are a standard way of
-    describing what is in an image in computer vision<a href="#ref-johnson" class="cite">[4]</a>. Here the graph
-    describes what is in the story, and it changes as the story goes.
+    If there is one idea at the centre of Aether Weaver, it is this one. The Director keeps a <em>dynamic scene
+    graph</em>: a structured record of what is true in the story right now, which it updates after every scene.
+    Everything else reads from it: the Narrator's next scene, the picture for this one, and the writer's edits. It
+    is the system's single source of truth about the story's world.
   </p>
-  <p>Here is what the Director knew after the first scene of Elara's story, exactly as it came out of the system:</p>
 
-  <SceneGraph />
+  <h3>What's in the graph</h3>
+  <p>
+    The graph has three kinds of things. <strong>Nodes</strong> are the entities in the story: characters, key
+    objects, locations and events. <strong>Edges</strong> are directed relations between them, such as "Elara IS AT
+    the Elderwood" or "the Forgotten Shrine is INSIDE the Whispering Woods". And <strong>attributes</strong> hang off
+    both: Elara's mood is "wonder and determination", the Elderwood "has spirit: true", and the shrine "contains
+    relic: true". Formally, it is a directed graph <em>G</em> = (<em>V</em>, <em>E</em>, <em>A</em>) of nodes, edges
+    and attributes.
+  </p>
+  <p>
+    Scene graphs are a standard way of describing what is in an image in computer
+    vision<a href="#ref-johnson" class="cite">[4]</a>. What makes this one <em>dynamic</em> is that it describes a
+    world that changes. Characters move, objects break and new people arrive, and the graph has to keep up, scene
+    after scene.
+  </p>
+
+  <h3>How it changes</h3>
+  <p>
+    After every scene, the Director turns the Narrator's prose into updates. Three steps read the new text side by
+    side, and their findings are merged and then applied:
+  </p>
+
+  <DirectorPipeline />
 
   <p>
-    After every scene, the Director turns the Narrator's prose into updates to this graph. It finds the
-    characters, objects and places that are mentioned and adds any new ones. It extracts the relations between
-    them: actions, spatial relations and causes. And it notices when something's state has changed (the paper's
-    example is "The once gleaming artifact was now tarnished"). It also tracks rough relative positions, such as
-    near, inside and on, so that things don't teleport unless the story says so.
+    Named entity recognition finds the characters, objects and places in the scene, and any new ones become nodes.
+    Relation extraction works out how they relate: who does what, what is near or inside what, and what caused
+    what. Attribute updates catch changes of state, like the paper's example "The once gleaming artifact was now
+    tarnished". The findings are merged into one list of proposed changes, which is then applied: nodes added or
+    removed, edges updated and attributes modified.
   </p>
   <p>
-    Then come a few consistency rules. If something leaves the story, its relations go with it. If a character
-    moves, their old location is replaced, because nobody can be in two places at once. And if an update doesn't
-    make sense, the Director flags it or sends a corrective prompt back to the Narrator. The core of it looks
-    something like this:
+    The last two steps are what keep the world honest. Spatial reasoning tracks relative positions (near, inside,
+    on), so that nothing teleports or overlaps without the story saying so. Consistency enforcement runs basic
+    logical checks: if something leaves the story, its relations go with it, and if a character moves, their old
+    location is replaced. And if a proposed change doesn't make sense, the Director doesn't apply it. It raises a
+    flag, or sends a corrective prompt back to the Narrator.
   </p>
+
+  <h3>Watching it change</h3>
+  <p>
+    Here is that loop on Elara's story. Step 1 is the graph exactly as the Director produced it after scene 1 in the
+    paper. Steps 2 and 3 are my illustration: two sentences I wrote for this page, and what the Director's rules do
+    with them.
+  </p>
+
+  <DynamicSceneGraph />
+
+  <p>
+    In step 2, Elara walks to the shrine. The Director finds her, the spirit and the shrine (all already in the
+    graph), extracts the move and updates her location: the old IS AT edge goes, a new one points to the Forgotten
+    Shrine, and spatial reasoning notes that she is still inside the Whispering Woods. In step 3, a careless next
+    sentence has her resting under the Elderwood again, with no journey back. A cascade would happily draw her under
+    the tree. The Director catches the teleport instead, leaves the graph as it is, and asks the Narrator to fix the
+    scene.
+  </p>
+  <p>The core of these rules fits in a few lines:</p>
   <Code code={codeDirector} lang="python" themes={themes} defaultColor={false} />
+
+  <h3>Who reads the graph</h3>
+  <ul>
+    <li><strong>The Narrator.</strong> Every prompt includes the current world state, as in the sketch above, so the
+      next scene starts from the facts rather than from a summary of what happened.</li>
+    <li><strong>The Visual Scene Generator.</strong> It gets the scene graph along with the text, so the image prompt
+      can say who is in the scene, where they are and in what state, instead of guessing from the prose.</li>
+    <li><strong>You.</strong> The graph is shown alongside the story and can be edited directly. Edit a scene's text
+      instead, and the Director re-reads it and updates the graph to match, creating profiles for any new
+      characters.</li>
+  </ul>
   <p>
-    The second view in the figure above shows these rules at work. It's my own illustration rather than an output
-    from the paper: I wrote one more sentence for the story and applied the changes the rules call for. Elara's old
-    IS AT edge is removed, a new one points to the Forgotten Shrine, and her location attribute is updated to match.
-    It's a small thing, but it is exactly the kind of thing a cascade forgets. When the next picture is drawn, the
-    graph says Elara is at the shrine, not still standing under the tree.
-  </p>
-  <p>
-    Because the graph is plain structured data, a person can also read it and edit it. That turns out to be
-    useful, and I'll come back to it.
+    That last point is easy to overlook, but it matters. Because the world state is explicit, a mistake can be fixed
+    once, in the graph, instead of in every scene and picture that follows.
   </p>
 
   <h2 id="arc">The Narrative Arc Controller</h2>
@@ -233,11 +303,9 @@ const codeModulate = `def combine(user_tones, stage):
     details can drift. That is one of the limitations I come back to at the end.
   </p>
   <p>
-    The same structured data also keeps the writer in charge. You can edit any scene's text or its scene graph
-    directly. When you save an edited scene, the Director re-reads it and updates the graph; if your edit
-    introduces a new character, they get a profile of their own, and new visual and sound cues are generated to
-    match. There is also a Plot Twist feature: pick one of the twists the model suggests, or write your own, and the
-    Narrator builds the next scene around it.
+    The writer also stays in charge of where the story goes. Besides editing scenes and the scene graph, there is a
+    Plot Twist feature: pick one of the twists the model suggests, or write your own, and the Narrator builds the
+    next scene around it, with new visual and sound cues to match.
   </p>
 
   <h2 id="results">Does It Work?</h2>
@@ -316,6 +384,20 @@ const codeModulate = `def combine(user_tones, stage):
       the characters talk.</li>
   </ul>
 
+  <h2 id="citation">Citation</h2>
+  <p>If you use Aether Weaver or build on these ideas, please cite the paper:</p>
+  <p class="cite-text">
+    Saeed Ghorbani. <a href={paperUrl}>Aether Weaver: Multimodal Affective Narrative Co-Generation with Dynamic Scene
+    Graphs</a>. arXiv:2507.21893, 2025.
+  </p>
+  <div class="bib">
+    <div class="bib__bar">
+      <span>BibTeX</span>
+      <button type="button" class="bib__copy" data-copy-bib data-bib={bibtex}>Copy</button>
+    </div>
+    <Code code={bibtex} lang="bibtex" themes={themes} defaultColor={false} />
+  </div>
+
   <h2 id="references">References</h2>
   <ol class="refs">
     <li id="ref-aw">S. Ghorbani.
@@ -345,6 +427,16 @@ const codeModulate = `def combine(user_tones, stage):
     .aw-ground__row { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 0.75rem; }
     .aw-ground :global(.aw-ground__img) { width: 100%; height: auto; border-radius: 14px; border: 1px solid var(--border); margin: 0 !important; }
     .aw-ground__arrow { font-size: 1.6rem; color: var(--text-muted); }
+    .aw-header__tags { display: flex; flex-wrap: wrap; gap: 0.4rem; list-style: none; padding: 0; margin: var(--space-sm) 0 0; }
+    .aw-header__tags li { font-size: var(--step--1); color: var(--accent-from); border: 1px solid var(--border); border-radius: 999px; padding: 0.15rem 0.6rem; }
+    .aw-header__cta { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: var(--space-sm); }
+    .cite-text { padding: 0.8rem 1rem; border-left: 3px solid var(--gold); background: var(--bg-deep); border-radius: 0 10px 10px 0; }
+    .bib__bar { display: flex; justify-content: space-between; align-items: center; margin-top: var(--space-sm); font-size: var(--step--1); color: var(--text-muted); }
+    .bib__copy {
+      font: inherit; font-size: 0.8rem; cursor: pointer; color: var(--text); background: var(--surface);
+      border: 1px solid var(--border); border-radius: 999px; padding: 0.2rem 0.85rem;
+    }
+    .bib__copy:hover { border-color: var(--accent-from); }
     @media (max-width: 640px) {
       .aw-ground__row { grid-template-columns: 1fr; }
       .aw-ground__arrow { justify-self: center; transform: rotate(90deg); }
@@ -367,3 +459,23 @@ const codeModulate = `def combine(user_tones, stage):
     html.dark .post__body pre.astro-code span { color: var(--shiki-dark); }
   </style>
 </PostLayout>
+
+<script>
+  import { onEachPage } from '@/scripts/viz';
+
+  // Copy the paper's BibTeX entry to the clipboard.
+  onEachPage('[data-copy-bib]', (btn) => {
+    btn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(btn.dataset.bib ?? '');
+        btn.textContent = 'Copied';
+      } catch {
+        // No clipboard access (old browser, embedded view): select the entry so a keypress copies it.
+        const pre = btn.closest('.bib')?.querySelector('pre');
+        if (pre) window.getSelection()?.selectAllChildren(pre);
+        btn.textContent = 'Selected: press Ctrl/⌘+C';
+      }
+      setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+    });
+  });
+</script>

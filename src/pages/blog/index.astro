@@ -17,7 +17,7 @@ import { formatDateFull } from '@/utils/format';
               {img && <Image src={img} alt="" width={640} loading="lazy" class="entry__img" />}
               <div class="entry__text">
                 <p class="entry__meta">
-                  <time datetime={p.date}>{formatDateFull(p.date)}</time> · {p.readingMinutes} min read
+                  <time datetime={p.date}>{formatDateFull(p.date)}</time>
                 </p>
                 <h2 class="entry__title">{p.title}</h2>
                 <p class="entry__desc">{p.description}</p>

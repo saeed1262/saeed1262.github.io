@@ -1,7 +1,7 @@
 ---
 // The Affective Tone Mapper's knowledge-base entry for "Mystery" (from the
 // paper's supplementary material), at the three intensities.
-import { mystery } from '@/data/blog/aether-weaver';
+import { mystery } from '@/data/projects/aether-weaver';
 ---
 <figure class="viz aw-tone">
   <div class="viz__head">
@@ -70,7 +70,7 @@ import { mystery } from '@/data/blog/aether-weaver';
 
 <script>
   import { onEachPage } from '@/scripts/viz';
-  import { mystery, type Level } from '@/data/blog/aether-weaver';
+  import { mystery, type Level } from '@/data/projects/aether-weaver';
 
   onEachPage('.aw-tone', (root) => {
     const buttons = [...root.querySelectorAll<HTMLButtonElement>('[data-level]')];

@@ -100,13 +100,82 @@ export const scene1 = {
   ] as GraphEdge[],
 };
 
-/** A hand-written next sentence, and the updates the Director's rules call for. */
-export const illustration = {
-  sentence: 'Elara thanked the spirit and set off east, towards the Forgotten Shrine.',
-  removed: { from: 'elara', to: 'elderwood', label: 'IS AT' } as GraphEdge,
-  added: { from: 'elara', to: 'shrine', label: 'IS AT' } as GraphEdge,
-  attr: ['elara', 'current location', 'Elderwood', 'Forgotten Shrine'] as const,
-};
+/** One state of the dynamic scene graph, and what the Director did to reach it. */
+export interface GraphStep {
+  key: string;
+  tab: string;
+  source: 'paper' | 'illustration';
+  sentence?: string;
+  elaraAt: 'elderwood' | 'shrine';
+  edges: GraphEdge[]; // the graph's edges after this step
+  fresh?: GraphEdge; // an edge added in this step
+  rejected?: GraphEdge; // an edge the Director refused to add
+  attrs?: Record<string, Record<string, string>>; // attribute changes, by node id
+  log: [string, string][]; // pipeline stage -> what it found
+  verdict?: { ok: boolean; text: string };
+}
+
+const atShrine: GraphEdge = { from: 'elara', to: 'shrine', label: 'IS AT' };
+const afterMove = [atShrine, ...scene1.edges.filter((e) => e.from !== 'elara')];
+const movedAttrs = { elara: { 'current location': 'Forgotten Shrine' } };
+
+/**
+ * Scene 1 is the paper's graph. The two sentences after it are hand-written
+ * illustrations (labelled as such in the post), with the updates the Director's
+ * rules call for: an accepted move, and a teleport it flags.
+ */
+export const graphSteps: GraphStep[] = [
+  {
+    key: 'scene1',
+    tab: 'Scene 1 (from the paper)',
+    source: 'paper',
+    elaraAt: 'elderwood',
+    edges: scene1.edges,
+    log: [
+      ['Nodes', 'Whispering Woods and Forgotten Shrine (locations), Elara (character), Elderwood (key object), Spirit Revelation (event)'],
+      ['Edges', 'Elara IS AT Elderwood; Elderwood INSIDE Whispering Woods; Forgotten Shrine INSIDE Whispering Woods'],
+    ],
+  },
+  {
+    key: 'move',
+    tab: 'Next: she moves',
+    source: 'illustration',
+    sentence: 'Elara thanked the spirit and set off east, towards the Forgotten Shrine.',
+    elaraAt: 'shrine',
+    edges: afterMove,
+    fresh: atShrine,
+    attrs: movedAttrs,
+    log: [
+      ['Entities', 'Elara (character), the spirit → Elderwood (key object), Forgotten Shrine (location). All already in the graph.'],
+      ['Relations', 'Elara moves to the Forgotten Shrine'],
+      ['Attributes', 'Elara.current location: Elderwood → Forgotten Shrine'],
+      ['Spatial', 'The shrine is inside the Whispering Woods, so Elara is still in the woods'],
+      ['Update', '− Elara IS AT Elderwood   + Elara IS AT Forgotten Shrine'],
+    ],
+    verdict: { ok: true, text: 'Consistent: the move is described in the text, so the update is applied.' },
+  },
+  {
+    key: 'teleport',
+    tab: 'Next: a continuity error',
+    source: 'illustration',
+    sentence: 'Elara sat down beneath the Elderwood’s roots to rest.',
+    elaraAt: 'shrine',
+    edges: afterMove,
+    rejected: { from: 'elara', to: 'elderwood', label: 'IS AT' },
+    attrs: movedAttrs,
+    log: [
+      ['Entities', 'Elara (character), Elderwood (key object)'],
+      ['Relations', 'Elara IS AT Elderwood'],
+      ['Attributes', 'None'],
+      ['Spatial', 'The graph has Elara at the Forgotten Shrine, and nothing in this segment takes her back'],
+      ['Update', 'None: the new edge is rejected'],
+    ],
+    verdict: {
+      ok: false,
+      text: 'Inconsistent: Elara would teleport. Flagged, with a corrective prompt back to the Narrator: “Elara is at the Forgotten Shrine. Either describe her journey back to the Elderwood, or set this scene at the shrine.”',
+    },
+  },
+];
 
 /** Table 1 of the paper: mean expert rating (1-5 Likert), 10 prompts, 10 raters. */
 export const results = [

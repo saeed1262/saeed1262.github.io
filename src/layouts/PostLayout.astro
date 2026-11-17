@@ -1,15 +1,23 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import { formatDateFull as formatDate } from '@/utils/format';
-interface Props { title: string; date: Date; description?: string; readingMinutes?: number; ogImage?: string; }
-const { title, date, description, readingMinutes, ogImage } = Astro.props;
+// A long-form article page: blog posts, and project pages that need more than Markdown.
+interface Props {
+  title: string;
+  description?: string;
+  date?: Date;
+  ogImage?: string;
+  back?: { href: string; label: string };
+}
+const { title, description, date, ogImage, back = { href: '/blog/', label: 'Blog' } } = Astro.props;
 ---
 <BaseLayout title={title} description={description} ogImage={ogImage}>
   <article class="post container">
-    <a href="/blog/" class="post__back">← Blog</a>
+    <a href={back.href} class="post__back">← {back.label}</a>
     <h1>{title}</h1>
     {description && <p class="post__lead">{description}</p>}
-    <p class="post__date"><time datetime={date.toISOString().slice(0, 10)}>{formatDate(date)}</time>{readingMinutes && ` · ${readingMinutes} min read`}</p>
+    <slot name="header" />
+    {date && <p class="post__date"><time datetime={date.toISOString().slice(0, 10)}>{formatDate(date)}</time></p>}
     <div class="post__body prose-page"><slot /></div>
   </article>
   <style>

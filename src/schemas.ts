@@ -25,6 +25,9 @@ export const projectSchema = z.object({
   image: z.string().optional(),
   url: z.url().optional(),
   tags: z.array(z.string()).default([]),
+  // true when the project has its own page at src/pages/projects/<id>.astro
+  // (e.g. for interactive figures); the generic Markdown page is then skipped.
+  customPage: z.boolean().default(false),
 });
 
 // Side projects: one Markdown file each in src/content/personal/, with a

@@ -1,7 +1,7 @@
 ---
 // The Narrative Arc Controller's Classic Arc (from the paper's supplementary
 // material): drag through the story and see the directive for each stage.
-import { classicArc } from '@/data/blog/aether-weaver';
+import { classicArc } from '@/data/projects/aether-weaver';
 const widths = classicArc.map((s, i) => ((classicArc[i + 1]?.start ?? 1) - s.start) * 100);
 ---
 <figure class="viz aw-arc">
@@ -83,7 +83,7 @@ const widths = classicArc.map((s, i) => ((classicArc[i + 1]?.start ?? 1) - s.sta
 
 <script>
   import { onEachPage } from '@/scripts/viz';
-  import { classicArc } from '@/data/blog/aether-weaver';
+  import { classicArc } from '@/data/projects/aether-weaver';
 
   const LEVEL = { Low: 1, Medium: 2, High: 3 } as const;
 

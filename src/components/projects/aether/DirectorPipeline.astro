@@ -1,0 +1,71 @@
+---
+// How the Director updates the scene graph after each scene (Figure 2 of the
+// paper), redrawn as plain HTML so it follows the site theme and stacks on phones.
+---
+<figure class="viz aw-pipe" aria-label="Diagram of the Director's update. A new narrative segment goes through named entity recognition, relation extraction and attribute updates in parallel. Their findings are synthesized into one list of changes, which updates the scene graph by adding or removing nodes, updating edges, modifying attributes, spatial reasoning and consistency enforcement. The updated graph feeds back into the next update.">
+  <div class="viz__head">
+    <p class="viz__title">How the Director updates the graph</p>
+    <p class="viz__sub">This runs after every scene the Narrator writes</p>
+  </div>
+
+  <div class="aw-pipe__row">
+    <div class="aw-pipe__box aw-pipe__box--in">New narrative segment<small>The scene the Narrator just wrote</small></div>
+  </div>
+  <div class="aw-pipe__fan" aria-hidden="true"></div>
+  <div class="aw-pipe__row aw-pipe__row--three">
+    <div class="aw-pipe__box">Named entity recognition<small>Which characters, objects and places are mentioned? New ones become nodes.</small></div>
+    <div class="aw-pipe__box">Relation extraction<small>How do they relate? Actions, spatial relations, causes.</small></div>
+    <div class="aw-pipe__box">Attribute updates<small>Has anything's state changed? “The once gleaming artifact was now tarnished.”</small></div>
+  </div>
+  <div class="aw-pipe__fan aw-pipe__fan--in" aria-hidden="true"></div>
+  <div class="aw-pipe__row">
+    <div class="aw-pipe__box aw-pipe__box--synth">Synthesize detected changes<small>One list of proposed changes to the world</small></div>
+  </div>
+  <div class="aw-pipe__down" aria-hidden="true"></div>
+  <div class="aw-pipe__update">
+    <p class="aw-pipe__update-title">Update the scene graph</p>
+    <ul class="aw-pipe__ops">
+      <li>Add / remove nodes</li><li>Update edges</li><li>Modify attributes</li><li>Spatial reasoning</li><li>Consistency enforcement</li>
+    </ul>
+  </div>
+  <div class="aw-pipe__down" aria-hidden="true"></div>
+  <div class="aw-pipe__row">
+    <div class="aw-pipe__box aw-pipe__box--out">Updated scene graph<small>Read by the next update, the Narrator's next prompt and the scene's image prompt</small></div>
+  </div>
+
+  <figcaption class="viz__caption">
+    Redrawn from Figure 2 of the paper. If an update doesn't make sense, consistency enforcement flags it or sends a
+    corrective prompt back to the Narrator instead of changing the graph.
+  </figcaption>
+  <style>
+    .aw-pipe__row { display: flex; justify-content: center; gap: 0.6rem; }
+    .aw-pipe__row > .aw-pipe__box { flex: 1 1 0; max-width: 20rem; }
+    .aw-pipe__box {
+      border-radius: 12px; padding: 0.55rem 0.75rem; text-align: center; font-size: 0.9rem; font-weight: 600; color: var(--ink); line-height: 1.3;
+      background: var(--viz-surface); border: 1px solid var(--border); box-shadow: var(--shadow-card);
+    }
+    .aw-pipe__box small { display: block; font-weight: 400; font-size: 0.77rem; color: var(--ink-2); margin-top: 0.2rem; }
+    .aw-pipe__box--in { background: color-mix(in srgb, var(--c-frank) 10%, var(--viz-surface)); }
+    .aw-pipe__box--synth { background: color-mix(in srgb, var(--accent-to) 9%, var(--viz-surface)); }
+    .aw-pipe__box--out { border-style: dashed; background: var(--bg-deep); }
+    .aw-pipe__update {
+      border-radius: 14px; padding: 0.65rem 0.8rem 0.75rem; text-align: center;
+      background: color-mix(in srgb, var(--accent-from) 7%, var(--viz-surface)); border: 1px solid color-mix(in srgb, var(--accent-from) 50%, var(--border));
+    }
+    .aw-pipe__update-title { font-size: 0.9rem; font-weight: 650; color: var(--ink); margin-bottom: 0.45rem; }
+    .aw-pipe__ops { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 0.4rem; }
+    .aw-pipe__ops li { font-size: 0.8rem; color: var(--ink); background: var(--viz-surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.3rem 0.6rem; }
+    .aw-pipe__down, .aw-pipe__fan { position: relative; height: 1.6rem; }
+    .aw-pipe__down::before { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--axis); }
+    .aw-pipe__down::after { content: ""; position: absolute; left: 50%; bottom: -1px; transform: translateX(-50%); border: 5px solid transparent; border-top-color: var(--axis); border-bottom: 0; }
+    /* Fan out to three boxes, and back in: a horizontal bar with a stem. */
+    .aw-pipe__fan::before { content: ""; position: absolute; left: 50%; top: 0; height: 100%; width: 2px; margin-left: -1px; background: var(--axis); }
+    .aw-pipe__fan::after { content: ""; position: absolute; left: 16.5%; right: 16.5%; top: 50%; height: 50%; border: 2px solid var(--axis); border-bottom: 0; border-radius: 6px 6px 0 0; }
+    .aw-pipe__fan--in::after { top: 0; border: 2px solid var(--axis); border-top: 0; border-radius: 0 0 6px 6px; }
+    @media (max-width: 640px) {
+      .aw-pipe__row--three { flex-direction: column; align-items: stretch; }
+      .aw-pipe__row--three > .aw-pipe__box { max-width: none; }
+      .aw-pipe__fan::after { display: none; }
+    }
+  </style>
+</figure>
