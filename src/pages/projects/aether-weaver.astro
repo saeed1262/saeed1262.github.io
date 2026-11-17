@@ -2,7 +2,6 @@
 import { Code } from 'astro:components';
 import { Image } from 'astro:assets';
 import { getEntry } from 'astro:content';
-import Button from '@/components/ui/Button.astro';
 import elaraCharacter from '@/assets/projects/aether-weaver/elara-character.png';
 import elaraScene from '@/assets/projects/aether-weaver/elara-scene.png';
 import PostLayout from '@/layouts/PostLayout.astro';
@@ -73,8 +72,8 @@ const codeModulate = `def combine(user_tones, stage):
   <div slot="header" class="aw-header">
     <ul class="aw-header__tags">{project.data.tags.map((t) => <li>{t}</li>)}</ul>
     <p class="aw-header__cta">
-      <Button href={paperUrl}>Read the paper →</Button>
-      <Button href="#citation" variant="ghost">Cite</Button>
+      <a class="aw-header__primary" href={paperUrl} target="_blank" rel="noopener">Read the paper →</a>
+      <a href="#citation">Cite</a>
     </p>
   </div>
   <p>
@@ -438,7 +437,12 @@ const codeModulate = `def combine(user_tones, stage):
     .aw-ground__arrow { font-size: 1.6rem; color: var(--text-muted); }
     .aw-header__tags { display: flex; flex-wrap: wrap; gap: 0.4rem; list-style: none; padding: 0; margin: var(--space-sm) 0 0; }
     .aw-header__tags li { font-size: var(--step--1); color: var(--accent-from); border: 1px solid var(--border); border-radius: 999px; padding: 0.15rem 0.6rem; }
-    .aw-header__cta { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: var(--space-sm); }
+    /* Same as the personal project pages: one solid accent pill, then plain underlined links. */
+    .aw-header__cta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-sm) var(--space-md); margin-top: var(--space-md); }
+    .aw-header__cta a { color: var(--text); font-weight: 500; text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--accent-from) 45%, transparent); text-underline-offset: 0.25em; }
+    .aw-header__cta a:hover { color: var(--accent-from); }
+    .aw-header__cta .aw-header__primary { text-decoration: none; padding: 0.6rem 1.25rem; border-radius: 999px; background: var(--accent-from); color: var(--badge-text); }
+    .aw-header__cta .aw-header__primary:hover { color: var(--badge-text); background: color-mix(in srgb, var(--accent-from) 85%, var(--text)); }
     .cite-text { padding: 0.8rem 1rem; border-left: 3px solid var(--gold); background: var(--bg-deep); border-radius: 0 10px 10px 0; }
     .bib__bar { display: flex; justify-content: space-between; align-items: center; margin-top: var(--space-sm); font-size: var(--step--1); color: var(--text-muted); }
     .bib__copy {
