@@ -67,6 +67,8 @@ html.dark .viz {
   padding: 0.3rem 0.8rem; border-radius: 999px; transition: background 0.2s, color 0.2s;
 }
 .viz-seg button[aria-pressed="true"] { background: var(--viz-surface); color: var(--ink); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); }
+/* In dark mode the figure surface matches the plain pressed colour, so tint it to read as selected. */
+html.dark .viz-seg button[aria-pressed="true"] { background: color-mix(in srgb, var(--accent-from) 24%, var(--viz-surface)); }
 .viz-btn {
   font: inherit; font-size: 0.84rem; color: var(--ink); background: var(--bg-deep); border: 1px solid var(--border);
   border-radius: 999px; padding: 0.3rem 0.9rem; cursor: pointer;
