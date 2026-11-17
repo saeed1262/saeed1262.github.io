@@ -29,10 +29,10 @@ html.dark .viz {
   --axis: #34407a;
 }
 
-/* Figures break out of the text column on wide screens. */
+/* Figures are exactly as wide as the text column. */
 .viz {
   position: relative;
-  margin: var(--space-md) calc(50% - min(50vw - 1rem, 29rem));
+  margin: var(--space-md) 0;
   padding: 1.25rem 1.25rem 1rem;
   background: var(--viz-surface);
   border: 1px solid var(--border);
