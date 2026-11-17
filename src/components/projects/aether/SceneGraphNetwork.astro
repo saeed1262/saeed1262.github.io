@@ -1,0 +1,331 @@
+---
+// The Director's actual scene-1 graph from the paper, drawn as a node-link
+// graph: entities as circles, attributes as their own small nodes, relations
+// as labelled arrows. Laid out with a tiny force simulation; nodes can be dragged.
+---
+<figure class="viz aw-net">
+  <div class="viz__head">
+    <p class="viz__title">The scene graph after scene 1, node for node</p>
+    <p class="viz__sub">The Director's actual output for Elara's story, from the paper. Drag a node to move it; hover or tab to one for details.</p>
+  </div>
+  <div class="viz-controls">
+    <div class="viz-seg" role="group" aria-label="What to show">
+      <button type="button" data-attrs="on" aria-pressed="true">With attributes</button>
+      <button type="button" data-attrs="off" aria-pressed="false">Entities and relations</button>
+    </div>
+  </div>
+  <div class="viz-legend" aria-hidden="true">
+    <span><i class="dot" style="background: var(--k-location)"></i>Location</span>
+    <span><i class="dot" style="background: var(--k-character)"></i>Character</span>
+    <span><i class="dot" style="background: var(--k-object)"></i>Key object</span>
+    <span><i class="dot" style="background: var(--k-event)"></i>Event</span>
+    <span><i class="pill"></i>Attribute</span>
+    <span><i style="background: var(--ink-2)"></i>Relation</span>
+    <span><i class="dash" style="color: var(--ink-2)"></i>Event participant</span>
+  </div>
+  <div class="viz__plot aw-net__plot" data-plot></div>
+  <figcaption class="viz__caption">
+    Every node, attribute and edge here is the Director's output for scene 1, as listed in the paper's supplementary
+    material, including the ids it gave them. Elara's location is stored as the Elderwood's id, which is how the graph
+    knows where she is.
+  </figcaption>
+  <details>
+    <summary>Show as a list</summary>
+    <div class="table-wrap"><table data-table></table></div>
+  </details>
+  <style is:global>
+    .aw-net { --k-location: var(--c-clean); --k-character: var(--c-zeggs); --k-object: var(--c-frank); --k-event: var(--c-real); }
+    .aw-net .viz-legend i.pill { width: 16px; height: 9px; border-radius: 5px; background: var(--bg-deep); border: 1px solid var(--axis); }
+    .aw-net__plot { touch-action: pan-y; }
+    .aw-net .ent { cursor: grab; touch-action: none; }
+    .aw-net .ent:active { cursor: grabbing; }
+    .aw-net .ent:focus { outline: none; }
+    .aw-net .ent circle { fill: var(--viz-surface); stroke-width: 2.5; }
+    .aw-net .ent:focus circle, .aw-net .ent:hover circle { stroke-width: 4; }
+    .aw-net .rel { stroke: var(--ink-2); stroke-width: 1.5; fill: none; }
+    .aw-net .part { stroke: var(--ink-2); stroke-width: 1.2; stroke-dasharray: 4 4; fill: none; }
+    .aw-net .att-link { stroke: var(--axis); stroke-width: 1; }
+    .aw-net .att rect { fill: var(--bg-deep); stroke: var(--axis); }
+    .aw-net .att:focus { outline: none; }
+    .aw-net .att:focus rect, .aw-net .att:hover rect { stroke: var(--accent-from); }
+    .aw-net .lbl-bg { fill: var(--viz-surface); }
+  </style>
+</figure>
+
+<script>
+  import { onEachPage, responsive, svgEl, svgText, makeTooltip, reducedMotion } from '@/scripts/viz';
+  import { scene1, scene1Raw } from '@/data/projects/aether-weaver';
+
+  const KIND_TAG = { location: 'LOC', character: 'CHAR', object: 'OBJ', event: 'EVENT' } as const;
+  const KIND_NAME = { location: 'Location', character: 'Character', object: 'Key object', event: 'Event' } as const;
+  // Where each entity starts, as fractions of the plot; the simulation relaxes from here.
+  const SEED: Record<string, [number, number]> = {
+    woods: [0.5, 0.2], elderwood: [0.27, 0.5], shrine: [0.74, 0.5], elara: [0.3, 0.8], revelation: [0.56, 0.8],
+  };
+
+  interface N {
+    id: string; type: 'ent' | 'att'; x: number; y: number; vx: number; vy: number;
+    w: number; h: number; fx?: number; fy?: number; parent?: string; key?: string; value?: string; text?: string;
+  }
+  interface L { s: N; t: N; len: number; k: number; kind: 'rel' | 'part' | 'att'; label?: string; id?: string }
+
+  const R = 22; // entity circle radius
+  const short = (v: string, n: number) => (v.length > n ? `${v.slice(0, n - 1)}…` : v);
+
+  onEachPage('.aw-net', (root) => {
+    const plot = root.querySelector<HTMLElement>('[data-plot]')!;
+    const table = root.querySelector<HTMLTableElement>('[data-table]')!;
+    const buttons = [...root.querySelectorAll<HTMLButtonElement>('[data-attrs]')];
+    const tip = makeTooltip(plot);
+    const markerId = `aw-net-arrow-${Math.random().toString(36).slice(2, 8)}`;
+    let width = 0, H = 0;
+    let showAttrs = true;
+    let userChose = false;
+    let nodes: N[] = [], links: L[] = [];
+    let raf = 0;
+    let dragActive = false; // no tooltips while a node is being dragged
+
+    // ── the list view ─────────────────────────────────────────────
+    const head = table.createTHead().insertRow();
+    for (const h of ['Node or edge', 'Id', 'Attributes or relation']) { const th = document.createElement('th'); th.textContent = h; head.appendChild(th); }
+    const body = table.createTBody();
+    const nameOf = (id: string) => scene1.nodes.find((n) => n.id === id)!.label;
+    for (const n of scene1.nodes) {
+      const r = body.insertRow();
+      r.insertCell().textContent = `${n.label} (${KIND_NAME[n.kind]})`;
+      r.insertCell().textContent = scene1Raw.ids[n.id];
+      const attrs = [...(scene1Raw.attrs[n.id] ?? [])];
+      if (scene1Raw.participants[n.id]) attrs.unshift(['participants', scene1Raw.participants[n.id].map(nameOf).join(', ')]);
+      r.insertCell().textContent = attrs.map(([k, v]) => `${k}: ${v}`).join('; ');
+    }
+    for (const e of scene1Raw.edges) {
+      const r = body.insertRow();
+      r.insertCell().textContent = `${nameOf(e.from)} → ${nameOf(e.to)}`;
+      r.insertCell().textContent = e.id;
+      r.insertCell().textContent = e.label;
+    }
+
+    // ── build the graph for the current size ──────────────────────
+    function build() {
+      const narrow = width < 560;
+      const byId: Record<string, N> = {};
+      nodes = [];
+      links = [];
+      for (const n of scene1.nodes) {
+        const [sx, sy] = SEED[n.id];
+        const labelW = n.label.length * 7 + 8;
+        const node: N = { id: n.id, type: 'ent', x: sx * width, y: sy * H, vx: 0, vy: 0, w: Math.max(2 * R, labelW), h: 2 * R + 18 };
+        nodes.push(node);
+        byId[n.id] = node;
+      }
+      for (const e of scene1Raw.edges) links.push({ s: byId[e.from], t: byId[e.to], len: narrow ? 130 : 210, k: 0.04, kind: 'rel', label: e.label, id: e.id });
+      for (const [ev, ps] of Object.entries(scene1Raw.participants)) {
+        for (const p of ps) links.push({ s: byId[ev], t: byId[p], len: narrow ? 120 : 180, k: 0.03, kind: 'part', label: 'participant' });
+      }
+      if (showAttrs) {
+        const cx = width / 2, cy = H / 2;
+        for (const [owner, attrs] of Object.entries(scene1Raw.attrs)) {
+          const p = byId[owner];
+          const out = Math.atan2(p.y - cy, p.x - cx);
+          attrs.forEach(([key, value], i) => {
+            const text = narrow ? key : `${key}: ${short(value, 22)}`;
+            const ang = out + (i - (attrs.length - 1) / 2) * 0.9;
+            const a: N = {
+              id: `${owner}:${key}`, type: 'att', parent: owner, key, value, text,
+              x: p.x + Math.cos(ang) * 80, y: p.y + Math.sin(ang) * 80, vx: 0, vy: 0, w: text.length * 6 + 16, h: 20,
+            };
+            nodes.push(a);
+            links.push({ s: p, t: a, len: narrow ? 58 : 85, k: 0.08, kind: 'att' });
+          });
+        }
+      }
+    }
+
+    // ── a tiny force simulation: springs, repulsion, box collision ─
+    function tick(alpha: number) {
+      for (const l of links) {
+        const dx = l.t.x - l.s.x, dy = l.t.y - l.s.y;
+        const d = Math.hypot(dx, dy) || 1e-6;
+        const f = (d - l.len) * l.k * alpha;
+        const fx = (dx / d) * f, fy = (dy / d) * f;
+        l.s.vx += fx; l.s.vy += fy; l.t.vx -= fx; l.t.vy -= fy;
+      }
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const a = nodes[i], b = nodes[j];
+          let dx = b.x - a.x, dy = b.y - a.y;
+          const d2 = dx * dx + dy * dy || 1e-6;
+          const charge = (a.type === 'ent' && b.type === 'ent' ? 9000 : 1800) * alpha;
+          const f = charge / d2;
+          dx /= Math.sqrt(d2); dy /= Math.sqrt(d2);
+          a.vx -= dx * f; a.vy -= dy * f; b.vx += dx * f; b.vy += dy * f;
+        }
+      }
+      for (const n of nodes) {
+        n.vx += (width / 2 - n.x) * 0.002 * alpha;
+        n.vy += (H / 2 - n.y) * 0.003 * alpha;
+        n.vx *= 0.55; n.vy *= 0.55;
+        n.x += n.vx; n.y += n.vy;
+        if (n.fx !== undefined) { n.x = n.fx; n.y = n.fy!; n.vx = n.vy = 0; }
+      }
+      // Resolve overlaps between node boxes, then keep everything inside the plot.
+      for (let pass = 0; pass < 2; pass++) {
+        for (let i = 0; i < nodes.length; i++) {
+          for (let j = i + 1; j < nodes.length; j++) {
+            const a = nodes[i], b = nodes[j];
+            const ox = (a.w + b.w) / 2 + 6 - Math.abs(b.x - a.x);
+            const oy = (a.h + b.h) / 2 + 6 - Math.abs(b.y - a.y);
+            if (ox <= 0 || oy <= 0) continue;
+            const wa = a.fx !== undefined ? 0 : b.fx !== undefined ? 1 : 0.5;
+            if (ox < oy) { const s = Math.sign(b.x - a.x) || 1; a.x -= s * ox * wa; b.x += s * ox * (1 - wa); }
+            else { const s = Math.sign(b.y - a.y) || 1; a.y -= s * oy * wa; b.y += s * oy * (1 - wa); }
+          }
+        }
+      }
+      for (const n of nodes) {
+        n.x = Math.min(width - n.w / 2 - 4, Math.max(n.w / 2 + 4, n.x));
+        n.y = Math.min(H - n.h / 2 - 4, Math.max(n.h / 2 + 4, n.y));
+      }
+    }
+
+    function settle() {
+      for (let i = 0; i < 400; i++) tick(1 - i / 420);
+      // Stretch the settled layout to fill the plot (node sizes stay the same), then tidy overlaps.
+      const xs = nodes.map((n) => n.x), ys = nodes.map((n) => n.y);
+      const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+      const maxW = Math.max(...nodes.map((n) => n.w)), maxH = Math.max(...nodes.map((n) => n.h));
+      const sx = (width - maxW - 16) / Math.max(1, x1 - x0), sy = (H - maxH - 16) / Math.max(1, y1 - y0);
+      const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+      for (const n of nodes) {
+        n.x = width / 2 + (n.x - cx) * Math.min(sx, 2.5);
+        n.y = H / 2 + (n.y - cy) * Math.min(sy, 2.5);
+      }
+      for (let i = 0; i < 80; i++) tick(0.05);
+    }
+
+    // ── drawing ───────────────────────────────────────────────────
+    function draw() {
+      plot.replaceChildren(tip.el);
+      const svg = svgEl('svg', { viewBox: `0 0 ${width} ${H}`, role: 'img',
+        'aria-label': 'Scene graph after scene 1: Elara is at the Elderwood; the Elderwood and the Forgotten Shrine are inside the Whispering Woods; the Spirit Revelation event involves Elara and the Elderwood. Each node carries the attributes listed in the table.' }, plot);
+      const defs = svgEl('defs', {}, svg);
+      const m = svgEl('marker', { id: markerId, viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' }, defs);
+      svgEl('path', { d: 'M0,0 L10,5 L0,10 z', style: 'fill: var(--ink-2)' }, m);
+
+      // Edges under nodes; relation labels on top so attribute pills never hide them.
+      const edgeLayer = svgEl('g', {}, svg);
+      const nodeLayer = svgEl('g', {}, svg);
+      const labelLayer = svgEl('g', {}, svg);
+      for (const l of links) {
+        if (l.kind === 'att') {
+          svgEl('line', { x1: l.s.x, y1: l.s.y, x2: l.t.x, y2: l.t.y, class: 'att-link' }, edgeLayer);
+          continue;
+        }
+        const dx = l.t.x - l.s.x, dy = l.t.y - l.s.y, d = Math.hypot(dx, dy) || 1;
+        const x1 = l.s.x + (dx / d) * (R + 2), y1 = l.s.y + (dy / d) * (R + 2);
+        const x2 = l.t.x - (dx / d) * (R + 4), y2 = l.t.y - (dy / d) * (R + 4);
+        svgEl('line', { x1, y1, x2, y2, class: l.kind, ...(l.kind === 'rel' ? { 'marker-end': `url(#${markerId})` } : {}) }, edgeLayer);
+        if (l.kind !== 'rel') continue; // participant links are explained by the legend
+        const text = l.label!;
+        const w = text.length * 6.4 + 8;
+        // Slide the label along the edge until it clears every node (circle and name) and pill.
+        const clear = (px: number, py: number) => nodes.every((n) => {
+          const top = n.type === 'ent' ? n.y - R : n.y - n.h / 2;
+          const bottom = n.type === 'ent' ? n.y + R + 20 : n.y + n.h / 2;
+          return Math.abs(px - n.x) > (n.w + w) / 2 + 2 || py + 8 < top - 2 || py - 8 > bottom + 2;
+        });
+        const t = [0.5, 0.4, 0.6, 0.3, 0.7].find((f) => clear(x1 + (x2 - x1) * f, y1 + (y2 - y1) * f)) ?? 0.5;
+        const mx = x1 + (x2 - x1) * t, my = y1 + (y2 - y1) * t;
+        svgEl('rect', { x: mx - w / 2, y: my - 8, width: w, height: 15, rx: 4, class: 'lbl-bg' }, labelLayer);
+        svgText(labelLayer, mx, my + 4, text, { 'text-anchor': 'middle', 'font-size': 10.5, class: 't-ink' });
+      }
+
+      for (const n of nodes) {
+        if (n.type === 'att') {
+          const g = svgEl('g', { class: 'att', tabindex: 0, 'aria-label': `Attribute of ${nameOf(n.parent!)}: ${n.key}: ${n.value}` }, nodeLayer);
+          svgEl('rect', { x: n.x - n.w / 2, y: n.y - n.h / 2, width: n.w, height: n.h, rx: 10 }, g);
+          svgText(g, n.x, n.y + 3.8, n.text!, { 'text-anchor': 'middle', 'font-size': 10.5 });
+          const show = () => {
+            if (dragActive) return;
+            const scale = plot.getBoundingClientRect().width / width;
+            tip.show(n.x * scale, (n.y - n.h / 2) * scale, `Attribute of ${nameOf(n.parent!)}`, [{ value: n.key!, label: n.value! }]);
+          };
+          g.addEventListener('pointerenter', show); g.addEventListener('focus', show);
+          g.addEventListener('pointerleave', () => tip.hide()); g.addEventListener('blur', () => tip.hide());
+          continue;
+        }
+        const src = scene1.nodes.find((s) => s.id === n.id)!;
+        const g = svgEl('g', { class: 'ent', tabindex: 0, 'aria-label': `${KIND_NAME[src.kind]}: ${src.label}, id ${scene1Raw.ids[n.id]}` }, nodeLayer);
+        svgEl('circle', { cx: n.x, cy: n.y, r: R, style: `stroke: var(--k-${src.kind})` }, g);
+        svgText(g, n.x, n.y + 3.5, KIND_TAG[src.kind], { 'text-anchor': 'middle', 'font-size': 8.5, 'letter-spacing': '0.05em' });
+        const lw = src.label.length * 7 + 8;
+        svgEl('rect', { x: n.x - lw / 2, y: n.y + R + 3, width: lw, height: 16, rx: 4, class: 'lbl-bg' }, g);
+        svgText(g, n.x, n.y + R + 15, src.label, { 'text-anchor': 'middle', 'font-size': 12, class: 't-strong' });
+        const show = () => {
+          if (dragActive) return;
+          const scale = plot.getBoundingClientRect().width / width;
+          const rows = [{ value: scene1Raw.ids[n.id], label: 'id' }, ...(scene1Raw.attrs[n.id] ?? []).map(([k, v]) => ({ value: short(v, 40), label: k }))];
+          tip.show(n.x * scale, (n.y - R) * scale, `${KIND_NAME[src.kind]}: ${src.label}`, rows);
+        };
+        g.addEventListener('pointerenter', show); g.addEventListener('focus', show);
+        g.addEventListener('pointerleave', () => tip.hide()); g.addEventListener('blur', () => tip.hide());
+        g.addEventListener('pointerdown', (ev) => startDrag(ev, n));
+      }
+    }
+
+    // ── dragging: pin the node to the pointer and let the rest follow ─
+    function startDrag(ev: PointerEvent, n: N) {
+      ev.preventDefault();
+      dragActive = true;
+      tip.hide();
+      // Measure against the plot, which persists; the SVG is redrawn every frame.
+      const toLocal = (e: PointerEvent) => {
+        const r = plot.getBoundingClientRect();
+        const s = width / r.width; // the SVG scales uniformly with the plot's width
+        return [(e.clientX - r.left) * s, (e.clientY - r.top) * s];
+      };
+      [n.fx, n.fy] = toLocal(ev);
+      let dragging = true;
+      const loop = () => {
+        tick(0.35);
+        draw();
+        if (dragging) raf = requestAnimationFrame(loop);
+      };
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(loop);
+      const move = (e: PointerEvent) => { [n.fx, n.fy] = toLocal(e); };
+      const up = () => {
+        dragging = false;
+        dragActive = false;
+        tip.hide();
+        n.fx = n.fy = undefined;
+        window.removeEventListener('pointermove', move);
+        window.removeEventListener('pointerup', up);
+        // Let the graph relax for a moment after letting go.
+        let k = 0;
+        const relax = () => { tick(0.25 * (1 - k / 40)); draw(); if (++k < 40 && !reducedMotion()) raf = requestAnimationFrame(relax); };
+        raf = requestAnimationFrame(relax);
+      };
+      window.addEventListener('pointermove', move);
+      window.addEventListener('pointerup', up);
+    }
+
+    function render() {
+      if (!width) return;
+      const narrow = width < 560;
+      if (!userChose) showAttrs = !narrow;
+      buttons.forEach((b) => b.setAttribute('aria-pressed', String((b.dataset.attrs === 'on') === showAttrs)));
+      H = showAttrs ? 520 : narrow ? 380 : 420;
+      build();
+      settle();
+      draw();
+    }
+
+    buttons.forEach((b) => b.addEventListener('click', () => {
+      userChose = true;
+      showAttrs = b.dataset.attrs === 'on';
+      render();
+    }));
+    responsive(plot, (w) => { width = w; render(); });
+  });
+</script>

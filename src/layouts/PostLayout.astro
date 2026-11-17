@@ -1,15 +1,23 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import { formatDateFull as formatDate } from '@/utils/format';
-interface Props { title: string; date: Date; description?: string; readingMinutes?: number; ogImage?: string; }
-const { title, date, description, readingMinutes, ogImage } = Astro.props;
+// A long-form article page: blog posts, and project pages that need more than Markdown.
+interface Props {
+  title: string;
+  description?: string;
+  date?: Date;
+  ogImage?: string;
+  back?: { href: string; label: string };
+}
+const { title, description, date, ogImage, back = { href: '/blog/', label: 'Blog' } } = Astro.props;
 ---
 <BaseLayout title={title} description={description} ogImage={ogImage}>
   <article class="post container">
-    <a href="/blog/" class="post__back">← Blog</a>
+    <a href={back.href} class="post__back">← {back.label}</a>
     <h1>{title}</h1>
     {description && <p class="post__lead">{description}</p>}
-    <p class="post__date"><time datetime={date.toISOString().slice(0, 10)}>{formatDate(date)}</time>{readingMinutes && ` · ${readingMinutes} min read`}</p>
+    <slot name="header" />
+    {date && <p class="post__date"><time datetime={date.toISOString().slice(0, 10)}>{formatDate(date)}</time></p>}
     <div class="post__body prose-page"><slot /></div>
   </article>
   <style>
@@ -24,8 +32,9 @@ const { title, date, description, readingMinutes, ogImage } = Astro.props;
     .post__body :global(h3) { margin-block: var(--space-md) var(--space-xs); font-size: var(--step-1); }
     /* Section links stop below the fixed header instead of under it. */
     .post__body :global([id]) { scroll-margin-top: 5.5rem; }
-    .post__body :global(ul), .post__body :global(ol) { margin-bottom: var(--space-sm); padding-left: 1.3rem; }
-    .post__body :global(li) { margin-bottom: 0.4rem; }
+    /* Prose lists only (direct children); lists inside figures style themselves. */
+    .post__body > :global(ul), .post__body > :global(ol) { margin-bottom: var(--space-sm); padding-left: 1.3rem; }
+    .post__body > :global(ul) > :global(li), .post__body > :global(ol) > :global(li) { margin-bottom: 0.4rem; }
     .post__body :global(blockquote) { margin: var(--space-md) 0; padding: 0.2rem 0 0.2rem 1.2rem; border-left: 3px solid var(--gold); color: var(--text-muted); font-style: italic; }
     .post__body :global(img) { border-radius: 12px; margin-block: var(--space-md); }
     .post__body :global(a) { color: var(--accent-from); text-decoration: underline; }

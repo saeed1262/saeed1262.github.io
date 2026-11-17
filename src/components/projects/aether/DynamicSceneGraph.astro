@@ -1,0 +1,252 @@
+---
+// The dynamic scene graph, step by step: scene 1 as the Director produced it
+// in the paper, then two hand-written sentences (an accepted move and a
+// flagged teleport), each with the Director's log for that update.
+import { graphSteps } from '@/data/projects/aether-weaver';
+---
+<figure class="viz aw-graph">
+  <div class="viz__head">
+    <p class="viz__title">The dynamic scene graph, one update at a time</p>
+    <p class="viz__sub">Step through the story. Hover or tab to a node to see its attributes.</p>
+  </div>
+  <div class="viz-controls">
+    <div class="viz-seg aw-graph__steps" role="group" aria-label="Story step">
+      {graphSteps.map((s, i) => (
+        <button type="button" data-step={i} aria-pressed={i === 0 ? 'true' : 'false'}><span class="aw-graph__n">{i + 1}</span> {s.tab}</button>
+      ))}
+    </div>
+  </div>
+  <div class="aw-graph__legend viz-legend" aria-hidden="true">
+    <span><i class="dot" style="background: var(--k-location)"></i>Location</span>
+    <span><i class="dot" style="background: var(--k-character)"></i>Character</span>
+    <span><i class="dot" style="background: var(--k-object)"></i>Key object</span>
+    <span><i class="dot" style="background: var(--k-event)"></i>Event</span>
+    <span><i style="background: var(--accent-from)"></i>Added this step</span>
+    <span><i class="dash" style="color: var(--k-reject)"></i>Rejected</span>
+  </div>
+  <div class="viz__plot" data-plot></div>
+  <div class="aw-graph__log" aria-live="polite">
+    <p class="aw-graph__source" data-source></p>
+    <p class="aw-graph__sentence" data-sentence></p>
+    <dl class="aw-graph__rows" data-rows></dl>
+    <p class="aw-graph__verdict" data-verdict></p>
+  </div>
+  <figcaption class="viz__caption">
+    Step 1 is exactly the graph the Director produced for scene 1 in the paper. Steps 2 and 3 are my illustration: two
+    sentences I wrote for this page, and what the Director's rules do with them.
+  </figcaption>
+  <details>
+    <summary>Show the graph as a list</summary>
+    <div class="table-wrap"><table data-table></table></div>
+  </details>
+  <style is:global>
+    .aw-graph {
+      --k-location: var(--c-clean); --k-character: var(--c-zeggs); --k-object: var(--c-frank); --k-event: var(--c-real);
+      --k-reject: var(--div-pos);
+    }
+    .aw-graph .node rect { fill: var(--viz-surface); stroke-width: 1.5; }
+    .aw-graph .node:focus { outline: none; }
+    .aw-graph .node:focus rect, .aw-graph .node:hover rect { stroke-width: 2.5; }
+    .aw-graph .edge { stroke: var(--ink-2); stroke-width: 1.4; fill: none; }
+    .aw-graph .edge--new { stroke: var(--accent-from); stroke-width: 2.2; }
+    .aw-graph .edge--rejected { stroke: var(--k-reject); stroke-width: 2; stroke-dasharray: 6 5; }
+    .aw-graph .edge-label rect { fill: var(--viz-surface); }
+    .aw-graph .edge-label--rejected text { fill: var(--k-reject); font-weight: 600; }
+    .viz-seg.aw-graph__steps { flex-wrap: wrap; border-radius: 14px; }
+    .aw-graph__n { display: inline-grid; place-items: center; width: 1.2rem; height: 1.2rem; border-radius: 50%; font-size: 0.72rem; background: var(--bg-deep); color: var(--ink-2); margin-right: 0.15rem; }
+    .aw-graph__steps button[aria-pressed="true"] .aw-graph__n { background: var(--accent-from); color: var(--viz-surface); }
+    .aw-graph__log { margin-top: 0.4rem; padding: 0.8rem 0.95rem; border-radius: 12px; background: var(--bg-deep); font-size: 0.84rem; }
+    .aw-graph__source { font-size: 0.74rem; font-variant: small-caps; letter-spacing: 0.08em; color: var(--ink-2); }
+    .aw-graph__sentence { color: var(--ink); font-style: italic; margin-top: 0.2rem; }
+    .aw-graph__sentence:empty { display: none; }
+    .aw-graph__rows { display: grid; grid-template-columns: max-content 1fr; gap: 0.3rem 0.9rem; margin: 0.6rem 0 0; }
+    .aw-graph__rows dt { font-size: 0.74rem; color: var(--ink-2); padding-top: 0.1rem; }
+    .aw-graph__rows dd { margin: 0; color: var(--ink); white-space: pre-wrap; }
+    .aw-graph__verdict { margin-top: 0.7rem; padding-top: 0.6rem; border-top: 1px solid var(--border); color: var(--ink); }
+    .aw-graph__verdict:empty { display: none; }
+    .aw-graph__verdict b { margin-right: 0.35rem; }
+    .aw-graph__verdict.is-ok b { color: var(--c-clean); }
+    .aw-graph__verdict.is-bad b { color: var(--k-reject); }
+    @media (max-width: 520px) {
+      .viz-seg.aw-graph__steps { flex-direction: column; align-items: stretch; width: 100%; }
+      .viz-seg.aw-graph__steps button { text-align: left; border-radius: 10px; }
+      .aw-graph__rows { grid-template-columns: 1fr; gap: 0.1rem; }
+      .aw-graph__rows dd { margin-bottom: 0.35rem; }
+    }
+  </style>
+</figure>
+
+<script>
+  import { onEachPage, responsive, svgEl, svgText, makeTooltip, reducedMotion } from '@/scripts/viz';
+  import { scene1, graphSteps, type GraphEdge, type GraphNode } from '@/data/projects/aether-weaver';
+
+  const KIND_NAME = { location: 'Location', character: 'Character', object: 'Key object', event: 'Event' } as const;
+  // Positions as fractions of the plot; Elara moves between her two spots.
+  const POS: Record<string, [number, number]> = {
+    woods: [0.5, 0.12], elderwood: [0.2, 0.47], revelation: [0.5, 0.47], shrine: [0.8, 0.47],
+  };
+  const ELARA: Record<'elderwood' | 'shrine', [number, number]> = { elderwood: [0.2, 0.84], shrine: [0.8, 0.84] };
+  const label = (id: string) => scene1.nodes.find((n) => n.id === id)!.label;
+  const same = (a?: GraphEdge, b?: GraphEdge) => !!a && !!b && a.from === b.from && a.to === b.to && a.label === b.label;
+
+  onEachPage('.aw-graph', (root) => {
+    const plot = root.querySelector<HTMLElement>('[data-plot]')!;
+    const table = root.querySelector<HTMLTableElement>('[data-table]')!;
+    const buttons = [...root.querySelectorAll<HTMLButtonElement>('[data-step]')];
+    const tip = makeTooltip(plot);
+    const markerId = `aw-arrow-${Math.random().toString(36).slice(2, 8)}`;
+    let step = 0;
+    let elaraX = ELARA.elderwood[0]; // animated
+    let width = 0;
+
+    const nodesFor = (i: number): GraphNode[] => {
+      const attrs = graphSteps[i].attrs ?? {};
+      return scene1.nodes.map((n) => attrs[n.id]
+        ? { ...n, attrs: n.attrs.map(([k, v]) => [k, attrs[n.id][k] ?? v] as [string, string]) }
+        : n);
+    };
+
+    function fillLog() {
+      const s = graphSteps[step];
+      root.querySelector('[data-source]')!.textContent = s.source === 'paper'
+        ? 'From the paper: the graph after scene 1'
+        : 'Illustration: a sentence I wrote, and the Director’s update';
+      root.querySelector('[data-sentence]')!.textContent = s.sentence ? `“${s.sentence}”` : '';
+      const rows = root.querySelector('[data-rows]')!;
+      rows.replaceChildren();
+      for (const [k, v] of s.log) {
+        const dt = document.createElement('dt');
+        dt.textContent = k;
+        const dd = document.createElement('dd');
+        dd.textContent = v;
+        rows.append(dt, dd);
+      }
+      const verdict = root.querySelector<HTMLElement>('[data-verdict]')!;
+      verdict.replaceChildren();
+      verdict.className = 'aw-graph__verdict';
+      if (s.verdict) {
+        verdict.classList.add(s.verdict.ok ? 'is-ok' : 'is-bad');
+        const b = document.createElement('b');
+        b.textContent = s.verdict.ok ? '✓' : '⚠';
+        verdict.append(b, s.verdict.text);
+      }
+    }
+
+    function fillTable() {
+      const s = graphSteps[step];
+      table.replaceChildren();
+      const head = table.createTHead().insertRow();
+      for (const h of ['Node or edge', 'Type', 'Attributes']) { const th = document.createElement('th'); th.textContent = h; head.appendChild(th); }
+      const body = table.createTBody();
+      for (const n of nodesFor(step)) {
+        const r = body.insertRow();
+        r.insertCell().textContent = n.label;
+        r.insertCell().textContent = KIND_NAME[n.kind];
+        r.insertCell().textContent = n.attrs.map(([k, v]) => `${k}: ${v}`).join('; ');
+      }
+      for (const e of s.edges) {
+        const r = body.insertRow();
+        r.insertCell().textContent = `${label(e.from)} → ${label(e.to)}`;
+        r.insertCell().textContent = same(e, s.fresh) ? 'Edge (added this step)' : 'Edge';
+        r.insertCell().textContent = e.label;
+      }
+      if (s.rejected) {
+        const r = body.insertRow();
+        r.insertCell().textContent = `${label(s.rejected.from)} → ${label(s.rejected.to)}`;
+        r.insertCell().textContent = 'Edge (rejected)';
+        r.insertCell().textContent = s.rejected.label;
+      }
+    }
+
+    function draw() {
+      if (!width) return;
+      const s = graphSteps[step];
+      plot.replaceChildren(tip.el);
+      tip.hide();
+      const narrow = width < 560;
+      const H = narrow ? 330 : 360;
+      const bw = Math.min(150, width * 0.27), bh = narrow ? 52 : 50;
+      const pos = (id: string): [number, number] => {
+        const p = id === 'elara' ? [elaraX, ELARA.shrine[1]] : POS[id];
+        return [p[0] * width, p[1] * H];
+      };
+      const svg = svgEl('svg', { viewBox: `0 0 ${width} ${H}`, role: 'img',
+        'aria-label': `Scene graph, step ${step + 1}: Elara is at the ${s.elaraAt === 'shrine' ? 'Forgotten Shrine' : 'Elderwood'}.${s.rejected ? ' A proposed edge putting her back at the Elderwood is rejected.' : ''}` }, plot);
+      const defs = svgEl('defs', {}, svg);
+      for (const [id, color] of [[markerId, 'var(--ink-2)'], [`${markerId}-new`, 'var(--accent-from)'], [`${markerId}-bad`, 'var(--k-reject)']]) {
+        const m = svgEl('marker', { id, viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' }, defs);
+        svgEl('path', { d: 'M0,0 L10,5 L0,10 z', style: `fill: ${color}` }, m);
+      }
+
+      // Edges run from box edge to box edge, labelled at the midpoint.
+      const clip = (cx: number, cy: number, tx: number, ty: number) => {
+        const dx = tx - cx, dy = ty - cy;
+        const k = Math.min(Math.abs((bw / 2 + 4) / (dx || 1e-9)), Math.abs((bh / 2 + 4) / (dy || 1e-9)));
+        return [cx + dx * k, cy + dy * k];
+      };
+      const edges: [GraphEdge, 'normal' | 'new' | 'rejected'][] = s.edges.map((e) => [e, same(e, s.fresh) ? 'new' : 'normal']);
+      if (s.rejected) edges.push([s.rejected, 'rejected']);
+      for (const [e, kind] of edges) {
+        const [ax, ay] = pos(e.from), [bx, by] = pos(e.to);
+        const [x1, y1] = clip(ax, ay, bx, by), [x2, y2] = clip(bx, by, ax, ay);
+        const marker = kind === 'normal' ? markerId : kind === 'new' ? `${markerId}-new` : `${markerId}-bad`;
+        svgEl('line', { x1, y1, x2, y2, class: `edge${kind === 'new' ? ' edge--new' : kind === 'rejected' ? ' edge--rejected' : ''}`, 'marker-end': `url(#${marker})` }, svg);
+        const text = kind === 'rejected' ? `${e.label} ✕ rejected` : e.label;
+        const g = svgEl('g', { class: `edge-label${kind === 'rejected' ? ' edge-label--rejected' : ''}` }, svg);
+        const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+        const w = text.length * 6.2 + 8;
+        svgEl('rect', { x: mx - w / 2, y: my - 8, width: w, height: 15, rx: 4 }, g);
+        svgText(g, mx, my + 4, text, { 'text-anchor': 'middle', 'font-size': 10, class: kind === 'rejected' ? '' : 't-ink' });
+      }
+
+      // Nodes: kind tag plus name, so kind is never colour-only.
+      for (const n of nodesFor(step)) {
+        const [cx, cy] = pos(n.id);
+        const g = svgEl('g', { class: 'node', tabindex: 0, 'aria-label': `${KIND_NAME[n.kind]}: ${n.label}. ${n.attrs.map(([k, v]) => `${k}: ${v}`).join('. ')}` }, svg);
+        svgEl('rect', { x: cx - bw / 2, y: cy - bh / 2, width: bw, height: bh, rx: 10, style: `stroke: var(--k-${n.kind})` }, g);
+        svgEl('circle', { cx: cx - bw / 2 + (narrow ? 9 : 12), cy: narrow ? cy : cy - bh / 2 + 13, r: 4, style: `fill: var(--k-${n.kind})` }, g);
+        if (narrow) {
+          // Phones: no room for the kind tag (the legend, tooltip and list carry it); wrap long names.
+          const words = n.label.split(' ');
+          const twoLines = words.length > 1 && n.label.length > 11;
+          const parts = twoLines ? [words.slice(0, -1).join(' '), words[words.length - 1]] : [n.label];
+          parts.forEach((p, i) => svgText(g, cx - bw / 2 + 17, cy - (parts.length - 1) * 6.5 + i * 13 + 4, p, { 'font-size': 10.5, class: 't-strong' }));
+        } else {
+          svgText(g, cx - bw / 2 + 21, cy - bh / 2 + 16.5, KIND_NAME[n.kind].toUpperCase(), { 'font-size': 9, 'letter-spacing': '0.06em' });
+          svgText(g, cx - bw / 2 + 10, cy + bh / 2 - 12, n.label, { 'font-size': 12.5, class: 't-strong' });
+        }
+        const show = () => {
+          const scale = plot.getBoundingClientRect().width / width;
+          tip.show(cx * scale, (cy - bh / 2) * scale, `${KIND_NAME[n.kind]}: ${n.label}`,
+            n.attrs.map(([k, v]) => ({ value: v.length > 60 ? `${v.slice(0, 58)}…` : v, label: k })));
+        };
+        g.addEventListener('pointerenter', show);
+        g.addEventListener('focus', show);
+        g.addEventListener('pointerleave', () => tip.hide());
+        g.addEventListener('blur', () => tip.hide());
+      }
+    }
+
+    function go(i: number) {
+      step = i;
+      buttons.forEach((b, j) => b.setAttribute('aria-pressed', String(j === i)));
+      fillLog();
+      fillTable();
+      const target = ELARA[graphSteps[i].elaraAt][0];
+      if (reducedMotion() || target === elaraX) { elaraX = target; draw(); return; }
+      const from = elaraX, t0 = performance.now(), dur = 650;
+      const frame = (now: number) => {
+        const k = Math.min(1, (now - t0) / dur);
+        elaraX = from + (target - from) * (1 - (1 - k) ** 3);
+        draw();
+        if (k < 1) requestAnimationFrame(frame);
+      };
+      requestAnimationFrame(frame);
+    }
+
+    buttons.forEach((b) => b.addEventListener('click', () => go(Number(b.dataset.step))));
+    fillLog();
+    fillTable();
+    responsive(plot, (w) => { width = w; draw(); });
+  });
+</script>

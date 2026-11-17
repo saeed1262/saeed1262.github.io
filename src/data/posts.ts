@@ -7,7 +7,6 @@ export interface Post {
   date: string; // ISO yyyy-mm-dd
   description: string;
   tags: string[];
-  readingMinutes: number;
   image?: string; // card thumbnail, a file in src/assets/blog/
   imageAlt?: string;
   ogImage?: string; // social preview, a path under public/
@@ -21,7 +20,6 @@ export const posts: Post[] = [
     description:
       'A frequency-domain look at real and generated gestures: what energy and coordination reveal, what fooled me, and where ZeroEGGS differs from a real actor.',
     tags: ['motion', 'generative models', 'signal processing'],
-    readingMinutes: 17,
     image: 'fake-motion-fingerprint.png',
     imageAlt:
       'Two drawings of hip angle against shoulder angle. Real walkers trace tight nested loops like a fingerprint; stitched fake walkers smear into a tangle.',

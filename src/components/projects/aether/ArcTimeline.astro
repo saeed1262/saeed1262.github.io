@@ -1,0 +1,134 @@
+---
+// The Narrative Arc Controller's Classic Arc (from the paper's supplementary
+// material): drag through the story and see the directive for each stage.
+import { classicArc } from '@/data/projects/aether-weaver';
+const widths = classicArc.map((s, i) => ((classicArc[i + 1]?.start ?? 1) - s.start) * 100);
+---
+<figure class="viz aw-arc">
+  <div class="viz__head">
+    <p class="viz__title">The Classic Arc, stage by stage</p>
+    <p class="viz__sub">Drag through the story to see what the Narrative Arc Controller tells the Narrator at each point</p>
+  </div>
+  <div class="aw-arc__band" data-band>
+    {classicArc.map((s, i) => (
+      <button type="button" class="aw-arc__seg" style={`flex-basis: ${widths[i]}%`} data-start={s.start} aria-label={`Jump to ${s.name}, which starts at ${Math.round(s.start * 100)}% of the story`}>
+        <span class="aw-arc__num">{i + 1}</span><span class="aw-arc__name">{s.name}</span>
+      </button>
+    ))}
+    <div class="aw-arc__marker" data-marker aria-hidden="true"></div>
+  </div>
+  <div class="aw-arc__ticks" aria-hidden="true">
+    {classicArc.map((s) => <span style={`left: ${s.start * 100}%`}>{Math.round(s.start * 100)}%</span>)}
+    <span style="left: 100%">100%</span>
+  </div>
+  <div class="viz-controls aw-arc__controls">
+    <label class="viz-slider">Story progress <input type="range" min="0" max="99" value="40" step="1" data-progress /> <strong data-pct>40%</strong></label>
+  </div>
+  <div class="aw-arc__card" aria-live="polite">
+    <p class="aw-arc__stage"><strong data-stage></strong> <span data-starts></span></p>
+    <pre class="aw-arc__directive" data-directive></pre>
+    <div class="aw-arc__group">
+      <p class="aw-arc__label">Mood cues passed to the Affective Tone Mapper</p>
+      <ul class="aw-arc__cues" data-cues></ul>
+    </div>
+    <div class="aw-arc__group" data-kw-group>
+      <p class="aw-arc__label">Keywords</p>
+      <ul class="aw-arc__kws" data-kws></ul>
+    </div>
+  </div>
+  <figcaption class="viz__caption">
+    Stages, goals, mood cues, keywords and thresholds are the Classic Arc as listed in the paper. A stage starts once the
+    story's progress (scenes written out of scenes planned) passes its threshold.
+  </figcaption>
+  <style>
+    .aw-arc__band { position: relative; display: flex; gap: 2px; height: 3.2rem; }
+    .aw-arc__seg {
+      font: inherit; cursor: pointer; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-deep); color: var(--ink-2);
+      display: flex; align-items: center; justify-content: center; gap: 0.3rem; padding: 0 0.3rem; text-align: center; line-height: 1.15;
+      font-size: 0.76rem; min-width: 0; transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+    .aw-arc__seg.is-active { background: color-mix(in srgb, var(--accent-from) 16%, var(--viz-surface)); border-color: var(--accent-from); color: var(--ink); font-weight: 600; }
+    .aw-arc__num { display: none; }
+    .aw-arc__marker { position: absolute; top: -6px; bottom: -6px; width: 2px; margin-left: -1px; background: var(--ink); border-radius: 2px; pointer-events: none; }
+    .aw-arc__ticks { position: relative; height: 1.3rem; font-size: 0.72rem; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+    .aw-arc__ticks span { position: absolute; top: 0.25rem; transform: translateX(-50%); }
+    .aw-arc__ticks span:first-child { transform: none; }
+    .aw-arc__ticks span:last-child { transform: translateX(-100%); }
+    .aw-arc__controls { margin-top: 0.5rem; }
+    .aw-arc__controls input[type="range"] { width: min(22rem, 55vw); }
+    .aw-arc__card { border-radius: 12px; background: var(--bg-deep); padding: 0.85rem 1rem; }
+    .aw-arc__stage { color: var(--ink); font-size: 0.98rem; }
+    .aw-arc__stage span { color: var(--ink-2); font-size: 0.82rem; }
+    .aw-arc__directive {
+      margin: 0.5rem 0 0; padding: 0.6rem 0.75rem; border-radius: 8px; background: var(--viz-surface); border: 1px solid var(--border);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.78rem; line-height: 1.55; color: var(--ink); white-space: pre-wrap;
+    }
+    .aw-arc__group { margin-top: 0.7rem; }
+    .aw-arc__label { font-size: 0.76rem; color: var(--ink-2); margin-bottom: 0.3rem; }
+    .aw-arc__cues, .aw-arc__kws { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .aw-arc__cues :global(li) { display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.82rem; color: var(--ink); background: var(--viz-surface); border: 1px solid var(--border); border-radius: 999px; padding: 0.2rem 0.65rem; }
+    .aw-arc__cues :global(.pips) { display: inline-flex; gap: 2px; }
+    .aw-arc__cues :global(.pips i) { width: 4px; height: 10px; border-radius: 1px; background: var(--border); }
+    .aw-arc__cues :global(.pips i.on) { background: var(--accent-from); }
+    .aw-arc__cues :global(.lvl) { color: var(--ink-2); font-size: 0.76rem; }
+    .aw-arc__kws :global(li) { font-size: 0.8rem; color: var(--ink-2); border: 1px dashed var(--border); border-radius: 999px; padding: 0.15rem 0.6rem; }
+    @media (max-width: 640px) {
+      .aw-arc__name { display: none; }
+      .aw-arc__num { display: inline; }
+      .aw-arc__band { height: 2.4rem; }
+      .aw-arc__ticks span:last-child { display: none; } /* 100% would collide with 90% */
+    }
+  </style>
+</figure>
+
+<script>
+  import { onEachPage } from '@/scripts/viz';
+  import { classicArc } from '@/data/projects/aether-weaver';
+
+  const LEVEL = { Low: 1, Medium: 2, High: 3 } as const;
+
+  onEachPage('.aw-arc', (root) => {
+    const input = root.querySelector<HTMLInputElement>('[data-progress]')!;
+    const marker = root.querySelector<HTMLElement>('[data-marker]')!;
+    const segs = [...root.querySelectorAll<HTMLButtonElement>('.aw-arc__seg')];
+    const $ = (sel: string) => root.querySelector<HTMLElement>(sel)!;
+
+    function render() {
+      const p = Number(input.value) / 100;
+      const i = classicArc.reduce((k, s, j) => (p >= s.start ? j : k), 0);
+      const s = classicArc[i];
+      marker.style.left = `${p * 100}%`;
+      segs.forEach((b, j) => b.classList.toggle('is-active', j === i));
+      $('[data-pct]').textContent = `${Math.round(p * 100)}%`;
+      $('[data-stage]').textContent = `${i + 1}. ${s.name}`;
+      $('[data-starts]').textContent = s.start === 0 ? '(from the start)' : `(from ${Math.round(s.start * 100)}% of the story)`;
+      $('[data-directive]').textContent = `Stage: ${s.name}\nGoal: ${s.goal}`;
+
+      const cues = $('[data-cues]');
+      cues.replaceChildren();
+      for (const [tone, level] of s.cues) {
+        const li = document.createElement('li');
+        const pips = document.createElement('span');
+        pips.className = 'pips';
+        pips.setAttribute('aria-hidden', 'true');
+        for (let k = 1; k <= 3; k++) { const b = document.createElement('i'); if (k <= LEVEL[level]) b.className = 'on'; pips.appendChild(b); }
+        const lvl = document.createElement('span');
+        lvl.className = 'lvl';
+        lvl.textContent = level;
+        li.append(tone, ' ', pips, lvl); // the space keeps "Tension High" apart for screen readers
+        cues.appendChild(li);
+      }
+      const kws = $('[data-kws]');
+      kws.replaceChildren();
+      for (const k of s.keywords) { const li = document.createElement('li'); li.textContent = k; kws.appendChild(li); }
+      $('[data-kw-group]').hidden = s.keywords.length === 0;
+    }
+
+    input.addEventListener('input', render);
+    segs.forEach((b) => b.addEventListener('click', () => {
+      input.value = String(Math.round(Number(b.dataset.start) * 100 + 2));
+      render();
+    }));
+    render();
+  });
+</script>

@@ -1,0 +1,494 @@
+---
+import { Code } from 'astro:components';
+import { Image } from 'astro:assets';
+import { getEntry } from 'astro:content';
+import elaraCharacter from '@/assets/projects/aether-weaver/elara-character.png';
+import elaraScene from '@/assets/projects/aether-weaver/elara-scene.png';
+import PostLayout from '@/layouts/PostLayout.astro';
+import Architecture from '@/components/projects/aether/Architecture.astro';
+import DirectorPipeline from '@/components/projects/aether/DirectorPipeline.astro';
+import SceneGraphNetwork from '@/components/projects/aether/SceneGraphNetwork.astro';
+import DynamicSceneGraph from '@/components/projects/aether/DynamicSceneGraph.astro';
+import ArcTimeline from '@/components/projects/aether/ArcTimeline.astro';
+import ToneMapper from '@/components/projects/aether/ToneMapper.astro';
+import ResultsChart from '@/components/projects/aether/ResultsChart.astro';
+import '@/styles/viz.css';
+
+// Title, description, tags and paper link come from the project's entry in src/content/projects/.
+const project = (await getEntry('projects', 'aether-weaver'))!;
+const paperUrl = project.data.url ?? 'https://arxiv.org/abs/2507.21893';
+const themes = { light: 'github-light', dark: 'github-dark' } as const;
+
+const bibtex = `@misc{ghorbani2025aetherweaver,
+  title         = {Aether Weaver: Multimodal Affective Narrative Co-Generation with Dynamic Scene Graphs},
+  author        = {Ghorbani, Saeed},
+  year          = {2025},
+  eprint        = {2507.21893},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CV},
+  url           = {https://arxiv.org/abs/2507.21893}
+}`;
+
+const codePrompt = `def narrator_prompt(story, arc, tones, graph):
+    stage = arc.stage_at(story.progress)
+    return "\\n\\n".join([
+        story.user_inputs,                      # premise, characters, setting, style
+        "Story so far: " + story.summary,
+        f"Stage: {stage.name}. Goal: {stage.goal}",
+        "Mood: " + tones.directive(stage),      # from the Affective Tone Mapper
+        "Current world state:\\n" + graph.describe(),
+    ])`;
+
+const codeDirector = `def apply(graph, changes):
+    # Check first: nobody changes place unless the text moves them
+    for a, rel, b in changes.new_edges:
+        if rel == "IS AT" and graph.location(a) not in (None, b) and not changes.moves(a):
+            return flag(f"{a} is at {graph.location(a)}, not {b}")   # back to the Narrator
+
+    for node in changes.removed:
+        graph.remove_node(node)                 # its edges go with it
+    for a, rel, b in changes.new_edges:
+        if rel == "IS AT":
+            graph.remove_edges(a, "IS AT")      # nobody can be in two places
+        graph.add_edge(a, rel, b)
+    for node, key, value in changes.attributes:
+        graph.nodes[node][key] = value
+    return graph`;
+
+const codeStage = `STAGES = [("Exposition", 0.00), ("Rising Action", 0.25), ("Climax", 0.65),
+          ("Falling Action", 0.80), ("Resolution", 0.90)]
+
+def stage_at(progress):                         # scenes written / scenes planned
+    return [name for name, start in STAGES if progress >= start][-1]`;
+
+const codeModulate = `def combine(user_tones, stage):
+    tones = list(user_tones)
+    # A strongly negative stage turns the user's positive moods down a notch
+    if any(t in NEGATIVE and level == "High" for t, level in stage.cues):
+        tones = [(t, lower(level) if t in POSITIVE else level) for t, level in tones]
+    return tones + stage.cues                   # the stage always adds its own cues`;
+---
+<PostLayout title={project.data.title} description={project.data.description} ogImage="/images/projects/aether-weaver.jpg" back={{ href: '/#projects', label: 'Projects' }}>
+  <div slot="header" class="aw-header">
+    <ul class="aw-header__tags">{project.data.tags.map((t) => <li>{t}</li>)}</ul>
+    <p class="aw-header__cta">
+      <a class="aw-header__primary" href={paperUrl} target="_blank" rel="noopener">Read the paper →</a>
+      <a href="#citation">Cite</a>
+    </p>
+  </div>
+  <p>
+    If you have played with AI storytelling tools you have probably seen something like this. In the text, the
+    heroine drops her lantern in the river; two pictures later she is holding it again. A character who is
+    terrified on the page is calmly smiling in the illustration. And the soundtrack is vaguely "ominous" whatever
+    is actually going on.
+  </p>
+  <p>
+    Most of the time the culprit is the pipeline. The usual way to build these systems is a cascade: a language
+    model writes the story, and then separate modules read the finished text and make pictures and sounds for
+    it<a href="#ref-arif" class="cite">[2]</a><a href="#ref-seed" class="cite">[3]</a>. Each step only sees what
+    the step before it wrote down, and nothing keeps track of the world the story is happening in: who is where,
+    what they are holding, and what state things are in.
+  </p>
+  <p>
+    Aether Weaver<a href="#ref-aw" class="cite">[1]</a> is my attempt at doing this differently. Rather than
+    writing the story first and decorating it afterwards, it generates the text, a structured model of the
+    story's world, the pictures and the sound cues together, one scene at a time, with each piece feeding the
+    others. In this article I want to walk through how it works, using one story from the paper as a running
+    example: Elara, who meets the spirit of an ancient tree called the Elderwood.
+  </p>
+  <p>
+    The article is split into a few parts. First, an overview of the whole loop. Then one section for each of the
+    three components that do the steering: the Director, which keeps a dynamic scene graph of the story's world; the Narrative Arc Controller,
+    which keeps the plot on track; and the Affective Tone Mapper, which keeps the mood consistent across text,
+    pictures and sound. After that I'll show how characters stay recognisable from picture to picture, what the
+    expert evaluation found, and what I learned along the way. The code snippets are simplified Python sketches of
+    the ideas rather than the production code.
+  </p>
+  <ul class="toc">
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#director">The Dynamic Scene Graph</a></li>
+    <li><a href="#arc">The Narrative Arc Controller</a></li>
+    <li><a href="#tone">The Affective Tone Mapper</a></li>
+    <li><a href="#characters">Keeping Characters Recognisable</a></li>
+    <li><a href="#results">Does It Work?</a></li>
+    <li><a href="#lessons">Lessons</a></li>
+    <li><a href="#next">What's Next</a></li>
+    <li><a href="#citation">Citation</a></li>
+  </ul>
+
+  <h2 id="overview">Overview</h2>
+  <p>
+    Here is the set-up. Before a story starts, you give Aether Weaver a premise, optionally some characters and a
+    setting, a narrative arc (a Classic Arc, a Tragedy, a Hero's Journey and so on), one to three moods with an
+    intensity each ("Mystery: High", "Hope: Medium"), and a visual style. Then it writes the story one scene at a
+    time.
+  </p>
+
+  <Architecture />
+
+  <p>
+    Five components take part in every scene. The <strong>Narrative Arc Controller</strong> works out where we are
+    in the plot and what this scene should achieve. The <strong>Affective Tone Mapper</strong> turns the moods into
+    concrete guidance. The <strong>Narrator</strong>, a large language model, writes the scene along with a list of
+    sound cues. The <strong>Director</strong> reads what was written and updates its model of the world, or pushes
+    back if something doesn't add up. Finally, the <strong>Visual Scene Generator</strong> combines all of this into
+    one detailed image prompt and draws the scene.
+  </p>
+  <p>
+    The key difference from a cascade is the loop between the Narrator and the Director. The Narrator doesn't just
+    get "the story so far": every prompt also carries the current state of the world. Roughly, it is put together
+    like this:
+  </p>
+  <Code code={codePrompt} lang="python" themes={themes} defaultColor={false} />
+  <p>Each of those lines comes from a different component, so let's go through them in turn.</p>
+
+  <h2 id="director">The Dynamic Scene Graph</h2>
+  <p>
+    If there is one idea at the centre of Aether Weaver, it is this one. The Director keeps a <em>dynamic scene
+    graph</em>: a structured record of what is true in the story right now, which it updates after every scene.
+    Everything else reads from it: the Narrator's next scene, the picture for this one, and the writer's edits. It
+    is the system's single source of truth about the story's world.
+  </p>
+
+  <h3>What's in the graph</h3>
+  <p>
+    The graph has three kinds of things. <strong>Nodes</strong> are the entities in the story: characters, key
+    objects, locations and events. <strong>Edges</strong> are directed relations between them, such as "Elara IS AT
+    the Elderwood" or "the Forgotten Shrine is INSIDE the Whispering Woods". And <strong>attributes</strong> hang off
+    both: Elara's mood is "wonder and determination", the Elderwood "has spirit: true", and the shrine "contains
+    relic: true". Formally, it is a directed graph <em>G</em> = (<em>V</em>, <em>E</em>, <em>A</em>) of nodes, edges
+    and attributes.
+  </p>
+  <p>
+    Here is the actual graph the Director produced after the first scene of Elara's story, node for node and edge
+    for edge from the paper. Entities are circles, their attributes hang off them as small labels, arrows are
+    relations, and the dashed lines link the Spirit Revelation event to the two entities that took part in it:
+  </p>
+
+  <SceneGraphNetwork />
+
+  <p>
+    Scene graphs are a standard way of describing what is in an image in computer
+    vision<a href="#ref-johnson" class="cite">[4]</a>. What makes this one <em>dynamic</em> is that it describes a
+    world that changes. Characters move, objects break and new people arrive, and the graph has to keep up, scene
+    after scene.
+  </p>
+
+  <h3>How it changes</h3>
+  <p>
+    After every scene, the Director turns the Narrator's prose into updates. Three steps read the new text side by
+    side, and their findings are merged and then applied:
+  </p>
+
+  <DirectorPipeline />
+
+  <p>
+    Named entity recognition finds the characters, objects and places in the scene, and any new ones become nodes.
+    Relation extraction works out how they relate: who does what, what is near or inside what, and what caused
+    what. Attribute updates catch changes of state, like the paper's example "The once gleaming artifact was now
+    tarnished". The findings are merged into one list of proposed changes, which is then applied: nodes added or
+    removed, edges updated and attributes modified.
+  </p>
+  <p>
+    The last two steps are what keep the world honest. Spatial reasoning tracks relative positions (near, inside,
+    on), so that nothing teleports or overlaps without the story saying so. Consistency enforcement runs basic
+    logical checks: if something leaves the story, its relations go with it, and if a character moves, their old
+    location is replaced. And if a proposed change doesn't make sense, the Director doesn't apply it. It raises a
+    flag, or sends a corrective prompt back to the Narrator.
+  </p>
+
+  <h3>Watching it change</h3>
+  <p>
+    Here is that loop on Elara's story. Step 1 is the graph exactly as the Director produced it after scene 1 in the
+    paper. Steps 2 and 3 are my illustration: two sentences I wrote for this page, and what the Director's rules do
+    with them.
+  </p>
+
+  <DynamicSceneGraph />
+
+  <p>
+    In step 2, Elara walks to the shrine. The Director finds her, the spirit and the shrine (all already in the
+    graph), extracts the move and updates her location: the old IS AT edge goes, a new one points to the Forgotten
+    Shrine, and spatial reasoning notes that she is still inside the Whispering Woods. In step 3, a careless next
+    sentence has her resting under the Elderwood again, with no journey back. A cascade would happily draw her under
+    the tree. The Director catches the teleport instead, leaves the graph as it is, and asks the Narrator to fix the
+    scene.
+  </p>
+  <p>The core of these rules fits in a few lines:</p>
+  <Code code={codeDirector} lang="python" themes={themes} defaultColor={false} />
+
+  <h3>Who reads the graph</h3>
+  <ul>
+    <li><strong>The Narrator.</strong> Every prompt includes the current world state, as in the sketch above, so the
+      next scene starts from the facts rather than from a summary of what happened.</li>
+    <li><strong>The Visual Scene Generator.</strong> It gets the scene graph along with the text, so the image prompt
+      can say who is in the scene, where they are and in what state, instead of guessing from the prose.</li>
+    <li><strong>You.</strong> The graph is shown alongside the story and can be edited directly. Edit a scene's text
+      instead, and the Director re-reads it and updates the graph to match, creating profiles for any new
+      characters.</li>
+  </ul>
+  <p>
+    That last point is easy to overlook, but it matters. Because the world state is explicit, a mistake can be fixed
+    once, in the graph, instead of in every scene and picture that follows.
+  </p>
+
+  <h2 id="arc">The Narrative Arc Controller</h2>
+  <p>
+    Ask a language model for a story with a beginning, a middle and an end and you'll usually get one. But ask it
+    to keep writing scene after scene and it tends to meander. The Narrative Arc Controller fixes this with
+    something very simple: a state machine. Each arc type (Classic Arc, Tragedy, Hero's Journey, Rags to Riches,
+    Quest and Character Arc) is a sequence of stages, and each stage comes with a goal, some mood cues and a few
+    keywords. Here is the Classic Arc:
+  </p>
+
+  <ArcTimeline />
+
+  <p>
+    The interesting design choice is when to move from one stage to the next. You could wait for an event ("the
+    climax has happened"), or ask the Narrator whether it thinks the stage is finished. I went with the simplest
+    thing that could work: each stage starts at a fixed fraction of the planned story. With ten planned scenes,
+    the climax arrives about two thirds of the way through, whatever else is going on.
+  </p>
+  <Code code={codeStage} lang="python" themes={themes} defaultColor={false} />
+  <p>
+    This sounds almost too simple, but it worked well, and it is predictable, which matters when a person is
+    co-writing with the system. The stage's goal goes straight into the Narrator's prompt as a directive, and its
+    mood cues go to the Affective Tone Mapper.
+  </p>
+
+  <h2 id="tone">The Affective Tone Mapper</h2>
+  <p>
+    Mood is where text, pictures and sound most easily drift apart. "Mystery" means something to a language model,
+    something else to an image generator, and something else again to whoever (or whatever) picks the sounds. The
+    Affective Tone Mapper bridges this with a small knowledge base: for every mood, how to express it in words, in
+    sound and in pictures, at three intensities.
+  </p>
+
+  <ToneMapper />
+
+  <p>
+    So for every scene the mapper produces three things: a directive for the Narrator, a list of sound cues and a
+    list of visual cues. The difference shows up in the details. In the evaluation, a character's "growing dread"
+    led Aether Weaver to suggest "low, rising dissonance" and "exaggerated heartbeat sounds", where the baseline
+    offered generic cues like "ominous music".
+  </p>
+  <p>
+    The mapper also listens to the arc. The current stage always adds its own mood cues, and a strongly negative
+    stage turns your positive moods down a notch, so a story you asked to be joyful doesn't stay cheerful through
+    its darkest moment:
+  </p>
+  <Code code={codeModulate} lang="python" themes={themes} defaultColor={false} />
+
+  <h2 id="characters">Keeping Characters Recognisable</h2>
+  <p>
+    Text is the easy part to keep consistent. Pictures are much harder, because every scene is drawn from scratch
+    by a text-to-image model, and if the prompt just says "Elara" you get a different Elara every time. Aether Weaver
+    tackles this with what the paper calls multimodal character grounding.
+  </p>
+  <p>
+    Each character starts with a profile: name, description, personality, appearance and clothing. If you upload a
+    portrait, that becomes the reference. If not, the system generates one from the profile, a full-body view and a
+    close-up. Then a vision model looks at that image and writes back a much more detailed description of what the
+    character actually looks like. From then on, whenever the character is in a scene, that description is added
+    to the image prompt.
+  </p>
+
+  <figure class="post-figure aw-ground">
+    <div class="aw-ground__row">
+      <Image src={elaraCharacter} alt="Elara's reference image: a full-body view and a close-up of a red-haired character with green eyes, braids, a leafy green outfit, a wooden staff and a fox." width={560} class="aw-ground__img" />
+      <span class="aw-ground__arrow" aria-hidden="true">→</span>
+      <Image src={elaraScene} alt="A scene with Elara and the fox standing before a huge glowing tree with a face, in a dark forest." width={560} class="aw-ground__img" />
+    </div>
+    <figcaption>
+      Left: Elara's reference image, generated from her profile. A vision model describes it in detail, and that
+      description goes into every image prompt she appears in. Right: a scene with Elara, drawn with that
+      description in the prompt. Both images were generated by Aether Weaver (Figure 3 of the paper).
+    </figcaption>
+  </figure>
+
+  <p>
+    It helps a lot, but it isn't a guarantee: the image model still draws every scene from nothing, so small
+    details can drift. That is one of the limitations I come back to at the end.
+  </p>
+  <p>
+    The writer also stays in charge of where the story goes. Besides editing scenes and the scene graph, there is a
+    Plot Twist feature: pick one of the twists the model suggests, or write your own, and the Narrator builds the
+    next scene around it, with new visual and sound cues to match.
+  </p>
+
+  <h2 id="results">Does It Work?</h2>
+  <p>
+    To evaluate it, I put together 10 story prompts across genres such as sci-fi and fantasy. Each came with one to
+    three moods at chosen intensities, and a standard arc. The baseline was a cascade similar to Arif et
+    al.<a href="#ref-arif" class="cite">[2]</a>: a language model writes the whole story first, then entity
+    extraction feeds a generic image prompt and a simple soundscape description (if the text says "ominous", you
+    get "ominous sounds"). There is no scene graph and no mood control.
+  </p>
+  <p>
+    A panel of 10 experts (professional writers, game designers, and AI researchers who work on narrative systems)
+    rated the results on a five-point scale:
+  </p>
+
+  <ResultsChart />
+
+  <p>
+    The pattern is what you would hope for, given where each component acts. Fluency barely moves: modern language
+    models already write fluent prose, and both systems used one. The big gaps are in visual coherence (4.23
+    against 2.85) and affective alignment (4.67 against 3.28), the two things the Director and the mood controls are
+    there for. The experts' notes say the same: the baseline often forgot objects, put characters in inconsistent
+    poses or places, and didn't update the state of things, and its emotional tone was often flat, or shifted
+    without a reason.
+  </p>
+  <p>
+    I want to be clear about what kind of evaluation this is: a small expert study, reported as average ratings. It
+    tells you that people who know stories found the output clearly better. It doesn't count how often the system
+    still gets things wrong. Measuring that directly, for example by counting continuity errors per thousand words,
+    or by checking whether a story's emotional curve really follows the requested arc, would make a good next
+    experiment.
+  </p>
+
+  <h2 id="lessons">Lessons</h2>
+  <h3>Give the model a world, not just a history</h3>
+  <p>
+    A summary of the story so far tells a language model what happened. It doesn't tell it what is true now.
+    Making the world state explicit, and giving a separate step the job of maintaining it, is the core idea of
+    Aether Weaver, and visual coherence is where the biggest improvement showed up.
+  </p>
+  <h3>A little structure goes a long way</h3>
+  <p>
+    The arc controller is just a list of stages with a threshold each. Simple, predictable rules gave the plots a
+    shape that the experts noticed: arc adherence went from 3.45 to 4.30.
+  </p>
+  <h3>Every medium needs its own vocabulary for a mood</h3>
+  <p>
+    Pass the word "mystery" to three different models and you get three unrelated ideas of mystery. Translating it
+    once, into words, sounds and visual cues, keeps them in step.
+  </p>
+  <h3>Pictures forget faster than words</h3>
+  <p>
+    The text stayed consistent much more easily than the images. Most of the inconsistency that remains comes from
+    drawing each scene from scratch.
+  </p>
+  <h3>Keep the writer in the loop</h3>
+  <p>
+    Making the scene graph readable and editable turns a black box into something a writer can steer, and it means
+    a mistake can be fixed in one place instead of in every scene that follows.
+  </p>
+
+  <h2 id="next">What's Next</h2>
+  <p>There is plenty left to do. These are the main gaps:</p>
+  <ul>
+    <li><strong>Space.</strong> The Director only tracks relative positions like "near" and "inside". A real 3D
+      representation of the scene, perhaps through a game engine, would allow much richer spatial reasoning.</li>
+    <li><strong>Subtle emotions.</strong> Implicit emotional shifts are still hard to carry across text, pictures and
+      sound. Characters with more psychological depth would help.</li>
+    <li><strong>Long stories.</strong> Keeping a long story coherent still benefits from a person keeping an eye on
+      it. Better memory and planning would reduce that.</li>
+    <li><strong>Consistent pictures.</strong> Personalised image generation, such as
+      DreamBooth<a href="#ref-dreambooth" class="cite">[5]</a> or textual
+      inversion<a href="#ref-ti" class="cite">[6]</a>, could keep characters and places the same across
+      scenes.</li>
+    <li><strong>Voices.</strong> The system creates soundscapes but no speech. Expressive speech synthesis would let
+      the characters talk.</li>
+  </ul>
+
+  <h2 id="citation">Citation</h2>
+  <p>If you use Aether Weaver or build on these ideas, please cite the paper:</p>
+  <p class="cite-text">
+    Saeed Ghorbani. <a href={paperUrl}>Aether Weaver: Multimodal Affective Narrative Co-Generation with Dynamic Scene
+    Graphs</a>. arXiv:2507.21893, 2025.
+  </p>
+  <div class="bib">
+    <div class="bib__bar">
+      <span>BibTeX</span>
+      <button type="button" class="bib__copy" data-copy-bib data-bib={bibtex}>Copy</button>
+    </div>
+    <Code code={bibtex} lang="bibtex" themes={themes} defaultColor={false} />
+  </div>
+
+  <h2 id="references">References</h2>
+  <ol class="refs">
+    <li id="ref-aw">S. Ghorbani.
+      <a href="https://arxiv.org/abs/2507.21893">Aether Weaver: Multimodal Affective Narrative Co-Generation with Dynamic Scene Graphs</a>. arXiv:2507.21893, 2025.</li>
+    <li id="ref-arif">S. Arif, T. Arif, M. S. Haroon, A. J. Khan, A. A. Raza, A. Athar.
+      <a href="https://arxiv.org/abs/2409.11261">The Art of Storytelling: Multi-Agent Generative AI for Dynamic Multimodal Narratives</a>. arXiv:2409.11261, 2024.</li>
+    <li id="ref-seed">S. Yang, Y. Ge, Y. Li, Y. Chen, Y. Ge, Y. Shan, Y. Chen.
+      <a href="https://arxiv.org/abs/2407.08683">SEED-Story: Multimodal Long Story Generation with Large Language Model</a>. arXiv:2407.08683, 2024.</li>
+    <li id="ref-johnson">J. Johnson, A. Gupta, L. Fei-Fei.
+      <a href="https://arxiv.org/abs/1804.01622">Image Generation from Scene Graphs</a>. CVPR 2018.</li>
+    <li id="ref-dreambooth">N. Ruiz, Y. Li, V. Jampani, Y. Pritch, M. Rubinstein, K. Aberman.
+      <a href="https://arxiv.org/abs/2208.12242">DreamBooth: Fine Tuning Text-to-Image Diffusion Models for Subject-Driven Generation</a>. CVPR 2023.</li>
+    <li id="ref-ti">R. Gal, Y. Alaluf, Y. Atzmon, O. Patashnik, A. H. Bermano, G. Chechik, D. Cohen-Or.
+      <a href="https://arxiv.org/abs/2208.01618">An Image is Worth One Word: Personalizing Text-to-Image Generation using Textual Inversion</a>. arXiv:2208.01618, 2022.</li>
+  </ol>
+
+  <style>
+    .cite { font-size: 0.72em; vertical-align: super; margin-left: 0.1em; text-decoration: none !important; }
+    .toc { list-style: none; padding: 0 !important; margin: var(--space-sm) 0 var(--space-md); display: grid; gap: 0.25rem; }
+    .toc li { margin: 0; }
+    .toc a { text-decoration: none !important; }
+    .toc a::before { content: "◇"; color: var(--gold); margin-right: 0.5rem; font-size: 0.8em; }
+    .refs { font-size: var(--step--1); color: var(--text-muted); }
+    .refs li { margin-bottom: 0.5rem; }
+    .post-figure { margin: var(--space-md) calc(50% - min(50vw - 1rem, 29rem)); }
+    .post-figure figcaption { font-size: 0.82rem; color: var(--text-muted); margin-top: 0.6rem; text-align: center; }
+    .aw-ground__row { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 0.75rem; }
+    .aw-ground :global(.aw-ground__img) { width: 100%; height: auto; border-radius: 14px; border: 1px solid var(--border); margin: 0 !important; }
+    .aw-ground__arrow { font-size: 1.6rem; color: var(--text-muted); }
+    .aw-header__tags { display: flex; flex-wrap: wrap; gap: 0.4rem; list-style: none; padding: 0; margin: var(--space-sm) 0 0; }
+    .aw-header__tags li { font-size: var(--step--1); color: var(--accent-from); border: 1px solid var(--border); border-radius: 999px; padding: 0.15rem 0.6rem; }
+    /* Same as the personal project pages: one solid accent pill, then plain underlined links. */
+    .aw-header__cta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-sm) var(--space-md); margin-top: var(--space-md); }
+    .aw-header__cta a { color: var(--text); font-weight: 500; text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--accent-from) 45%, transparent); text-underline-offset: 0.25em; }
+    .aw-header__cta a:hover { color: var(--accent-from); }
+    .aw-header__cta .aw-header__primary { text-decoration: none; padding: 0.6rem 1.25rem; border-radius: 999px; background: var(--accent-from); color: var(--badge-text); }
+    .aw-header__cta .aw-header__primary:hover { color: var(--badge-text); background: color-mix(in srgb, var(--accent-from) 85%, var(--text)); }
+    .cite-text { padding: 0.8rem 1rem; border-left: 3px solid var(--gold); background: var(--bg-deep); border-radius: 0 10px 10px 0; }
+    .bib__bar { display: flex; justify-content: space-between; align-items: center; margin-top: var(--space-sm); font-size: var(--step--1); color: var(--text-muted); }
+    .bib__copy {
+      font: inherit; font-size: 0.8rem; cursor: pointer; color: var(--text); background: var(--surface);
+      border: 1px solid var(--border); border-radius: 999px; padding: 0.2rem 0.85rem;
+    }
+    .bib__copy:hover { border-color: var(--accent-from); }
+    @media (max-width: 640px) {
+      .aw-ground__row { grid-template-columns: 1fr; }
+      .aw-ground__arrow { justify-self: center; transform: rotate(90deg); }
+    }
+  </style>
+  <style is:global>
+    /* Code blocks: Shiki dual themes, switched by the site's dark class. */
+    .post__body pre.astro-code {
+      margin: var(--space-sm) 0 var(--space-md);
+      padding: 1rem 1.15rem;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background-color: var(--bg-deep) !important;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.8rem;
+      line-height: 1.6;
+      overflow-x: auto;
+    }
+    .post__body pre.astro-code span { color: var(--shiki-light); background-color: transparent !important; }
+    html.dark .post__body pre.astro-code span { color: var(--shiki-dark); }
+  </style>
+</PostLayout>
+
+<script>
+  import { onEachPage } from '@/scripts/viz';
+
+  // Copy the paper's BibTeX entry to the clipboard.
+  onEachPage('[data-copy-bib]', (btn) => {
+    btn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(btn.dataset.bib ?? '');
+        btn.textContent = 'Copied';
+      } catch {
+        // No clipboard access (old browser, embedded view): select the entry so a keypress copies it.
+        const pre = btn.closest('.bib')?.querySelector('pre');
+        if (pre) window.getSelection()?.selectAllChildren(pre);
+        btn.textContent = 'Selected: press Ctrl/⌘+C';
+      }
+      setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+    });
+  });
+</script>

@@ -7,7 +7,8 @@ import Button from '@/components/ui/Button.astro';
 
 export async function getStaticPaths() {
   const projects = await getCollection('projects');
-  return projects.map((p) => ({ params: { slug: p.id }, props: { project: p } }));
+  // Projects with their own page (customPage) are built from src/pages/projects/<id>.astro instead.
+  return projects.filter((p) => !p.data.customPage).map((p) => ({ params: { slug: p.id }, props: { project: p } }));
 }
 
 const { project } = Astro.props;

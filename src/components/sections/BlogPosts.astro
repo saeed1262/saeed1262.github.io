@@ -22,7 +22,7 @@ const latest = posts.slice(0, 3);
               </a>
             )}
             <div class="bp__body">
-              <p class="bp__meta"><time datetime={p.date}>{formatDateFull(p.date)}</time> · {p.readingMinutes} min read</p>
+              <p class="bp__meta"><time datetime={p.date}>{formatDateFull(p.date)}</time></p>
               <h3 class="bp__title"><a href={`/blog/${p.slug}/`}>{p.title}</a></h3>
               <p class="bp__desc">{p.description}</p>
               <ul class="bp__tags">{p.tags.map((t) => <li>{t}</li>)}</ul>

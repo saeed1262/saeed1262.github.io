@@ -1,0 +1,92 @@
+---
+// The Affective Tone Mapper's knowledge-base entry for "Mystery" (from the
+// paper's supplementary material), at the three intensities.
+import { mystery } from '@/data/projects/aether-weaver';
+---
+<figure class="viz aw-tone">
+  <div class="viz__head">
+    <p class="viz__title">One mood, three vocabularies</p>
+    <p class="viz__sub">The Affective Tone Mapper's entry for <em>{mystery.tone}</em>: {mystery.summary.toLowerCase().replace(/\.$/, '')}</p>
+  </div>
+  <div class="viz-controls">
+    <span>Intensity</span>
+    <div class="viz-seg" role="group" aria-label="Mystery intensity">
+      <button type="button" data-level="Low" aria-pressed="false">Low</button>
+      <button type="button" data-level="Medium" aria-pressed="true">Medium</button>
+      <button type="button" data-level="High" aria-pressed="false">High</button>
+    </div>
+  </div>
+  <div class="aw-tone__cols" aria-live="polite">
+    <section class="aw-tone__col">
+      <p class="aw-tone__head">For the Narrator</p>
+      <ul class="aw-tone__kws" data-kws="words"></ul>
+      <ul class="aw-tone__general">{mystery.modifiers.map((m) => <li>{m}</li>)}</ul>
+    </section>
+    <section class="aw-tone__col">
+      <p class="aw-tone__head">For the soundscape</p>
+      <ul class="aw-tone__kws" data-kws="sound"></ul>
+      <p class="aw-tone__general">{mystery.sound}</p>
+    </section>
+    <section class="aw-tone__col">
+      <p class="aw-tone__head">For the image</p>
+      <ul class="aw-tone__kws" data-kws="visual"></ul>
+      <p class="aw-tone__general">{mystery.visual}</p>
+    </section>
+  </div>
+  <div class="aw-tone__mod">
+    <p class="aw-tone__head">When the arc and your moods disagree</p>
+    <div class="aw-tone__flow">
+      <span class="aw-tone__chip">Arc stage cue: <b>Despair · High</b></span>
+      <span class="aw-tone__plus" aria-hidden="true">+</span>
+      <span class="aw-tone__chip">You asked for: <b>Joy · High</b></span>
+      <span class="aw-tone__arrow" aria-hidden="true">→</span>
+      <span class="aw-tone__chip aw-tone__chip--out">Sent to the Narrator: <b>Despair · High</b>, <b>Joy · Medium</b></span>
+    </div>
+  </div>
+  <figcaption class="viz__caption">
+    The keywords (top of each column) change with intensity; the general guidance below them applies at every
+    intensity. The Despair-and-Joy example is the paper's.
+  </figcaption>
+  <style>
+    .aw-tone__cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; }
+    .aw-tone__col { border-radius: 12px; background: var(--bg-deep); padding: 0.75rem 0.85rem; }
+    .aw-tone__head { font-size: 0.8rem; font-weight: 650; color: var(--ink); margin-bottom: 0.45rem; }
+    .aw-tone__kws { list-style: none; padding: 0; margin: 0 0 0.6rem; display: flex; flex-wrap: wrap; gap: 0.35rem; min-height: 3.6rem; align-content: flex-start; }
+    .aw-tone__kws :global(li) { font-size: 0.82rem; color: var(--ink); background: var(--viz-surface); border: 1px solid color-mix(in srgb, var(--accent-from) 45%, var(--border)); border-radius: 999px; padding: 0.15rem 0.6rem; }
+    .aw-tone__general { font-size: 0.76rem; color: var(--ink-2); line-height: 1.45; margin: 0; padding: 0; list-style: none; }
+    ul.aw-tone__general li { margin-bottom: 0.3rem; }
+    .aw-tone__mod { margin-top: 0.85rem; border-radius: 12px; border: 1px dashed var(--border); padding: 0.75rem 0.85rem; }
+    .aw-tone__flow { display: flex; flex-wrap: wrap; align-items: center; gap: 0.45rem; font-size: 0.82rem; color: var(--ink-2); }
+    .aw-tone__chip { background: var(--bg-deep); border-radius: 8px; padding: 0.3rem 0.6rem; }
+    .aw-tone__chip b { color: var(--ink); font-weight: 600; }
+    .aw-tone__chip--out { background: color-mix(in srgb, var(--accent-from) 12%, var(--viz-surface)); }
+    .aw-tone__plus, .aw-tone__arrow { color: var(--ink-2); font-weight: 600; }
+    @media (max-width: 720px) {
+      .aw-tone__cols { grid-template-columns: 1fr; }
+      .aw-tone__kws { min-height: 0; }
+    }
+  </style>
+</figure>
+
+<script>
+  import { onEachPage } from '@/scripts/viz';
+  import { mystery, type Level } from '@/data/projects/aether-weaver';
+
+  onEachPage('.aw-tone', (root) => {
+    const buttons = [...root.querySelectorAll<HTMLButtonElement>('[data-level]')];
+    function show(level: Level) {
+      buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.level === level)));
+      const entry = mystery.levels[level];
+      root.querySelectorAll<HTMLElement>('[data-kws]').forEach((ul) => {
+        ul.replaceChildren();
+        for (const k of entry[ul.dataset.kws as 'words' | 'sound' | 'visual']) {
+          const li = document.createElement('li');
+          li.textContent = k;
+          ul.appendChild(li);
+        }
+      });
+    }
+    buttons.forEach((b) => b.addEventListener('click', () => show(b.dataset.level as Level)));
+    show('Medium');
+  });
+</script>
