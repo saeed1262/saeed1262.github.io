@@ -1,0 +1,56 @@
+---
+// UPose3D's pipeline (Figure 1 of the paper), redrawn as HTML so it follows
+// the site theme and stacks on phones.
+---
+<figure class="viz up-pipe" aria-label="UPose3D pipeline. Multi-view video goes into a 2D pose estimator that outputs keypoints and their uncertainty. Keypoints are projected across views into 2D point clouds, refined by the pose compiler, and both sets of keypoints and uncertainties are combined in an optimisation that gives the 3D pose. The pose compiler is trained on synthetic data made from motion capture.">
+  <div class="viz__head">
+    <p class="viz__title">How UPose3D works</p>
+    <p class="viz__sub">Every step keeps an uncertainty next to each keypoint, all the way to the 3D answer</p>
+  </div>
+  <div class="up-pipe__flow">
+    <div class="up-pipe__box up-pipe__box--io">Multi-view video<small>Any number of calibrated cameras</small></div>
+    <div class="up-pipe__arrow" aria-hidden="true"></div>
+    <div class="up-pipe__box">2D pose estimator<small>Per image: each joint's position and uncertainty (an RLE head on CPN or HRNet)</small></div>
+    <div class="up-pipe__arrow" aria-hidden="true"></div>
+    <div class="up-pipe__box">Cross-view projection<small>Every other camera's guess, moved onto this view along its epipolar line: a 2D point cloud per joint</small></div>
+    <div class="up-pipe__arrow" aria-hidden="true"></div>
+    <div class="up-pipe__box up-pipe__box--main">Pose compiler<small>Point-cloud encoder, then a spatiotemporal transformer: refined positions and uncertainties</small></div>
+    <div class="up-pipe__arrow" aria-hidden="true"></div>
+    <div class="up-pipe__box">3D estimation<small>Start from triangulation, then find the 3D point most likely under both sets of uncertainties</small></div>
+    <div class="up-pipe__arrow" aria-hidden="true"></div>
+    <div class="up-pipe__box up-pipe__box--io">3D pose<small>Every joint, every frame, in metres</small></div>
+  </div>
+  <div class="up-pipe__train">
+    <span class="up-pipe__train-label">Training the pose compiler</span>
+    <span>Motion capture (AMASS)</span><i aria-hidden="true">→</i><span>Random virtual cameras</span><i aria-hidden="true">→</i><span>Corrupted 2D keypoints</span><i aria-hidden="true">→</i><span>Point clouds</span>
+    <span class="up-pipe__train-note">No 3D-labelled video needed</span>
+  </div>
+  <figcaption class="viz__caption">Redrawn from Figure 1 of the paper, with the training path from its supplementary material.</figcaption>
+  <style>
+    /* A vertical sequence of steps: name on the left, what it does on the right. */
+    .up-pipe__flow { display: grid; gap: 0; }
+    .up-pipe__box {
+      display: grid; grid-template-columns: 11rem minmax(0, 1fr); align-items: center; gap: 0.9rem;
+      border-radius: 12px; padding: 0.55rem 0.85rem; font-size: 0.9rem; font-weight: 600; color: var(--ink); line-height: 1.3;
+      background: var(--viz-surface); border: 1px solid var(--border); box-shadow: var(--shadow-card);
+    }
+    .up-pipe__box small { font-weight: 400; font-size: 0.8rem; color: var(--ink-2); }
+    .up-pipe__box--io { background: var(--bg-deep); border-style: dashed; box-shadow: none; }
+    .up-pipe__box--main { border-color: color-mix(in srgb, var(--accent-from) 55%, var(--border)); background: color-mix(in srgb, var(--accent-from) 8%, var(--viz-surface)); }
+    .up-pipe__arrow { justify-self: start; margin-left: 5.5rem; position: relative; width: 2px; height: 0.9rem; background: var(--axis); }
+    .up-pipe__arrow::after { content: ""; position: absolute; left: -4px; bottom: -1px; border: 5px solid transparent; border-top-color: var(--axis); border-bottom: 0; }
+    .up-pipe__train {
+      margin-top: 0.9rem; display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.5rem; font-size: 0.8rem; color: var(--ink);
+      padding: 0.6rem 0.75rem; border-radius: 12px; border: 1px dashed var(--border);
+    }
+    .up-pipe__train span:not(.up-pipe__train-label):not(.up-pipe__train-note) { background: var(--bg-deep); border-radius: 8px; padding: 0.2rem 0.55rem; }
+    .up-pipe__train i { font-style: normal; color: var(--ink-2); }
+    .up-pipe__train-label { font-weight: 650; margin-right: 0.3rem; }
+    .up-pipe__train-note { color: var(--ink-2); margin-left: auto; font-size: 0.76rem; }
+    @media (max-width: 640px) {
+      .up-pipe__box { grid-template-columns: 1fr; gap: 0.15rem; }
+      .up-pipe__arrow { margin-left: 1.2rem; }
+      .up-pipe__train-note { margin-left: 0; }
+    }
+  </style>
+</figure>

@@ -1,0 +1,90 @@
+---
+// Criss-cross attention in the spatiotemporal encoder: each (frame, joint)
+// token attends along its row (same frame, every joint) and its column
+// (same joint, every frame) instead of to every token.
+---
+<figure class="viz up-cc">
+  <div class="viz__head">
+    <p class="viz__title">Criss-cross attention, one token at a time</p>
+    <p class="viz__sub">Each square is one joint in one frame. Hover, tap or use the arrow keys to pick a token and see what it attends to.</p>
+  </div>
+  <div class="viz-legend" aria-hidden="true">
+    <span><i class="dot" style="background: var(--k-token)"></i>The token</span>
+    <span><i class="dot" style="background: var(--k-space)"></i>Same frame, every joint (spatial)</span>
+    <span><i class="dot" style="background: var(--k-time)"></i>Same joint, every frame (temporal)</span>
+  </div>
+  <div class="viz__plot" data-plot tabindex="0" role="application" aria-label="Grid of 9 frames by 17 joints. Use the arrow keys to move the selected token."></div>
+  <p class="up-cc__readout" data-readout aria-live="polite"></p>
+  <figcaption class="viz__caption">
+    Shown for 9 frames; the paper's main model uses 27. Stacking several of these layers lets information reach every token, at a
+    fraction of the memory of full attention.
+  </figcaption>
+  <style is:global>
+    .up-cc { --k-token: var(--c-frank); --k-space: var(--c-real); --k-time: var(--c-clean); }
+    .up-cc [data-plot]:focus { outline: none; }
+    .up-cc [data-plot]:focus-visible svg { outline: 2px solid var(--accent-from); outline-offset: 4px; border-radius: 6px; }
+    .up-cc__readout { font-size: 0.84rem; color: var(--ink); margin-top: 0.4rem; font-variant-numeric: tabular-nums; }
+  </style>
+</figure>
+
+<script>
+  import { onEachPage, responsive, svgEl, svgText } from '@/scripts/viz';
+  import { JOINTS } from '@/scripts/multiview';
+
+  const T = 9, J = JOINTS.length;
+
+  onEachPage('.up-cc', (root) => {
+    const plot = root.querySelector<HTMLElement>('[data-plot]')!;
+    let row = 4, col = 13; // middle frame, left wrist
+    let width = 0;
+
+    let rects: SVGRectElement[][] = [];
+
+    // Build the grid once per width; picking a token only recolours it.
+    function build() {
+      if (!width) return;
+      plot.replaceChildren();
+      const left = 46, topPad = 22, gap = 2;
+      const cell = Math.min(30, (width - left - 4) / J - gap);
+      const W = left + J * (cell + gap), H = topPad + T * (cell + gap) + 4;
+      const svg = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'Grid of 9 frames by 17 joints.' }, plot);
+      svgText(svg, left, 12, '17 joints →', { 'font-size': 10.5 });
+      rects = [];
+      for (let t = 0; t < T; t++) {
+        svgText(svg, left - 8, topPad + t * (cell + gap) + cell / 2 + 4, `t${t - 4 >= 0 ? '+' : ''}${t - 4}`, { 'text-anchor': 'end', 'font-size': 10 });
+        rects.push([]);
+        for (let j = 0; j < J; j++) {
+          const rect = svgEl('rect', { x: left + j * (cell + gap), y: topPad + t * (cell + gap), width: cell, height: cell, rx: 3 }, svg);
+          const pick = () => { row = t; col = j; paint(); };
+          rect.addEventListener('pointerenter', pick);
+          rect.addEventListener('click', pick);
+          rects[t].push(rect);
+        }
+      }
+      paint();
+    }
+
+    function paint() {
+      rects.forEach((r, t) => r.forEach((rect, j) => {
+        const isTok = t === row && j === col, inRow = t === row, inCol = j === col;
+        const fill = isTok ? 'var(--k-token)' : inRow ? 'var(--k-space)' : inCol ? 'var(--k-time)' : 'var(--bg-deep)';
+        rect.setAttribute('style', `fill: ${fill}; opacity: ${isTok || !(inRow || inCol) ? 1 : 0.75}`);
+      }));
+      const full = T * J, cc = T + J - 1;
+      root.querySelector('[data-readout]')!.textContent =
+        `${JOINTS[col].name}, frame t${row - 4 >= 0 ? '+' : ''}${row - 4}: attends to ${cc} tokens instead of all ${full}. ` +
+        `With the paper's 27-frame window that is 43 instead of 459, about 11 times fewer.`;
+    }
+
+    plot.addEventListener('keydown', (e) => {
+      const moves: Record<string, [number, number]> = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] };
+      const m = moves[e.key];
+      if (!m) return;
+      e.preventDefault();
+      row = Math.min(T - 1, Math.max(0, row + m[0]));
+      col = Math.min(J - 1, Math.max(0, col + m[1]));
+      paint();
+    });
+    responsive(plot, (w) => { width = w; build(); });
+  });
+</script>

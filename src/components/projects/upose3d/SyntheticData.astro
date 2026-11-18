@@ -1,0 +1,128 @@
+---
+// Synthetic training data (Sec. 3.5 and the supplementary material): a random
+// camera around a motion-capture pose, its clean 2D keypoints, and the four
+// corruptions UPose3D trains the pose compiler to undo.
+---
+<figure class="viz up-syn">
+  <div class="viz__head">
+    <p class="viz__title">Making training data without 3D labels</p>
+    <p class="viz__sub">A random virtual camera, the true 2D keypoints (grey), and a corrupted copy for the pose compiler to learn from</p>
+  </div>
+  <div class="viz-controls">
+    <div class="up-syn__toggles" role="group" aria-label="Corruptions">
+      <button type="button" class="viz-btn" data-c="noise" aria-pressed="true">Noise</button>
+      <button type="button" class="viz-btn" data-c="occlusion" aria-pressed="true">Occlusion</button>
+      <button type="button" class="viz-btn" data-c="flip" aria-pressed="false">Left/right flip</button>
+      <button type="button" class="viz-btn" data-c="truncation" aria-pressed="false">Truncation</button>
+    </div>
+    <button type="button" class="viz-btn" data-new>New random camera</button>
+  </div>
+  <div class="viz-legend" aria-hidden="true">
+    <span><i style="background: var(--axis)"></i>True keypoints</span>
+    <span><i style="background: var(--k-left)"></i>Left side (as labelled)</span>
+    <span><i style="background: var(--k-right)"></i>Right side (as labelled)</span>
+    <span><i class="pill"></i>Occluder / outside the frame</span>
+  </div>
+  <div class="viz__plot" data-plot></div>
+  <p class="up-syn__readout" data-readout aria-live="polite"></p>
+  <figcaption class="viz__caption">
+    The corruptions are the ones listed in the paper's supplementary material: Gaussian noise of varying strength, occlusions of varying
+    size and probability, left/right (mediolateral) flips, and occasional truncation. Strengths here are illustrative.
+  </figcaption>
+  <style is:global>
+    .up-syn { --k-left: var(--c-real); --k-right: var(--c-zeggs); }
+    .up-syn__toggles { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .up-syn .viz-btn[aria-pressed="true"] { background: color-mix(in srgb, var(--accent-from) 16%, var(--viz-surface)); border-color: var(--accent-from); }
+    .up-syn .viz-legend i.pill { width: 14px; height: 9px; border-radius: 3px; background: color-mix(in srgb, var(--ink-2) 25%, transparent); border: 1px solid var(--axis); }
+    .up-syn .gt { stroke: var(--axis); stroke-width: 2; stroke-linecap: round; stroke-dasharray: 3 3; }
+    .up-syn .bone { stroke-width: 3; stroke-linecap: round; }
+    .up-syn .blocker { fill: color-mix(in srgb, var(--ink-2) 22%, transparent); stroke: var(--axis); }
+    .up-syn__readout { font-size: 0.84rem; color: var(--ink); margin-top: 0.4rem; }
+  </style>
+</figure>
+
+<script>
+  import { onEachPage, responsive, svgEl, svgText } from '@/scripts/viz';
+  import { BONES, JOINTS, gauss, lookAt, project, rng, type V2 } from '@/scripts/multiview';
+
+  type Corruption = 'noise' | 'occlusion' | 'flip' | 'truncation';
+  const SWAP = JOINTS.map((j, i) => {
+    if (j.side === 'C') return i;
+    const twin = j.name.replace(j.side === 'L' ? 'left' : 'right', j.side === 'L' ? 'right' : 'left');
+    return JOINTS.findIndex((k) => k.name === twin);
+  });
+
+  onEachPage('.up-syn', (root) => {
+    const plot = root.querySelector<HTMLElement>('[data-plot]')!;
+    const on: Record<Corruption, boolean> = { noise: true, occlusion: true, flip: false, truncation: false };
+    let sample = 3;
+
+    function draw() {
+      const r = rng(1000 + sample);
+      // A camera somewhere on a cylinder around the subject, aimed near its centre (as in the paper).
+      const a = r() * Math.PI * 2, rad = 2.4 + r() * 1.8, h = 0.6 + r() * 1.6;
+      const target: [number, number, number] = [(r() - 0.5) * 0.4, 0.8 + r() * 0.4, (r() - 0.5) * 0.4];
+      const cam = lookAt(0, [Math.sin(a) * rad, h, Math.cos(a) * rad], target);
+      const W = 400, H = 300;
+      const truth = JOINTS.map((j) => project(cam, j.p));
+
+      // Corrupted copy: positions, then which label each position carries, then what is visible.
+      const pts: V2[] = truth.map((p) => (on.noise ? [p[0] + gauss(r) * 5, p[1] + gauss(r) * 5] : [p[0], p[1]]));
+      const labelOf = JOINTS.map((_, i) => (on.flip ? SWAP[i] : i)); // the joint each detection is labelled as
+      // An occluder over a random body part.
+      const anchor = truth[Math.floor(r() * truth.length)];
+      const ow = 55 + r() * 60, oh = 45 + r() * 55;
+      const occ = { x: anchor[0] - ow * (0.3 + r() * 0.4), y: anchor[1] - oh * (0.3 + r() * 0.4), w: ow, h: oh };
+      // Truncation: the frame cuts off the lower part of the image.
+      const ys = truth.map((p) => p[1]);
+      const cut = Math.min(...ys) + (Math.max(...ys) - Math.min(...ys)) * 0.62;
+      const visible = pts.map((p) => {
+        if (on.occlusion && p[0] > occ.x && p[0] < occ.x + occ.w && p[1] > occ.y && p[1] < occ.y + occ.h) return false;
+        if (on.truncation && p[1] > cut) return false;
+        return p[0] >= 0 && p[0] <= W && p[1] >= 0 && p[1] <= H;
+      });
+
+      plot.replaceChildren();
+      const svg = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'A virtual camera image with true keypoints and a corrupted copy.' }, plot);
+      svgEl('rect', { x: 0, y: 0, width: W, height: H, rx: 8, style: 'fill: var(--bg-deep); stroke: var(--border)' }, svg);
+      if (on.truncation) {
+        svgEl('rect', { x: 0, y: cut, width: W, height: H - cut, class: 'blocker' }, svg);
+        svgText(svg, 10, cut + 16, 'outside the frame', { 'font-size': 10.5 });
+      }
+      for (const [i, j] of BONES) svgEl('line', { x1: truth[i][0], y1: truth[i][1], x2: truth[j][0], y2: truth[j][1], class: 'gt' }, svg);
+      if (on.occlusion) {
+        svgEl('rect', { x: occ.x, y: occ.y, width: occ.w, height: occ.h, rx: 6, class: 'blocker' }, svg);
+        svgText(svg, occ.x + 6, occ.y + 14, 'occluder', { 'font-size': 10.5 });
+      }
+      // Bones join detections by their (possibly wrong) labels.
+      const at = new Map<number, number>(); // label -> detection index
+      labelOf.forEach((lab, i) => at.set(lab, i));
+      const colour = (lab: number) => JOINTS[lab].side === 'L' ? 'var(--k-left)' : JOINTS[lab].side === 'R' ? 'var(--k-right)' : 'var(--ink-2)';
+      for (const [a, b] of BONES) {
+        const ia = at.get(a)!, ib = at.get(b)!;
+        if (!visible[ia] || !visible[ib]) continue;
+        const side = JOINTS[b].side !== 'C' ? b : a;
+        svgEl('line', { x1: pts[ia][0], y1: pts[ia][1], x2: pts[ib][0], y2: pts[ib][1], class: 'bone', style: `stroke: ${colour(side)}` }, svg);
+      }
+      pts.forEach((p, i) => {
+        if (!visible[i]) return;
+        svgEl('circle', { cx: p[0], cy: p[1], r: 3.2, style: `fill: ${colour(labelOf[i])}; stroke: var(--viz-surface)`, 'stroke-width': 1 }, svg);
+      });
+
+      const lost = visible.filter((v) => !v).length;
+      const err = pts.reduce((s, p, i) => s + Math.hypot(p[0] - truth[i][0], p[1] - truth[i][1]), 0) / pts.length;
+      root.querySelector('[data-readout]')!.textContent =
+        `${17 - lost} of 17 keypoints survive` + (on.noise ? `, ${err.toFixed(1)} px from the truth on average` : '') +
+        (on.flip ? '; every left and right label is swapped' : '') + '. The pose compiler learns to recover the grey skeleton from this.';
+    }
+
+    root.querySelectorAll<HTMLButtonElement>('[data-c]').forEach((b) => b.addEventListener('click', () => {
+      const c = b.dataset.c as Corruption;
+      on[c] = !on[c];
+      b.setAttribute('aria-pressed', String(on[c]));
+      draw();
+    }));
+    root.querySelector('[data-new]')!.addEventListener('click', () => { sample++; draw(); });
+    responsive(root, () => draw());
+  });
+</script>

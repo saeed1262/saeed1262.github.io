@@ -1,0 +1,106 @@
+---
+// Horizontal bars for one error metric (lower is better), optionally grouped.
+// UPose3D rows are drawn in the accent colour and say "UPose3D" in their label,
+// so they never rely on colour alone. Values past `max` are drawn to the edge
+// with their real value printed.
+import type { BarRow } from '@/data/projects/upose3d';
+interface Props { title: string; sub: string; caption: string; rows: BarRow[]; max: number; unit?: string; }
+const { title, sub, caption, rows, max, unit = 'mm' } = Astro.props;
+// Keep one decimal on whole numbers, so 21.0 doesn't print as 21.
+const fmt = (v: number) => (Number.isInteger(v) ? v.toFixed(1) : String(v));
+---
+<figure class="viz up-bars" data-rows={JSON.stringify(rows)} data-max={max} data-unit={unit}>
+  <div class="viz__head">
+    <p class="viz__title">{title}</p>
+    <p class="viz__sub">{sub}</p>
+  </div>
+  <div class="viz__plot" data-plot></div>
+  <figcaption class="viz__caption">{caption}</figcaption>
+  <details>
+    <summary>Show as a table</summary>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Method</th><th>Error ({unit})</th><th>Notes</th></tr></thead>
+        <tbody>
+          {rows.map((r) => <tr><td>{r.group ? `${r.label} (${r.group})` : r.label}</td><td>{fmt(r.value)}</td><td>{r.detail ?? ''}</td></tr>)}
+        </tbody>
+      </table>
+    </div>
+  </details>
+</figure>
+
+<script>
+  import { onEachPage, responsive, svgEl, svgText, linear, makeTooltip } from '@/scripts/viz';
+  import type { BarRow } from '@/data/projects/upose3d';
+
+  const fmt = (v: number) => (Number.isInteger(v) ? v.toFixed(1) : String(v));
+
+  onEachPage('.up-bars', (root) => {
+    const plot = root.querySelector<HTMLElement>('[data-plot]')!;
+    const rows = JSON.parse(root.dataset.rows!) as BarRow[];
+    const max = Number(root.dataset.max), unit = root.dataset.unit!;
+    const tip = makeTooltip(plot);
+
+    responsive(plot, (width) => {
+      plot.replaceChildren(tip.el);
+      tip.hide();
+      const narrow = width < 560;
+      const labelW = narrow ? 0 : Math.min(230, width * 0.36);
+      const rowH = narrow ? 34 : 22, groupH = 26, axisH = 24;
+      const groups = rows.map((r) => r.group).filter((g, i, a) => g && a.indexOf(g) === i);
+      const H = rows.length * rowH + groups.length * groupH + axisH + 6;
+      const x = linear(0, max, labelW + 4, width - 52);
+      const svg = svgEl('svg', { viewBox: `0 0 ${width} ${H}`, role: 'img', 'aria-label': `${root.querySelector('.viz__title')!.textContent}. Lower is better.` }, plot);
+      let y = 4;
+      const top = y;
+      let lastGroup: string | undefined;
+      const marks: [number, BarRow][] = [];
+      for (const r of rows) {
+        if (r.group && r.group !== lastGroup) {
+          lastGroup = r.group;
+          svgText(svg, narrow ? x(0) : 0, y + 17, r.group, { class: 't-strong', 'font-size': 11.5 });
+          y += groupH;
+        }
+        marks.push([y, r]);
+        y += rowH;
+      }
+      const bottom = y;
+      for (const t of niceTicks(max)) {
+        svgEl('line', { x1: x(t), x2: x(t), y1: top, y2: bottom, class: t === 0 ? 'axis' : 'grid' }, svg);
+        svgText(svg, x(t), bottom + 14, String(t), { 'text-anchor': 'middle' });
+      }
+      svgText(svg, width - 4, bottom + 14, unit, { 'text-anchor': 'end' });
+      for (const [ry, r] of marks) {
+        const barY = narrow ? ry + 16 : ry + 4, barH = narrow ? 12 : rowH - 8;
+        const off = r.value > max;
+        const w = x(Math.min(r.value, max)) - x(0);
+        if (narrow) svgText(svg, x(0), ry + 12, r.label, { 'font-size': 11, class: r.ours ? 't-strong' : 't-ink' });
+        else svgText(svg, labelW - 6, ry + rowH / 2 + 4, r.label, { 'text-anchor': 'end', 'font-size': 11.5, class: r.ours ? 't-strong' : 't-ink' });
+        svgEl('rect', { x: x(0), y: barY, width: Math.max(1, w), height: barH, rx: 3, style: `fill: ${r.ours ? 'var(--accent-from)' : 'var(--c-other)'}; opacity: ${r.ours ? 1 : 0.55}` }, svg);
+        if (off) {
+          // a break mark where the bar leaves the axis
+          const bx = x(max) - 10;
+          svgEl('path', { d: `M${bx - 3},${barY - 2} l6,${barH + 4} M${bx + 3},${barY - 2} l6,${barH + 4}`, style: 'stroke: var(--viz-surface)', 'stroke-width': 3 }, svg);
+        }
+        svgText(svg, x(Math.min(r.value, max)) + 5, barY + barH / 2 + 4, `${fmt(r.value)}${off ? ' (off scale)' : ''}`, { 'font-size': 11, class: 't-ink' });
+        const hit = svgEl('rect', { x: 0, y: ry, width, height: rowH, fill: 'transparent', tabindex: 0, 'aria-label': `${r.label}: ${fmt(r.value)} ${unit}${r.detail ? `. ${r.detail}` : ''}` }, svg);
+        const show = () => {
+          const scale = plot.getBoundingClientRect().width / width;
+          tip.show(x(Math.min(r.value, max)) * scale, barY * scale, r.label, [
+            { value: `${fmt(r.value)} ${unit}`, label: r.group ?? 'error' },
+            ...(r.detail ? [{ value: '', label: r.detail }] : []),
+          ]);
+        };
+        hit.addEventListener('pointerenter', show); hit.addEventListener('focus', show);
+        hit.addEventListener('pointerleave', () => tip.hide()); hit.addEventListener('blur', () => tip.hide());
+      }
+    });
+  });
+
+  function niceTicks(max: number): number[] {
+    const step = max <= 40 ? 10 : max <= 100 ? 20 : max <= 400 ? 100 : 200;
+    const out = [];
+    for (let t = 0; t <= max + 1e-9; t += step) out.push(t);
+    return out;
+  }
+</script>
