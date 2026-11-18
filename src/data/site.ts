@@ -15,4 +15,13 @@ export const site = {
     twitter: 'https://twitter.com/SaGhorbani',
     scholar: 'https://scholar.google.com/citations?user=JFRY_g8AAAAJ&hl=en',
   },
+  // Giscus comments on blog posts, stored in this repository's GitHub Discussions.
+  // They appear once categoryId is filled in (needs Discussions enabled and the
+  // Giscus app installed on the repository; see https://giscus.app).
+  comments: {
+    repo: 'saeed1262/saeed1262.github.io',
+    repoId: 'R_kgDOHk0xHg',
+    category: 'Announcements',
+    categoryId: '',
+  },
 } as const;

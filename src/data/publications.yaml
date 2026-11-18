@@ -4,6 +4,7 @@
   authors: "Saeed Ghorbani"
   venue: "arXiv"
   year: 2025
+  semanticScholar: "9bee2989330c2b0e1ec5ff558c9b1dccdaa35f29"
   topics: [Generative Models]
   abstract: >-
     We introduce an integrated framework for generating narratives across multiple
@@ -24,6 +25,7 @@
   authors: "Vandad Davoodnia, Saeed Ghorbani, Marc-André Carbonneau, Alexandre Messier, Ali Etemad"
   venue: "European Conference on Computer Vision (ECCV)"
   year: 2024
+  semanticScholar: "05ebe515f45812070b0d58baf9112d282a554764"
   topics: [Computer Vision, Pose Estimation]
   abstract: >-
     We introduce UPose3D, a novel approach for multi-view 3D human pose estimation,
@@ -47,6 +49,7 @@
   authors: "Vandad Davoodnia, Saeed Ghorbani, Alexandre Messier, Ali Etemad"
   venue: "ECCV Workshop on CV for Metaverse"
   year: 2024
+  semanticScholar: "fccae62a31195c6f7ba67a79b26d74d47b25a281"
   topics: [Computer Vision, Pose Estimation]
   abstract: >-
     We present a markerless motion capture pipeline for 3D human pose and shape
@@ -68,6 +71,7 @@
   authors: "Chanhaeng Lee, Mykhailo Perepichka, Saeed Ghorbani, Sudhir Mudur, Eric Paquette, Tiberiu Popa"
   venue: "European Conference on Computer Vision (ECCV)"
   year: 2024
+  semanticScholar: "99a6eb34c22e388e04b69136ef565393ad90d055"
   topics: [Generative Models]
   abstract: >-
     We present a neural network approach for real-time garment simulation on human
@@ -85,6 +89,7 @@
   authors: "Saeed Ghorbani, Ylva Ferstl, Daniel Holden, Nikolaus F. Troje, Marc-André Carbonneau"
   venue: "Computer Graphics Forum"
   year: 2023
+  semanticScholar: "3f312f64c31db427401013174552cd7bee41340c"
   topics: [Gesture Generation, Generative Models]
   abstract: >-
     We present ZeroEGGS, a neural network framework for speech-driven gesture
@@ -109,6 +114,7 @@
   authors: "Saeed Ghorbani, Ylva Ferstl, Marc-André Carbonneau"
   venue: "International Conference on Multimodal Interaction (ICMI)"
   year: 2022
+  semanticScholar: "22d2b8acb9468120caf6435645c318ec90eb551a"
   topics: [Gesture Generation]
   abstract: >-
     We present our entry to the GENEA Challenge 2022 on data-driven co-speech gesture
@@ -127,6 +133,7 @@
   authors: "Vandad Davoodnia, Saeed Ghorbani, Ali Etemad"
   venue: "Applied Intelligence (Springer)"
   year: 2022
+  semanticScholar: "ea859ccf09532a730f488a627e757a784c8fab0f"
   topics: [Pose Estimation, Computer Vision]
   abstract: >-
     In-bed pose estimation has shown value in fields such as hospital patient
@@ -146,6 +153,7 @@
   authors: "Vandad Davoodnia, Saeed Ghorbani, Ali Etemad"
   venue: "IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)"
   year: 2021
+  semanticScholar: "d2600a8e2fbbe221602047c80409b89d9b3a85cb"
   topics: [Pose Estimation, Computer Vision]
   abstract: >-
     We address the challenge of pose estimation from in-bed pressure sensing systems by
@@ -165,6 +173,7 @@
   authors: "Saeed Ghorbani, Kimia Mahdaviani, Anne Thaler, Konrad Kording, Douglas James Cook, Gunnar Blohm, Nikolaus F. Troje"
   venue: "PLOS ONE"
   year: 2021
+  semanticScholar: "bb1bedb1c11ce6b45b854db303ebf7fe320e856a"
   topics: [Datasets, Human Motion]
   abstract: >-
     We introduce MoVi, a large human Motion and Video dataset made publicly available.
@@ -187,6 +196,7 @@
   authors: "Alireza Sepas-Moghaddam, Saeed Ghorbani, Nikolaus F. Troje, Ali Etemad"
   venue: "International Conference on Pattern Recognition (ICPR)"
   year: 2021
+  semanticScholar: "814ee76aa7f7c81a3ae71e4e227fd05b88e34fdf"
   topics: [Computer Vision, Human Motion]
   abstract: >-
     We propose a novel deep network for gait recognition that learns to transfer
@@ -207,6 +217,7 @@
   authors: "Saeed Ghorbani, Calden Wloka, Ali Etemad, Marcus A. Brubaker, Nikolaus F. Troje"
   venue: "Computer Graphics Forum (Symposium on Computer Animation)"
   year: 2020
+  semanticScholar: "0c91998133f90913051c0d42767230e4963eb422"
   topics: [Human Motion, Generative Models]
   abstract: >-
     We present a probabilistic framework to generate character animations based on weak
@@ -228,6 +239,7 @@
   authors: "Saeed Ghorbani, Ali Etemad, Nikolaus F. Troje"
   venue: "Computer Graphics International (CGI)"
   year: 2019
+  semanticScholar: "3f94ea0fa41de38aeedbd1a0734eea0c17654542"
   topics: [Human Motion]
   award: "Best Paper Award"
   abstract: >-
@@ -258,6 +270,7 @@
   authors: "Ali Ghayoor, Saeed Ghorbani, Ali Asghar Beheshti Shirazi"
   venue: "International Conference on Wireless Communications & Signal Processing (WCSP)"
   year: 2010
+  semanticScholar: "aa17f07526466a92a7bbb7814672803b60198471"
   topics: [Computer Vision]
   abstract: >-
     We present a method for sub-pixel image registration based on physical forces,

@@ -7,6 +7,8 @@ export const publicationSchema = z.object({
   year: z.number(),
   abbr: z.string().optional(),
   award: z.string().optional(),
+  // Semantic Scholar paper id: used to show and refresh the citation count (scripts/citations.mjs).
+  semanticScholar: z.string().optional(),
   abstract: z.string().optional(),
   topics: z.array(z.string()).default([]),
   links: z

@@ -135,3 +135,15 @@ body { overflow-x: clip; }
 }
 .print-only { display: none; }
 @media print { .print-only { display: block; } }
+
+/* Click-to-zoom images (src/scripts/zoom.ts). */
+.zoomable { cursor: zoom-in; }
+.zoomable:focus-visible { outline: 2px solid var(--accent-from); outline-offset: 3px; }
+.zoom-overlay {
+  position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: clamp(0.75rem, 3vw, 2rem);
+  background: rgba(8, 12, 28, 0.86); backdrop-filter: blur(4px); opacity: 0; transition: opacity 0.2s; cursor: zoom-out;
+}
+.zoom-overlay.is-open { opacity: 1; }
+.zoom-overlay:focus { outline: none; }
+.zoom-overlay img { max-width: min(94vw, 1600px); max-height: 92vh; max-height: 92dvh; width: auto; height: auto; object-fit: contain; border-radius: 10px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45); }
+@media (prefers-reduced-motion: reduce) { .zoom-overlay { transition: none; } }

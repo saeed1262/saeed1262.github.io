@@ -1,0 +1,119 @@
+---
+// Site search: a header button (and Ctrl/⌘+K) opens a dialog with Pagefind's
+// search UI. The index is built after `astro build` (see package.json), so the
+// UI is loaded lazily from /pagefind/ the first time the dialog opens.
+---
+<button type="button" class="search-btn" data-search-open aria-label="Search the site (Ctrl+K)" title="Search (Ctrl+K)">
+  <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path>
+  </svg>
+  <kbd class="search-btn__kbd" data-search-kbd>Ctrl K</kbd>
+</button>
+<dialog class="search-dialog" data-search-dialog aria-label="Search" data-pagefind-ignore="all">
+  <div class="search-dialog__head">
+    <p class="search-dialog__title">Search papers, projects and posts</p>
+    <button type="button" class="search-dialog__close" data-search-close aria-label="Close search">Esc</button>
+  </div>
+  <div id="site-search" class="search-dialog__ui"></div>
+  <p class="search-dialog__note" data-search-note hidden>Search works on the built site: run <code>npm run build</code>, then <code>npm run preview</code>.</p>
+</dialog>
+
+<style is:global>
+  .search-btn {
+    display: inline-flex; align-items: center; gap: 0.4rem; font: inherit; font-size: 0.78rem; color: var(--text-muted); cursor: pointer;
+    background: transparent; border: 1px solid var(--border); border-radius: 999px; padding: 0.3rem 0.55rem; transition: color .2s, border-color .2s;
+  }
+  .search-btn:hover { color: var(--accent-from); border-color: color-mix(in srgb, var(--accent-from) 50%, var(--border)); }
+  .search-btn__kbd { font: inherit; font-size: 0.7rem; letter-spacing: 0.02em; opacity: 0.8; }
+  @media (max-width: 1100px) { .search-btn__kbd { display: none; } .search-btn { padding: 0.35rem; } }
+
+  .search-dialog {
+    width: min(40rem, calc(100vw - 1.5rem)); max-height: min(80vh, 44rem); margin: 10vh auto auto; padding: 1rem 1.1rem 1.1rem;
+    color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 24px 64px rgba(0, 0, 0, 0.28);
+  }
+  .search-dialog::backdrop { background: rgba(8, 12, 28, 0.55); backdrop-filter: blur(3px); }
+  .search-dialog__head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; }
+  .search-dialog__title { font-size: var(--step--1); color: var(--text-muted); }
+  .search-dialog__close { font: inherit; font-size: 0.72rem; color: var(--text-muted); background: var(--bg-deep); border: 1px solid var(--border); border-radius: 6px; padding: 0.1rem 0.45rem; cursor: pointer; }
+  .search-dialog__note { font-size: var(--step--1); color: var(--text-muted); }
+  /* Pagefind UI, themed with the site's tokens. */
+  .search-dialog__ui {
+    --pagefind-ui-scale: 0.82;
+    --pagefind-ui-primary: var(--accent-from);
+    --pagefind-ui-text: var(--text);
+    --pagefind-ui-background: var(--surface);
+    --pagefind-ui-border: var(--border);
+    --pagefind-ui-tag: var(--bg-deep);
+    --pagefind-ui-border-width: 1px;
+    --pagefind-ui-border-radius: 10px;
+    --pagefind-ui-font: inherit;
+  }
+  .search-dialog__ui .pagefind-ui__result-link { color: var(--text); }
+  .search-dialog__ui .pagefind-ui__result-link:hover { color: var(--accent-from); }
+  .search-dialog__ui mark { background: color-mix(in srgb, var(--accent-to) 35%, transparent) !important; color: inherit !important; border-radius: 3px; padding: 0 0.1em; }
+</style>
+
+<script>
+  // The header persists across page navigations, so this runs once.
+  const dialog = document.querySelector<HTMLDialogElement>('[data-search-dialog]')!;
+  const note = document.querySelector<HTMLElement>('[data-search-note]')!;
+  const kbd = document.querySelector<HTMLElement>('[data-search-kbd]');
+  if (kbd && /Mac|iPhone|iPad/.test(navigator.platform)) kbd.textContent = '⌘K';
+  let loaded: Promise<void> | null = null;
+
+  function loadUI(): Promise<void> {
+    loaded ??= new Promise<void>((resolve, reject) => {
+      const css = document.createElement('link');
+      css.rel = 'stylesheet';
+      css.href = '/pagefind/pagefind-ui.css';
+      document.head.append(css);
+      const js = document.createElement('script');
+      js.src = '/pagefind/pagefind-ui.js';
+      js.onload = () => {
+        // @ts-expect-error: PagefindUI is a global added by the script above.
+        new window.PagefindUI({
+          element: '#site-search',
+          showSubResults: true,
+          showImages: false,
+          autofocus: true,
+          translations: { placeholder: 'Search papers, projects and posts' },
+        });
+        resolve();
+      };
+      js.onerror = () => reject(new Error('no index'));
+      document.head.append(js);
+    }).catch(() => {
+      // In `astro dev` there is no index yet: say so instead of failing silently.
+      note.hidden = false;
+      loaded = null;
+    });
+    return loaded;
+  }
+
+  async function openSearch() {
+    if (!dialog.open) dialog.showModal();
+    await loadUI();
+    dialog.querySelector<HTMLInputElement>('.pagefind-ui__search-input')?.focus();
+  }
+
+  document.addEventListener('click', (e) => {
+    const t = e.target as Element;
+    if (t.closest('[data-search-open]')) openSearch();
+    else if (t.closest('[data-search-close]')) dialog.close();
+    // Clicking the backdrop (outside the dialog box) closes it.
+    else if (t === dialog) {
+      const r = dialog.getBoundingClientRect();
+      const ev = e as MouseEvent;
+      if (ev.clientX < r.left || ev.clientX > r.right || ev.clientY < r.top || ev.clientY > r.bottom) dialog.close();
+    }
+  });
+  document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      if (dialog.open) dialog.close();
+      else openSearch();
+    }
+  });
+  // Close when a result is followed (client-side navigation).
+  document.addEventListener('astro:before-preparation', () => { if (dialog.open) dialog.close(); });
+</script>

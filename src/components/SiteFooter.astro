@@ -3,10 +3,10 @@ import { site } from '@/data/site';
 const links = [
   ['GitHub', site.links.github], ['LinkedIn', site.links.linkedin],
   ['Twitter', site.links.twitter], ['Scholar', site.links.scholar],
-  ['Email', `mailto:${site.email}`],
+  ['Email', `mailto:${site.email}`], ['RSS', '/feed.xml'],
 ];
 ---
-<footer class="footer container tile-band">
+<footer class="footer container tile-band" data-pagefind-ignore="all">
   <p>© {site.name}</p>
   <nav class="footer__links">
     {links.map(([label, href]) => <a href={href} target="_blank" rel="noopener">{label}</a>)}

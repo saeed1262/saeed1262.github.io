@@ -1,0 +1,59 @@
+---
+// Giscus comments (GitHub Discussions), one thread per page path. Renders
+// nothing until site.comments.categoryId is set. The Giscus theme follows the
+// site's light/dark mode, including the toggle.
+import { site } from '@/data/site';
+const c = site.comments;
+const ready = Boolean(c.repoId && c.categoryId);
+---
+{ready && (
+  <section class="comments" aria-labelledby="comments-title" data-pagefind-ignore="all"
+    data-repo={c.repo} data-repo-id={c.repoId} data-category={c.category} data-category-id={c.categoryId}>
+    <h2 id="comments-title">Comments</h2>
+    <p class="comments__note">Comments use GitHub Discussions; you'll need a GitHub account to post.</p>
+    <div class="comments__thread" data-thread></div>
+  </section>
+)}
+
+<style>
+  .comments { margin-top: var(--space-xl); padding-top: var(--space-md); border-top: 1px solid var(--border); }
+  .comments h2 { font-size: var(--step-2); }
+  .comments__note { color: var(--text-muted); font-size: var(--step--1); margin: 0.3rem 0 var(--space-sm); }
+</style>
+
+<script>
+  import { onEachPage } from '@/scripts/viz';
+
+  const themeNow = () => (document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+
+  onEachPage('.comments', (root) => {
+    const s = document.createElement('script');
+    s.src = 'https://giscus.app/client.js';
+    s.async = true;
+    s.crossOrigin = 'anonymous';
+    const attrs: Record<string, string> = {
+      'data-repo': root.dataset.repo!,
+      'data-repo-id': root.dataset.repoId!,
+      'data-category': root.dataset.category!,
+      'data-category-id': root.dataset.categoryId!,
+      'data-mapping': 'pathname',
+      'data-strict': '1',
+      'data-reactions-enabled': '1',
+      'data-emit-metadata': '0',
+      'data-input-position': 'top',
+      'data-theme': themeNow(),
+      'data-lang': 'en',
+      'data-loading': 'lazy',
+    };
+    for (const [k, v] of Object.entries(attrs)) s.setAttribute(k, v);
+    root.querySelector('[data-thread]')!.appendChild(s);
+
+    // Keep Giscus in step with the site's theme toggle (until the page changes).
+    const mo = new MutationObserver(() => {
+      const frame = root.querySelector<HTMLIFrameElement>('iframe.giscus-frame');
+      frame?.contentWindow?.postMessage({ giscus: { setConfig: { theme: themeNow() } } }, 'https://giscus.app');
+    });
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    document.addEventListener('astro:before-swap', () => mo.disconnect(), { once: true });
+  });
+</script>
