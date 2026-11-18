@@ -10,8 +10,7 @@
     "build": "astro build && pagefind --site dist",
     "preview": "astro preview",
     "check": "astro check",
-    "test": "vitest run",
-    "citations": "node scripts/citations.mjs"
+    "test": "vitest run"
   },
   "dependencies": {
     "@astrojs/react": "^5.0.7",
