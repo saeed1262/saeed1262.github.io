@@ -8,6 +8,7 @@ import { formatDateFull } from '@/utils/format';
 <BaseLayout title="Blog" description="Writing by Saeed Ghorbani on motion, machine learning and generative models.">
   <main class="blog container">
     <SectionHeading kicker="Writing" title="Blog" />
+    <p class="blog__feed"><a href="/feed.xml">Subscribe via RSS</a></p>
     <ul class="blog__list">
       {posts.map((p) => {
         const img = postImage(p);
@@ -31,6 +32,8 @@ import { formatDateFull } from '@/utils/format';
   </main>
   <style>
     .blog { padding-block: 9rem var(--space-xl); max-width: 48rem; }
+    .blog__feed { margin: calc(-1 * var(--space-md)) 0 var(--space-md); font-size: var(--step--1); }
+    .blog__feed a { color: var(--accent-from); }
     .blog__list { list-style: none; padding: 0; display: grid; gap: var(--space-md); }
     .entry {
       display: block;

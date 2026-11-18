@@ -1,3 +1,5 @@
+import { talks } from './talks';
+
 export interface CVMapItem { name: string; value: string; }
 export interface CVTimeItem { title: string; institution?: string; year?: string; }
 export type CVSection =
@@ -58,15 +60,6 @@ export const cv: CVSection[] = [
   {
     title: 'Talks and Featured Works',
     type: 'time_table',
-    contents: [
-      { title: 'ZeroEGGS, Zero-shot Example-based Gesture Generation from Speech', institution: 'SIGGRAPH ASIA, Daegu, Korea', year: '2022' },
-      { title: 'Generating Animation from Speech', institution: 'UDC, Montreal, Canada', year: '2022' },
-      { title: 'Using Machine Learning in Character Animation', institution: 'CVR-VISTA Conference, Toronto, Canada', year: '2022' },
-      { title: 'Simultaneous Localization and Mapping Using Active Vision', institution: 'York University, Canada', year: '2018' },
-      { title: 'Probabilistic Vision-based Localization', institution: 'University of Wollongong, Australia', year: '2017' },
-      { title: 'Ubisoft’s New AI, Breathing Life Into Games!', institution: 'Two Minute Papers Channel' },
-      { title: 'Auto-labelling of Markers in Motion Capture', institution: 'Vista News' },
-      { title: 'MoVi, A Large Multi-Purpose Motion and Video Dataset', institution: 'Vista News' },
-    ],
+    contents: talks.map((t) => ({ title: t.title, institution: t.venue, year: t.year })),
   },
 ];

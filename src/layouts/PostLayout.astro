@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import { formatDateFull as formatDate } from '@/utils/format';
+import Comments from '@/components/Comments.astro';
 // A long-form article page: blog posts, and project pages that need more than Markdown.
 interface Props {
   title: string;
@@ -8,8 +9,9 @@ interface Props {
   date?: Date;
   ogImage?: string;
   back?: { href: string; label: string };
+  comments?: boolean; // Giscus comments under the article
 }
-const { title, description, date, ogImage, back = { href: '/blog/', label: 'Blog' } } = Astro.props;
+const { title, description, date, ogImage, back = { href: '/blog/', label: 'Blog' }, comments = false } = Astro.props;
 ---
 <BaseLayout title={title} description={description} ogImage={ogImage}>
   <article class="post container">
@@ -19,6 +21,7 @@ const { title, description, date, ogImage, back = { href: '/blog/', label: 'Blog
     <slot name="header" />
     {date && <p class="post__date"><time datetime={date.toISOString().slice(0, 10)}>{formatDate(date)}</time></p>}
     <div class="post__body prose-page"><slot /></div>
+    {comments && <Comments />}
   </article>
   <style>
     .post { padding-block: 9rem var(--space-xl); max-width: 48rem; }

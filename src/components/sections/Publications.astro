@@ -2,6 +2,10 @@
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import SectionHeading from '@/components/ui/SectionHeading.astro';
+import citations from '@/data/citations.json';
+
+// Citation counts from Semantic Scholar, refreshed on every deploy (scripts/citations.mjs).
+const cites = citations.counts as Record<string, number>;
 
 const pubs = (await getCollection('publications')).sort((a, b) => b.data.year - a.data.year);
 
@@ -71,6 +75,10 @@ function toBibtex(p: CollectionEntry<'publications'>): string {
                 {p.data.links?.pdf && <a class="pub__btn" href={p.data.links.pdf} target="_blank" rel="noopener">PDF</a>}
                 {p.data.links?.code && <a class="pub__btn" href={p.data.links.code} target="_blank" rel="noopener">CODE</a>}
                 {p.data.links?.project && <a class="pub__btn" href={p.data.links.project} target="_blank" rel="noopener">WEBSITE</a>}
+                {p.data.semanticScholar && cites[p.id] > 0 && (
+                  <a class="pub__btn pub__cites" href={`https://www.semanticscholar.org/paper/${p.data.semanticScholar}`} target="_blank" rel="noopener"
+                    title={`Citations on Semantic Scholar, updated ${citations.updated}`}>Cited by {cites[p.id]}</a>
+                )}
               </div>
               </div>
               {p.data.abstract && <div class="pub__panel pub__abstract" hidden><p>{p.data.abstract}</p></div>}
@@ -177,6 +185,8 @@ function toBibtex(p: CollectionEntry<'publications'>): string {
       border-color: color-mix(in srgb, var(--accent-from) 55%, var(--border));
       color: var(--accent-from);
     }
+
+    .pub__cites { color: var(--accent-from); border-color: color-mix(in srgb, var(--accent-from) 35%, var(--border)); font-variant-numeric: tabular-nums; }
 
     .pub__panel { margin-top: var(--space-sm); color: var(--text-muted); font-size: var(--step--1); line-height: 1.6; }
     .pub__bibtex pre {
