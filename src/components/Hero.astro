@@ -4,7 +4,6 @@
 import { Image } from 'astro:assets';
 import { site } from '@/data/site';
 import headshot from '@/assets/saeed.jpg';
-import citations from '@/data/citations.json';
 
 const links = [
   { label: 'Google Scholar', href: site.links.scholar },
@@ -18,10 +17,6 @@ const links = [
     <p class="intro__kicker"><span class="diamond" aria-hidden="true"></span> {site.role}</p>
     <h1 class="intro__name">{site.name}</h1>
     <p class="intro__meta">{site.company} · {site.location}</p>
-    <p class="intro__stat">
-      <a href="/#publications">{citations.total.toLocaleString('en')} citations</a>
-      <span>across {Object.keys(citations.counts).length} papers, from Semantic Scholar</span>
-    </p>
     <div class="intro__bio">
       <p>
         I'm a senior machine learning engineer at Roper Technologies, working on agentic AI.
@@ -81,9 +76,6 @@ const links = [
       color: var(--text-muted);
       font-size: var(--step-0);
     }
-    .intro__stat { margin-top: 0.35rem; font-size: var(--step--1); color: var(--text-muted); }
-    .intro__stat a { color: var(--accent-from); font-weight: 600; font-variant-numeric: tabular-nums; }
-    .intro__stat a:hover { text-decoration: underline; }
     .intro__bio { margin-top: var(--space-md); max-width: 38rem; }
     .intro__bio p:first-child { font-size: var(--step-1); line-height: 1.5; }
     .intro__bio p + p { margin-top: var(--space-sm); color: var(--text-muted); }
