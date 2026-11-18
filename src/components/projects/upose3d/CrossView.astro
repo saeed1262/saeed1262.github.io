@@ -1,0 +1,183 @@
+---
+// Cross-view projection (Sec. 3.2 of the paper), simulated with real pinhole
+// geometry: each other camera's guess for the left wrist becomes an epipolar
+// line in the reference view, and UPose3D keeps the point on that line closest
+// to the reference camera's own guess. Those points form the joint's point cloud.
+---
+<figure class="viz up-cross">
+  <div class="viz__head">
+    <p class="viz__title">One joint, seen from every camera</p>
+    <p class="viz__sub">Click a camera on the left to make it the reference view. The image on the right is what it sees.</p>
+  </div>
+  <div class="viz-controls">
+    <label class="viz-slider">Cameras <input type="range" min="2" max="8" value="6" data-cams /> <strong data-cams-out>6</strong></label>
+    <label class="viz-slider">2D noise <input type="range" min="0" max="10" value="3" step="0.5" data-noise /> <strong data-noise-out>3 px</strong></label>
+    <button type="button" class="viz-btn" data-bad aria-pressed="false">Make camera 3 unreliable</button>
+  </div>
+  <div class="up-cross__panels">
+    <div class="up-cross__panel">
+      <p class="up-cross__label">Capture volume, from above</p>
+      <div data-top></div>
+    </div>
+    <div class="up-cross__panel">
+      <p class="up-cross__label" data-ref-label>What camera 1 sees</p>
+      <div data-img></div>
+    </div>
+  </div>
+  <div class="viz-legend up-cross__legend" aria-hidden="true">
+    <span><i class="dot" style="background: var(--accent-from)"></i>Reference camera's own guess</span>
+    <span><i style="background: var(--ink-2)"></i>Another camera's epipolar line</span>
+    <span><i class="dot" style="background: var(--ink)"></i>Projected point</span>
+    <span><i class="dash" style="color: var(--div-pos)"></i>Unreliable camera</span>
+  </div>
+  <p class="up-cross__readout" data-readout aria-live="polite"></p>
+  <figcaption class="viz__caption">
+    A simulation with a 17-joint skeleton and pinhole cameras on a 3.2 m ring; the 2D "detections" are the true projections plus
+    noise. The geometry is the paper's: the fundamental matrix comes from the known camera parameters, and each projected point is
+    the point on the epipolar line nearest the reference keypoint.
+  </figcaption>
+  <style is:global>
+    .up-cross__panels { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: 1rem; }
+    .up-cross__label { font-size: 0.78rem; color: var(--ink-2); margin-bottom: 0.3rem; }
+    .up-cross svg { display: block; width: 100%; height: auto; overflow: visible; }
+    .up-cross .cam { cursor: pointer; }
+    .up-cross .cam:focus { outline: none; }
+    .up-cross .cam:focus-visible circle.ring { stroke: var(--accent-from); stroke-width: 2.5; }
+    .up-cross .frame { fill: var(--bg-deep); stroke: var(--border); }
+    .up-cross .bone { stroke: var(--axis); stroke-width: 2.5; stroke-linecap: round; }
+    .up-cross .epi { stroke: var(--ink-2); stroke-width: 1; opacity: 0.55; }
+    .up-cross .epi--bad { stroke: var(--div-pos); stroke-dasharray: 5 4; opacity: 0.9; stroke-width: 1.4; }
+    .up-cross__readout { font-size: 0.84rem; color: var(--ink); margin-top: 0.4rem; }
+    @media (max-width: 640px) { .up-cross__panels { grid-template-columns: 1fr; } }
+  </style>
+</figure>
+
+<script>
+  import { onEachPage, responsive, svgEl, svgText } from '@/scripts/viz';
+  import { BONES, JOINTS, LEFT_WRIST, closestOnLine, epipolarLine, gauss, project, ring, rng, type Camera, type V2 } from '@/scripts/multiview';
+
+  const BAD_ID = 3;
+  const BAD_PX = 40; // how far the unreliable camera's guess is off
+
+  onEachPage('.up-cross', (root) => {
+    const top = root.querySelector<HTMLElement>('[data-top]')!;
+    const img = root.querySelector<HTMLElement>('[data-img]')!;
+    const camsIn = root.querySelector<HTMLInputElement>('[data-cams]')!;
+    const noiseIn = root.querySelector<HTMLInputElement>('[data-noise]')!;
+    const badBtn = root.querySelector<HTMLButtonElement>('[data-bad]')!;
+    let refId = 1;
+    let bad = false;
+
+    // Fixed noise directions per camera, scaled by the slider.
+    const r = rng(7);
+    const unitNoise: V2[] = Array.from({ length: 8 }, () => [gauss(r), gauss(r)]);
+
+    function detection(cam: Camera, sigma: number, ref: Camera): V2 {
+      const u = project(cam, JOINTS[LEFT_WRIST].p);
+      const n = unitNoise[cam.id - 1];
+      let off: V2 = [0, 0];
+      if (bad && cam.id === BAD_ID && ref.id !== BAD_ID) {
+        // An error along the epipolar line is invisible from the reference view, so push the
+        // unreliable guess across it (perpendicular to the line through the reference's view of the joint).
+        const [a, b] = epipolarLine(cam, ref, project(ref, JOINTS[LEFT_WRIST].p));
+        const L = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+        off = [(-(b[1] - a[1]) / L) * BAD_PX, ((b[0] - a[0]) / L) * BAD_PX];
+      } else if (bad && cam.id === BAD_ID) {
+        off = [BAD_PX * 0.8, -BAD_PX * 0.6];
+      }
+      return [u[0] + n[0] * sigma + off[0], u[1] + n[1] * sigma + off[1]];
+    }
+
+    function draw() {
+      const n = Number(camsIn.value), sigma = Number(noiseIn.value);
+      root.querySelector('[data-cams-out]')!.textContent = String(n);
+      root.querySelector('[data-noise-out]')!.textContent = `${sigma} px`;
+      badBtn.disabled = n < BAD_ID;
+      if (n < BAD_ID) bad = false;
+      badBtn.setAttribute('aria-pressed', String(bad));
+      if (refId > n) refId = 1;
+      const cams = ring(n);
+      const ref = cams[refId - 1];
+      root.querySelector('[data-ref-label]')!.textContent = `What camera ${refId} sees`;
+
+      // ── top view (x across, z down) ────────────────────────────
+      top.replaceChildren();
+      const S = 260, k = S / 8; // 8 m across
+      const tx = (x: number) => S / 2 + x * k, tz = (z: number) => S / 2 + z * k;
+      const ts = svgEl('svg', { viewBox: `0 0 ${S} ${S}`, role: 'group', 'aria-label': `Top view of ${n} cameras around the subject; camera ${refId} is the reference.` }, top);
+      svgEl('circle', { cx: tx(0), cy: tz(0), r: 3.2 * k, fill: 'none', class: 'grid', 'stroke-dasharray': '3 4' }, ts);
+      for (const [a, b] of BONES) {
+        svgEl('line', { x1: tx(JOINTS[a].p[0]), y1: tz(JOINTS[a].p[2]), x2: tx(JOINTS[b].p[0]), y2: tz(JOINTS[b].p[2]), class: 'bone' }, ts);
+      }
+      for (const cam of cams) {
+        const isRef = cam.id === refId, isBad = bad && cam.id === BAD_ID;
+        const g = svgEl('g', { class: 'cam', tabindex: 0, role: 'button', 'aria-label': `Camera ${cam.id}${isRef ? ' (reference)' : ''}${isBad ? ', unreliable' : ''}` }, ts);
+        const cx = tx(cam.C[0]), cy = tz(cam.C[2]);
+        // a small wedge pointing at the subject
+        const ang = Math.atan2(tz(0) - cy, tx(0) - cx);
+        const p = (a: number, d: number) => `${cx + Math.cos(a) * d},${cy + Math.sin(a) * d}`;
+        svgEl('polygon', { points: `${p(ang, 13)} ${p(ang + 2.5, 7)} ${p(ang - 2.5, 7)}`, style: `fill: ${isRef ? 'var(--accent-from)' : isBad ? 'var(--div-pos)' : 'var(--ink-2)'}` }, g);
+        svgEl('circle', { cx, cy, r: 14, class: 'ring', fill: 'transparent', style: `stroke: ${isRef ? 'var(--accent-from)' : 'transparent'}`, 'stroke-width': 1.5 }, g);
+        svgText(g, cx + Math.cos(ang + Math.PI) * 22, cy + Math.sin(ang + Math.PI) * 22 + 4, `C${cam.id}`, { 'text-anchor': 'middle', 'font-size': 11, class: isRef ? 't-strong' : '' });
+        const pick = () => { refId = cam.id; draw(); };
+        g.addEventListener('click', pick);
+        g.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
+      }
+
+      // ── reference image ────────────────────────────────────────
+      img.replaceChildren();
+      const W = 400, H = 300;
+      const is = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': `Camera ${refId}'s image with the epipolar lines of the other cameras' left-wrist guesses.` }, img);
+      const clip = `up-clip-${Math.random().toString(36).slice(2, 7)}`;
+      const cp = svgEl('clipPath', { id: clip }, svgEl('defs', {}, is));
+      svgEl('rect', { x: 0, y: 0, width: W, height: H }, cp);
+      svgEl('rect', { x: 0, y: 0, width: W, height: H, rx: 8, class: 'frame' }, is);
+      const g = svgEl('g', { 'clip-path': `url(#${clip})` }, is);
+      for (const [a, b] of BONES) {
+        const pa = project(ref, JOINTS[a].p), pb = project(ref, JOINTS[b].p);
+        svgEl('line', { x1: pa[0], y1: pa[1], x2: pb[0], y2: pb[1], class: 'bone' }, g);
+      }
+      const mine = detection(ref, sigma, ref);
+      const pts: { id: number; p: V2; bad: boolean }[] = [];
+      for (const cam of cams) {
+        if (cam.id === refId) continue;
+        const [a, b] = epipolarLine(ref, cam, detection(cam, sigma, ref));
+        // extend the segment across the whole image
+        const dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy) || 1, e = 1200 / L;
+        const isBad = bad && cam.id === BAD_ID;
+        svgEl('line', { x1: a[0] - dx * e, y1: a[1] - dy * e, x2: b[0] + dx * e, y2: b[1] + dy * e, class: `epi${isBad ? ' epi--bad' : ''}` }, g);
+        pts.push({ id: cam.id, p: closestOnLine(a, b, mine), bad: isBad });
+      }
+      for (const q of pts) {
+        svgEl('circle', { cx: q.p[0], cy: q.p[1], r: 3.2, style: `fill: ${q.bad ? 'var(--div-pos)' : 'var(--ink)'}` }, g);
+      }
+      svgEl('circle', { cx: mine[0], cy: mine[1], r: 4.5, style: 'fill: var(--accent-from); stroke: var(--viz-surface)', 'stroke-width': 1.5 }, g);
+
+      // zoomed inset of the point cloud
+      const Z = 4, ix = W - 96, iy = 10, isz = 86;
+      const inset = svgEl('g', {}, is);
+      svgEl('rect', { x: ix, y: iy, width: isz, height: isz, rx: 6, style: 'fill: var(--viz-surface); stroke: var(--border)' }, inset);
+      svgText(inset, ix + isz / 2, iy + isz + 13, `×${Z} around the wrist`, { 'text-anchor': 'middle', 'font-size': 10 });
+      const ic = (p: V2): V2 => [ix + isz / 2 + (p[0] - mine[0]) * Z, iy + isz / 2 + (p[1] - mine[1]) * Z];
+      for (const q of pts) {
+        const [x, y] = ic(q.p);
+        if (Math.abs(x - (ix + isz / 2)) > isz / 2 - 3 || Math.abs(y - (iy + isz / 2)) > isz / 2 - 3) continue;
+        svgEl('circle', { cx: x, cy: y, r: 2.6, style: `fill: ${q.bad ? 'var(--div-pos)' : 'var(--ink)'}` }, inset);
+      }
+      const [mx, my] = ic(mine);
+      svgEl('circle', { cx: mx, cy: my, r: 3.6, style: 'fill: var(--accent-from)' }, inset);
+
+      const spread = pts.filter((q) => !q.bad).map((q) => Math.hypot(q.p[0] - mine[0], q.p[1] - mine[1]));
+      const avg = spread.length ? spread.reduce((a, b) => a + b, 0) / spread.length : 0;
+      const badPt = pts.find((q) => q.bad);
+      root.querySelector('[data-readout]')!.textContent =
+        `The left wrist's point cloud in camera ${refId}: ${pts.length} projected points, on average ${avg.toFixed(1)} px from its own guess` +
+        (badPt ? `; camera ${BAD_ID}'s point is ${Math.hypot(badPt.p[0] - mine[0], badPt.p[1] - mine[1]).toFixed(1)} px away.` : '.');
+    }
+
+    camsIn.addEventListener('input', draw);
+    noiseIn.addEventListener('input', draw);
+    badBtn.addEventListener('click', () => { bad = !bad; draw(); });
+    responsive(root, () => draw());
+  });
+</script>

@@ -1,0 +1,375 @@
+---
+import { Code } from 'astro:components';
+import { getEntry } from 'astro:content';
+import PostLayout from '@/layouts/PostLayout.astro';
+import Pipeline from '@/components/projects/upose3d/Pipeline.astro';
+import CrossView from '@/components/projects/upose3d/CrossView.astro';
+import CrissCross from '@/components/projects/upose3d/CrissCross.astro';
+import Triangulate from '@/components/projects/upose3d/Triangulate.astro';
+import SyntheticData from '@/components/projects/upose3d/SyntheticData.astro';
+import BarChart from '@/components/projects/upose3d/BarChart.astro';
+import ComputeChart from '@/components/projects/upose3d/ComputeChart.astro';
+import { ablations, authors, bibtex, inDistribution, outOfDistribution } from '@/data/projects/upose3d';
+import '@/styles/viz.css';
+
+const project = (await getEntry('projects', 'upose3d'))!;
+const paperUrl = project.data.url ?? 'https://arxiv.org/abs/2404.14634';
+const officialUrl = 'https://vdavoodnia.github.io/projects/upose3d/';
+const themes = { light: 'github-light', dark: 'github-dark' } as const;
+
+const codeCrossView = `def point_cloud(ref, keypoints, cameras):
+    """2D point cloud for one joint in reference camera \`ref\` (Sec. 3.2)."""
+    cloud = [keypoints[ref]]
+    for j, cam in enumerate(cameras):
+        if j == ref:
+            continue
+        F = fundamental_matrix(cameras[ref], cam)     # from the known calibration
+        line = F.T @ homogeneous(keypoints[j])        # epipolar line in the reference view
+        cloud.append(closest_point(line, keypoints[ref]))
+    return normalise_to_bbox(cloud, ref)`;
+
+const code3D = `def estimate_3d(cameras, image_kps, compiler_kps):
+    X = dlt(cameras, image_kps)                       # plain triangulation to start
+    def nll(X):
+        loss = 0
+        for cam, a, b in zip(cameras, image_kps, compiler_kps):
+            u = cam.project(X)
+            loss -= a.log_prob(u) + b.log_prob(u)     # both predicted 2D distributions
+        return loss
+    return lbfgs(nll, X)                              # no 3D labels involved`;
+---
+<PostLayout title={project.data.title} description={project.data.description} ogImage="/images/projects/upose3d.jpg" back={{ href: '/#projects', label: 'Projects' }}>
+  <div slot="header" class="up-header">
+    <p class="up-header__authors">
+      {authors.map((a, i) => (
+        <>
+          {a.url ? <a href={a.url} target="_blank" rel="noopener">{a.name}</a> : <span class={a.name === 'Saeed Ghorbani' ? 'up-header__me' : ''}>{a.name}</span>}
+          {i < authors.length - 1 && ', '}
+        </>
+      ))}
+    </p>
+    <p class="up-header__venue">European Conference on Computer Vision (ECCV) 2024 · Queen’s University and Ubisoft La Forge</p>
+    <ul class="up-header__tags">{project.data.tags.map((t) => <li>{t}</li>)}</ul>
+    <p class="up-header__cta">
+      <a class="up-header__primary" href={paperUrl} target="_blank" rel="noopener">Read the paper →</a>
+      <a href={officialUrl} target="_blank" rel="noopener">Official project page</a>
+      <a href="#citation">Cite</a>
+    </p>
+  </div>
+
+  <p>
+    Markerless multi-view motion capture sounds like a solved problem. Put a few calibrated cameras around a person, find each joint
+    in every image, and triangulate. In a studio with clean images it works well. The trouble starts when some of the 2D guesses are
+    wrong: a hand hidden behind the body, a left foot labelled as the right one, a camera looking from an unusual angle. Plain
+    triangulation trusts every camera equally, so one bad view drags the whole joint with it.
+  </p>
+  <p>
+    The usual alternative is to train a network end to end on multi-view video with 3D labels. That works in the setting it was
+    trained on, but 3D-labelled video is scarce outside the lab, and such models tend to break in new rooms, with new people or new
+    camera layouts.
+  </p>
+  <p>
+    UPose3D<a href="#ref-upose3d" class="cite">[1]</a> is our answer to both problems. It refines each camera's 2D guesses using what
+    the other cameras and the neighbouring frames see, it keeps an uncertainty for every keypoint all the way to the 3D estimate, and
+    it learns all of this from synthetic data made from motion capture, without any 3D-labelled video. The work was led by Vandad
+    Davoodnia at Queen's University and Ubisoft La Forge, and was published at ECCV 2024.
+  </p>
+  <p>
+    This page walks through the method one step at a time, with interactive figures that simulate each idea using real camera
+    geometry, then shows what the experiments found. The code snippets are simplified Python sketches rather than the actual
+    implementation.
+  </p>
+  <ul class="toc">
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#keypoints">Keypoints With Uncertainty</a></li>
+    <li><a href="#cross-view">One Joint, Every Camera</a></li>
+    <li><a href="#compiler">The Pose Compiler</a></li>
+    <li><a href="#to-3d">From 2D to 3D</a></li>
+    <li><a href="#training">Training Without 3D Labels</a></li>
+    <li><a href="#results">Results</a></li>
+    <li><a href="#limits">Limitations</a></li>
+    <li><a href="#citation">Citation</a></li>
+  </ul>
+
+  <h2 id="overview">Overview</h2>
+  <p>
+    UPose3D takes synchronised video from any number of calibrated cameras and outputs the 3D position of every joint. Between the
+    two are four steps, and one idea runs through all of them: never throw away how sure you are.
+  </p>
+
+  <Pipeline />
+
+  <p>
+    A 2D pose estimator first finds each joint in each image, along with an uncertainty. Every camera's guesses are then projected
+    onto every other camera's view, giving each joint a small cloud of points. The <strong>pose compiler</strong> reads those clouds
+    across neighbouring frames and outputs refined keypoints with their own uncertainties. Finally, both sets of keypoints and
+    uncertainties go into an optimisation that finds the most likely 3D position of each joint.
+  </p>
+
+  <h2 id="keypoints">Keypoints With Uncertainty</h2>
+  <p>
+    Most 2D pose estimators predict a heatmap per joint and take its peak. UPose3D instead puts a Residual Log-likelihood Estimation
+    (RLE) head<a href="#ref-rle" class="cite">[2]</a> on a standard backbone (CPN on Human3.6M, HRNet-W48 for the out-of-distribution
+    experiments). RLE regresses the joint's position directly and, through a small normalising flow, also learns the shape of the
+    error around it.
+  </p>
+  <p>
+    So for every joint in every image we get a position, an uncertainty, and a probability density we can evaluate anywhere in the
+    image. That last part matters later: it lets the 3D step ask "how likely is it that the joint projects <em>here</em>?" for any
+    candidate 3D point, rather than only comparing against a single best guess.
+  </p>
+
+  <h2 id="cross-view">One Joint, Every Camera</h2>
+  <p>
+    The next step brings the other cameras in. With calibrated cameras, a 2D point in one image doesn't pin down a point in another
+    image, but it does pin down a line: the <em>epipolar line</em>, where that point's ray would appear from the other camera's
+    viewpoint. The true joint must lie on it.
+  </p>
+  <p>
+    For each joint and each reference camera, UPose3D takes every other camera's guess, draws its epipolar line in the reference
+    image, and keeps the point on that line closest to the reference camera's own guess. Those points, together with the reference
+    guess, form a small 2D point cloud for that joint, normalised by the person's bounding box. Try it below, and then make one camera
+    unreliable:
+  </p>
+
+  <CrossView />
+
+  <p>
+    When the cameras agree, the cloud is a tight cluster around the joint. When one camera is wrong, its point lands visibly far from
+    the rest, which is exactly the kind of pattern a network can learn to discount. The step itself is only a few lines:
+  </p>
+  <Code code={codeCrossView} lang="python" themes={themes} defaultColor={false} />
+  <p>
+    Because every other camera adds one more point to the same cloud, the input has the same form whether there are two cameras or
+    ten. That is what lets UPose3D handle any number of cameras without retraining, and it is why we call this a scalable cross-view
+    fusion.
+  </p>
+
+  <h2 id="compiler">The Pose Compiler</h2>
+  <p>
+    The pose compiler turns these clouds into better keypoints. It has two parts. A <strong>point-cloud encoder</strong>, inspired by
+    the Point Cloud Transformer<a href="#ref-pct" class="cite">[3]</a>, turns each joint's cloud into a feature vector. We modified it
+    to keep the coordinates, adding a residual connection from the reference view's features to its output.
+  </p>
+  <p>
+    A <strong>spatiotemporal encoder</strong> then looks at those features across all joints and a window of frames (27 in the main
+    model) and predicts each joint's refined position and uncertainty, again with an RLE head. Full attention over every joint in
+    every frame gets expensive fast, so it uses criss-cross attention<a href="#ref-ccnet" class="cite">[4]</a>: each token attends only
+    along its own frame and its own joint, and stacking a few layers lets information reach everywhere.
+  </p>
+
+  <CrissCross />
+
+  <p>
+    Two things make the compiler useful. It sees time, so a joint that flickers in one frame is pulled back by its neighbours. And it
+    sees the clouds, so it can learn which kinds of disagreement mean "this camera is wrong" rather than "the joint moved".
+  </p>
+
+  <h2 id="to-3d">From 2D to 3D</h2>
+  <p>
+    Now we have two sets of 2D keypoints for every joint in every camera: the image branch's and the pose compiler's, each with its
+    full predicted distribution. The 3D step looks for the 3D point whose projections are most likely under all of them. It starts
+    from a plain triangulation (DLT) and refines it with L-BFGS, maximising the combined likelihood:
+  </p>
+  <Code code={code3D} lang="python" themes={themes} defaultColor={false} />
+  <p>
+    The effect is easiest to see with one bad camera. Plain triangulation weighs every view the same, so the bad one pulls the answer
+    away. When each view comes with its uncertainty, a confident view counts for more and an unsure one for less:
+  </p>
+
+  <Triangulate />
+
+  <p>
+    This is not just a toy effect. In the paper's ablation on Human3.6M, removing uncertainty from both branches raises the error
+    from 26.4 mm to 48.1 mm, and the full method's lead on unseen data, shown below, comes largely from discarding unreliable views.
+  </p>
+
+  <h2 id="training">Training Without 3D Labels</h2>
+  <p>
+    The pose compiler only ever sees 2D point clouds, so it doesn't need images or 3D-labelled video to train. Instead, we make
+    training data from motion capture. Starting from AMASS<a href="#ref-amass" class="cite">[5]</a>, each sample is built like this:
+  </p>
+  <ul>
+    <li><strong>Vary the person:</strong> add noise to the body shape, mirror the motion half the time, and rotate it randomly.</li>
+    <li><strong>Place virtual cameras</strong> on a cylinder around them, at realistic heights, each aimed near the middle of the
+      capture volume. Up to 8 cameras per sample.</li>
+    <li><strong>Project</strong> the 3D joints into each camera to get perfect 2D keypoints, the targets the compiler learns to
+      recover.</li>
+    <li><strong>Corrupt</strong> them the way real detectors fail, then build the point clouds from the corrupted keypoints.</li>
+  </ul>
+
+  <SyntheticData />
+
+  <p>
+    Samples are generated on the fly, so every sample has a fresh random camera layout, and training takes about six hours on a
+    single RTX 2080 GPU. Nothing is tied to one dataset's cameras, and the skeleton is just whichever joint regressor is applied to the
+    motion capture: 17 joints for the Human3.6M experiments, 133 whole-body joints for the out-of-distribution ones.
+  </p>
+
+  <h2 id="results">Results</h2>
+  <h3>In the lab: Human3.6M</h3>
+  <p>
+    Human3.6M<a href="#ref-h36m" class="cite">[6]</a> is the standard multi-view benchmark, with four cameras in one studio. Among
+    methods trained with 2D labels only, UPose3D is the most accurate, at 26.4 mm against 30.5 mm for plain triangulation of the same
+    2D estimator. Methods trained on Human3.6M's own 3D labels, or with its camera parameters during training, are still ahead here
+    (Epipolar Transformers<a href="#ref-epipolar" class="cite">[7]</a> reaches 19.0 mm), which is expected when the test set looks
+    exactly like the training set.
+  </p>
+
+  <BarChart
+    title="Human3.6M: error by training supervision"
+    sub="Mean per-joint position error (MPJPE) on the full test set; lower is better"
+    caption="From Table 1 of the paper. Rows the paper reports without an MPJPE are left out. The two 'from scratch' rows were trained with no additional data."
+    rows={inDistribution}
+    max={80}
+  />
+
+  <h3>Somewhere new: RICH</h3>
+  <p>
+    The more telling test is a setting none of the models trained on. RICH<a href="#ref-rich" class="cite">[8]</a> was recorded in
+    three new environments (a construction site, a gym and a lecture hall) with different people and cameras. Here UPose3D roughly halves the
+    error of the next best method, 34.7 mm against 64.4 mm. AdaFuse<a href="#ref-adafuse" class="cite">[9]</a>, one of the strongest
+    methods on Human3.6M, falls apart at 524 mm: it does well only when every view's prediction is reasonable, and occasional noisy
+    views cause large triangulation errors. UPose3D's uncertainty lets it set those views aside.
+  </p>
+
+  <BarChart
+    title="RICH: error in unseen scenes"
+    sub="MPJPE on the RICH test set; none of the methods trained on RICH. Lower is better."
+    caption="From Table 2 of the paper. Baselines marked as the authors' own implementations in the paper: AdaFuse and both HRNet-W48 baselines."
+    rows={outOfDistribution}
+    max={80}
+  />
+
+  <h3>What matters</h3>
+  <p>
+    The ablations show which parts do the work. The two branches need each other: without the pose compiler the error rises to
+    37.1 mm, and without the image branch it rises to 69.9 mm. Uncertainty is what makes combining them work: remove it everywhere
+    and the error jumps to 48.1 mm, and with no uncertainty and no compiler we are back to plain triangulation (30.5 mm).
+  </p>
+
+  <BarChart
+    title="Ablations on Human3.6M"
+    sub="MPJPE with a 27-frame window when parts of UPose3D are removed; lower is better"
+    caption="From Table 3 of the paper."
+    rows={ablations}
+    max={80}
+  />
+
+  <h3>Cost, and more cameras</h3>
+  <p>
+    Because the heavy lifting happens on small point clouds rather than image features, UPose3D is also the cheapest of the
+    multi-view methods compared, at roughly half the compute of the next one with both 4 and 10 cameras. In the paper's breakdown,
+    the pose compiler needs only 0.385 GFLOPs against 508.5 for the 2D backbone. On CMU Panoptic and HUMBI, adding cameras keeps lowering UPose3D's
+    error while plain triangulation and RANSAC level off, and the run time per sample stays roughly constant.
+  </p>
+
+  <ComputeChart />
+
+  <h2 id="limits">Limitations</h2>
+  <ul>
+    <li><strong>Calibrated cameras.</strong> The cross-view projection needs each camera's intrinsic and extrinsic parameters.</li>
+    <li><strong>Not real time yet.</strong> The paper's focus was accuracy; it suggests learned second-order optimisers for the
+      likelihood maximisation as a way to make it fast enough for real-time use.</li>
+    <li><strong>Longer windows aren't better.</strong> A 243-frame model did worse than the 27-frame one, probably because the
+      synthetic corruptions were tuned for short windows.</li>
+    <li><strong>In the lab, 3D supervision still wins.</strong> When training and test data match, methods trained on that
+      dataset's 3D labels remain more accurate.</li>
+  </ul>
+
+  <h2 id="citation">Citation</h2>
+  <p class="cite-text">
+    Vandad Davoodnia, Saeed Ghorbani, Marc-André Carbonneau, Alexandre Messier, Ali Etemad.
+    <a href={paperUrl}>UPose3D: Uncertainty-Aware 3D Human Pose Estimation with Cross-View and Temporal Cues</a>. ECCV 2024.
+  </p>
+  <div class="bib">
+    <div class="bib__bar">
+      <span>BibTeX</span>
+      <button type="button" class="bib__copy" data-copy-bib data-bib={bibtex}>Copy</button>
+    </div>
+    <Code code={bibtex} lang="bibtex" themes={themes} defaultColor={false} />
+  </div>
+
+  <h2 id="references">References</h2>
+  <ol class="refs">
+    <li id="ref-upose3d">V. Davoodnia, S. Ghorbani, M.-A. Carbonneau, A. Messier, A. Etemad.
+      <a href="https://arxiv.org/abs/2404.14634">UPose3D: Uncertainty-Aware 3D Human Pose Estimation with Cross-View and Temporal Cues</a>. ECCV 2024.</li>
+    <li id="ref-rle">J. Li, S. Bian, A. Zeng, C. Wang, B. Pang, W. Liu, C. Lu.
+      <a href="https://arxiv.org/abs/2107.11291">Human Pose Regression with Residual Log-likelihood Estimation</a>. ICCV 2021.</li>
+    <li id="ref-pct">M.-H. Guo, J.-X. Cai, Z.-N. Liu, T.-J. Mu, R. R. Martin, S.-M. Hu.
+      <a href="https://arxiv.org/abs/2012.09688">PCT: Point Cloud Transformer</a>. Computational Visual Media, 2021.</li>
+    <li id="ref-ccnet">Z. Huang, X. Wang, Y. Wei, L. Huang, H. Shi, W. Liu, T. S. Huang.
+      <a href="https://arxiv.org/abs/1811.11721">CCNet: Criss-Cross Attention for Semantic Segmentation</a>. ICCV 2019.</li>
+    <li id="ref-amass">N. Mahmood, N. Ghorbani, N. F. Troje, G. Pons-Moll, M. J. Black.
+      <a href="https://arxiv.org/abs/1904.03278">AMASS: Archive of Motion Capture as Surface Shapes</a>. ICCV 2019.</li>
+    <li id="ref-h36m">C. Ionescu, D. Papava, V. Olaru, C. Sminchisescu.
+      <a href="https://doi.org/10.1109/TPAMI.2013.248">Human3.6M: Large Scale Datasets and Predictive Methods for 3D Human Sensing in Natural Environments</a>. IEEE TPAMI, 2014.</li>
+    <li id="ref-epipolar">Y. He, R. Yan, K. Fragkiadaki, S.-I. Yu.
+      <a href="https://arxiv.org/abs/2005.04551">Epipolar Transformers</a>. CVPR 2020.</li>
+    <li id="ref-rich">C.-H. P. Huang, H. Yi, M. Höschle, M. Safroshkin, T. Alexiadis, S. Polikovsky, D. Scharstein, M. J. Black.
+      <a href="https://arxiv.org/abs/2206.09553">Capturing and Inferring Dense Full-Body Human-Scene Contact</a>. CVPR 2022.</li>
+    <li id="ref-adafuse">Z. Zhang, C. Wang, W. Qiu, W. Qin, W. Zeng.
+      <a href="https://arxiv.org/abs/2010.13302">AdaFuse: Adaptive Multiview Fusion for Accurate Human Pose Estimation in the Wild</a>. IJCV 2021.</li>
+  </ol>
+
+  <style>
+    .cite { font-size: 0.72em; vertical-align: super; margin-left: 0.1em; text-decoration: none !important; }
+    .toc { list-style: none; padding: 0 !important; margin: var(--space-sm) 0 var(--space-md); display: grid; gap: 0.25rem; }
+    .toc li { margin: 0; }
+    .toc a { text-decoration: none !important; }
+    .toc a::before { content: "◇"; color: var(--gold); margin-right: 0.5rem; font-size: 0.8em; }
+    .refs { font-size: var(--step--1); color: var(--text-muted); }
+    .refs li { margin-bottom: 0.5rem; }
+    .up-header__authors { margin-top: var(--space-sm); color: var(--text); }
+    .up-header__authors a { color: var(--text); text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--accent-from) 45%, transparent); text-underline-offset: 0.2em; }
+    .up-header__me { font-weight: 600; }
+    .up-header__venue { color: var(--text-muted); font-size: var(--step--1); margin-top: 0.2rem; }
+    .up-header__tags { display: flex; flex-wrap: wrap; gap: 0.4rem; list-style: none; padding: 0; margin: var(--space-sm) 0 0; }
+    .up-header__tags li { font-size: var(--step--1); color: var(--accent-from); border: 1px solid var(--border); border-radius: 999px; padding: 0.15rem 0.6rem; }
+    /* Same as the other project pages: one solid accent pill, then plain underlined links. */
+    .up-header__cta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-sm) var(--space-md); margin-top: var(--space-md); }
+    .up-header__cta a { color: var(--text); font-weight: 500; text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--accent-from) 45%, transparent); text-underline-offset: 0.25em; }
+    .up-header__cta a:hover { color: var(--accent-from); }
+    .up-header__cta .up-header__primary { text-decoration: none; padding: 0.6rem 1.25rem; border-radius: 999px; background: var(--accent-from); color: var(--badge-text); }
+    .up-header__cta .up-header__primary:hover { color: var(--badge-text); background: color-mix(in srgb, var(--accent-from) 85%, var(--text)); }
+    .cite-text { padding: 0.8rem 1rem; border-left: 3px solid var(--gold); background: var(--bg-deep); border-radius: 0 10px 10px 0; }
+    .bib__bar { display: flex; justify-content: space-between; align-items: center; margin-top: var(--space-sm); font-size: var(--step--1); color: var(--text-muted); }
+    .bib__copy { font: inherit; font-size: 0.8rem; cursor: pointer; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 0.2rem 0.85rem; }
+    .bib__copy:hover { border-color: var(--accent-from); }
+  </style>
+  <style is:global>
+    /* Code blocks: Shiki dual themes, switched by the site's dark class. */
+    .post__body pre.astro-code {
+      margin: var(--space-sm) 0 var(--space-md);
+      padding: 1rem 1.15rem;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background-color: var(--bg-deep) !important;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.8rem;
+      line-height: 1.6;
+      overflow-x: auto;
+    }
+    .post__body pre.astro-code span { color: var(--shiki-light); background-color: transparent !important; }
+    html.dark .post__body pre.astro-code span { color: var(--shiki-dark); }
+  </style>
+</PostLayout>
+
+<script>
+  import { onEachPage } from '@/scripts/viz';
+
+  // Copy the paper's BibTeX entry; if the clipboard is blocked, select it instead.
+  onEachPage('[data-copy-bib]', (btn) => {
+    btn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(btn.dataset.bib ?? '');
+        btn.textContent = 'Copied';
+      } catch {
+        const pre = btn.closest('.bib')?.querySelector('pre');
+        if (pre) window.getSelection()?.selectAllChildren(pre);
+        btn.textContent = 'Selected: press Ctrl/⌘+C';
+      }
+      setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+    });
+  });
+</script>

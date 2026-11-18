@@ -1,0 +1,145 @@
+---
+// Why uncertainty matters (Sec. 3.4 and the ablation in Table 3), simulated:
+// one camera's guess is off. Plain triangulation trusts every camera equally;
+// weighting each camera by its reported uncertainty lets the good views win.
+// The weighting here is a simplified stand-in for UPose3D's likelihood optimisation.
+---
+<figure class="viz up-tri">
+  <div class="viz__head">
+    <p class="viz__title">One bad camera, two ways to triangulate</p>
+    <p class="viz__sub">Six cameras look at the left wrist. Push camera 3's guess off and see where the 3D estimate lands.</p>
+  </div>
+  <div class="viz-controls">
+    <label class="viz-slider">Camera 3's error <input type="range" min="0" max="60" value="35" step="1" data-err /> <strong data-err-out>35 px</strong></label>
+    <button type="button" class="viz-btn" data-knows aria-pressed="true">Camera 3 reports its uncertainty</button>
+  </div>
+  <div class="up-tri__panels">
+    <div>
+      <p class="up-tri__label">From above: each camera's ray through its guess</p>
+      <div data-top></div>
+    </div>
+    <div>
+      <p class="up-tri__label">Zoomed in: 30 cm around the true wrist</p>
+      <div data-zoom></div>
+    </div>
+  </div>
+  <div class="viz-legend" aria-hidden="true">
+    <span><i style="background: var(--ink-2)"></i>Camera ray</span>
+    <span><i class="dash" style="color: var(--div-pos)"></i>Camera 3's ray</span>
+    <span><i class="dot" style="background: var(--div-pos)"></i>Plain triangulation</span>
+    <span><i class="sq"></i>Weighted by uncertainty</span>
+    <span><b class="x">✕</b>True position</span>
+  </div>
+  <div class="up-tri__readout" aria-live="polite">
+    <p><span class="up-tri__k">Plain triangulation</span> <strong data-plain></strong> off</p>
+    <p><span class="up-tri__k">Weighted by uncertainty</span> <strong data-weighted></strong> off</p>
+  </div>
+  <figcaption class="viz__caption">
+    A simulation: the other cameras' guesses have 2 px of noise and say so; camera 3 reports an uncertainty as large as its error when
+    the button is on. Weighting each view by one over its uncertainty is a simplified version of what UPose3D does, which starts from
+    triangulation and then finds the 3D point most likely under every keypoint's full predicted distribution.
+  </figcaption>
+  <style is:global>
+    .up-tri__label { font-size: 0.78rem; color: var(--ink-2); margin-bottom: 0.3rem; }
+    .up-tri__panels { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem; }
+    .up-tri svg { display: block; width: 100%; height: auto; overflow: visible; }
+    .up-tri .ray { stroke: var(--ink-2); stroke-width: 1; opacity: 0.6; }
+    .up-tri .ray--bad { stroke: var(--div-pos); stroke-dasharray: 5 4; opacity: 1; stroke-width: 1.5; }
+    .up-tri .bone { stroke: var(--axis); stroke-width: 2.5; stroke-linecap: round; }
+    .up-tri .viz-legend i.sq { width: 9px; height: 9px; border-radius: 2px; background: var(--c-clean); }
+    .up-tri .viz-legend b.x { font-weight: 700; color: var(--ink); font-size: 0.8rem; }
+    .up-tri__readout { display: flex; flex-wrap: wrap; gap: 0.4rem 1.5rem; margin-top: 0.4rem; font-size: 0.9rem; color: var(--ink); }
+    .up-tri__k { color: var(--ink-2); margin-right: 0.3rem; }
+    .up-tri__readout strong { font-variant-numeric: tabular-nums; }
+    @media (max-width: 640px) { .up-tri__panels { grid-template-columns: 1fr; } }
+  </style>
+</figure>
+
+<script>
+  import { onEachPage, responsive, svgEl, svgText } from '@/scripts/viz';
+  import { BONES, JOINTS, LEFT_WRIST, backProject, dist3, gauss, project, ring, rng, triangulate, type V2, type V3 } from '@/scripts/multiview';
+
+  const BAD_ID = 3;
+  const NOISE = 2; // px, for the good cameras
+
+  onEachPage('.up-tri', (root) => {
+    const top = root.querySelector<HTMLElement>('[data-top]')!;
+    const zoom = root.querySelector<HTMLElement>('[data-zoom]')!;
+    const errIn = root.querySelector<HTMLInputElement>('[data-err]')!;
+    const knowsBtn = root.querySelector<HTMLButtonElement>('[data-knows]')!;
+    let knows = true;
+    const cams = ring(6);
+    const X = JOINTS[LEFT_WRIST].p;
+    const r = rng(11);
+    const noise: V2[] = cams.map(() => [gauss(r) * NOISE, gauss(r) * NOISE]);
+    const badDir: V2 = [0.83, -0.56];
+
+    function draw() {
+      const err = Number(errIn.value);
+      root.querySelector('[data-err-out]')!.textContent = `${err} px`;
+      knowsBtn.setAttribute('aria-pressed', String(knows));
+      const obs = cams.map((cam, i) => {
+        const p = project(cam, X);
+        const isBad = cam.id === BAD_ID;
+        const u: V2 = [p[0] + noise[i][0] + (isBad ? badDir[0] * err : 0), p[1] + noise[i][1] + (isBad ? badDir[1] * err : 0)];
+        const sigma = isBad && knows ? Math.max(NOISE, err) : NOISE;
+        return { cam, u, sigma, isBad };
+      });
+      const plain = triangulate(obs.map((o) => ({ cam: o.cam, u: o.u, w: 1 })));
+      const weighted = triangulate(obs.map((o) => ({ cam: o.cam, u: o.u, w: 1 / o.sigma })));
+      root.querySelector('[data-plain]')!.textContent = `${Math.round(dist3(plain, X) * 1000)} mm`;
+      root.querySelector('[data-weighted]')!.textContent = `${Math.round(dist3(weighted, X) * 1000)} mm`;
+
+      // Rays from each camera through its guess, flattened onto the floor plan (x, z).
+      const rays = obs.map((o) => {
+        const d = Math.hypot(o.cam.C[0], o.cam.C[2]);
+        return { a: o.cam.C, b: backProject(o.cam, o.u, d * 1.6), isBad: o.isBad, id: o.cam.id };
+      });
+
+      // ── full view ──────────────────────────────────────────────
+      top.replaceChildren();
+      const S = 260, k = S / 8;
+      const tx = (x: number) => S / 2 + x * k, tz = (z: number) => S / 2 + z * k;
+      const ts = svgEl('svg', { viewBox: `0 0 ${S} ${S}`, role: 'img', 'aria-label': 'Top view of six cameras and their rays towards the left wrist.' }, top);
+      for (const [a, b] of BONES) svgEl('line', { x1: tx(JOINTS[a].p[0]), y1: tz(JOINTS[a].p[2]), x2: tx(JOINTS[b].p[0]), y2: tz(JOINTS[b].p[2]), class: 'bone' }, ts);
+      for (const ray of rays) {
+        svgEl('line', { x1: tx(ray.a[0]), y1: tz(ray.a[2]), x2: tx(ray.b[0]), y2: tz(ray.b[2]), class: `ray${ray.isBad ? ' ray--bad' : ''}` }, ts);
+        svgEl('circle', { cx: tx(ray.a[0]), cy: tz(ray.a[2]), r: 5, style: `fill: ${ray.isBad ? 'var(--div-pos)' : 'var(--ink-2)'}` }, ts);
+        const ang = Math.atan2(ray.a[2], ray.a[0]);
+        svgText(ts, tx(ray.a[0]) + Math.cos(ang) * 16, tz(ray.a[2]) + Math.sin(ang) * 16 + 4, `C${ray.id}`, { 'text-anchor': 'middle', 'font-size': 11 });
+      }
+      // the zoom window's outline
+      const half = 0.15;
+      svgEl('rect', { x: tx(X[0] - half), y: tz(X[2] - half), width: 2 * half * k, height: 2 * half * k, fill: 'none', style: 'stroke: var(--accent-from)', 'stroke-width': 1.2 }, ts);
+
+      // ── zoom ───────────────────────────────────────────────────
+      zoom.replaceChildren();
+      const Z = 260, zk = Z / (2 * half);
+      const zx = (x: number) => Z / 2 + (x - X[0]) * zk, zz = (z: number) => Z / 2 + (z - X[2]) * zk;
+      const zs = svgEl('svg', { viewBox: `0 0 ${Z} ${Z}`, role: 'img', 'aria-label': `Zoomed top view: plain triangulation lands ${Math.round(dist3(plain, X) * 1000)} mm from the true wrist; weighting by uncertainty lands ${Math.round(dist3(weighted, X) * 1000)} mm away.` }, zoom);
+      const clip = `up-tri-clip-${Math.random().toString(36).slice(2, 7)}`;
+      const cp = svgEl('clipPath', { id: clip }, svgEl('defs', {}, zs));
+      svgEl('rect', { x: 0, y: 0, width: Z, height: Z }, cp);
+      svgEl('rect', { x: 0, y: 0, width: Z, height: Z, rx: 8, style: 'fill: var(--bg-deep); stroke: var(--accent-from)' }, zs);
+      const g = svgEl('g', { 'clip-path': `url(#${clip})` }, zs);
+      for (const t of [-0.1, -0.05, 0, 0.05, 0.1]) {
+        svgEl('line', { x1: zx(X[0] + t), x2: zx(X[0] + t), y1: 0, y2: Z, class: 'grid' }, g);
+        svgEl('line', { y1: zz(X[2] + t), y2: zz(X[2] + t), x1: 0, x2: Z, class: 'grid' }, g);
+      }
+      for (const ray of rays) svgEl('line', { x1: zx(ray.a[0]), y1: zz(ray.a[2]), x2: zx(ray.b[0]), y2: zz(ray.b[2]), class: `ray${ray.isBad ? ' ray--bad' : ''}` }, g);
+      const mark = (p: V3, kind: 'plain' | 'weighted') => {
+        const x = zx(p[0]), y = zz(p[2]);
+        if (kind === 'plain') svgEl('circle', { cx: x, cy: y, r: 6, style: 'fill: var(--div-pos); stroke: var(--viz-surface)', 'stroke-width': 1.5 }, g);
+        else svgEl('rect', { x: x - 5.5, y: y - 5.5, width: 11, height: 11, rx: 2, style: 'fill: var(--c-clean); stroke: var(--viz-surface)', 'stroke-width': 1.5 }, g);
+      };
+      mark(plain, 'plain');
+      mark(weighted, 'weighted');
+      svgText(g, zx(X[0]), zz(X[2]) + 5, '✕', { 'text-anchor': 'middle', 'font-size': 15, class: 't-strong' });
+      svgText(zs, Z - 8, Z - 8, '5 cm grid', { 'text-anchor': 'end', 'font-size': 10 });
+    }
+
+    errIn.addEventListener('input', draw);
+    knowsBtn.addEventListener('click', () => { knows = !knows; draw(); });
+    responsive(root, () => draw());
+  });
+</script>

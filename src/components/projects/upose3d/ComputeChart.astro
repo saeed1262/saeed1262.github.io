@@ -1,0 +1,74 @@
+---
+// Table 4 as a slope chart: compute for one frame with 4 and with 10 cameras.
+import { compute } from '@/data/projects/upose3d';
+---
+<figure class="viz up-compute">
+  <div class="viz__head">
+    <p class="viz__title">Compute as cameras are added</p>
+    <p class="viz__sub">Billions of operations (GFLOPs) to estimate one frame, with 4 and with 10 cameras; lower is better</p>
+  </div>
+  <div class="viz__plot" data-plot></div>
+  <figcaption class="viz__caption">From Table 4 of the paper (single-frame models, including each method's 2D backbone).</figcaption>
+  <details>
+    <summary>Show as a table</summary>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Method</th><th>Parameters (M)</th><th>4 cameras (GFLOPs)</th><th>10 cameras (GFLOPs)</th></tr></thead>
+        <tbody>{compute.map((c) => <tr><td>{c.label}</td><td>{c.params}</td><td>{c.cams4}</td><td>{c.cams10}</td></tr>)}</tbody>
+      </table>
+    </div>
+  </details>
+</figure>
+
+<script>
+  import { onEachPage, responsive, svgEl, svgText, linear, makeTooltip } from '@/scripts/viz';
+  import { compute } from '@/data/projects/upose3d';
+
+  onEachPage('.up-compute', (root) => {
+    const plot = root.querySelector<HTMLElement>('[data-plot]')!;
+    const tip = makeTooltip(plot);
+    responsive(plot, (width) => {
+      plot.replaceChildren(tip.el);
+      tip.hide();
+      const narrow = width < 560;
+      const H = 300, padL = 44, padR = narrow ? 112 : 180, top = 16, bottom = H - 28;
+      const x4 = padL + 20, x10 = width - padR;
+      const y = linear(0, 1600, bottom, top);
+      const svg = svgEl('svg', { viewBox: `0 0 ${width} ${H}`, role: 'img', 'aria-label': 'UPose3D needs the least compute with both 4 and 10 cameras.' }, plot);
+      for (const t of [0, 400, 800, 1200, 1600]) {
+        svgEl('line', { x1: padL, x2: x10, y1: y(t), y2: y(t), class: t === 0 ? 'axis' : 'grid' }, svg);
+        svgText(svg, padL - 6, y(t) + 4, String(t), { 'text-anchor': 'end' });
+      }
+      svgText(svg, x4, H - 8, '4 cameras', { 'text-anchor': 'middle', class: 't-ink' });
+      svgText(svg, x10, H - 8, '10 cameras', { 'text-anchor': 'middle', class: 't-ink' });
+      // Others first, UPose3D on top.
+      const order = [...compute].sort((a, b) => Number(!!a.ours) - Number(!!b.ours));
+      const labelYs: number[] = [];
+      for (const c of order) {
+        const colour = c.ours ? 'var(--accent-from)' : 'var(--c-other)';
+        svgEl('line', { x1: x4, y1: y(c.cams4), x2: x10, y2: y(c.cams10), style: `stroke: ${colour}; opacity: ${c.ours ? 1 : 0.6}`, 'stroke-width': c.ours ? 3 : 2 }, svg);
+        for (const [xx, v] of [[x4, c.cams4], [x10, c.cams10]] as const) {
+          svgEl('circle', { cx: xx, cy: y(v), r: c.ours ? 5 : 4, style: `fill: ${colour}; stroke: var(--viz-surface)`, 'stroke-width': 1.5 }, svg);
+        }
+        // direct labels on the right, nudged apart
+        let ly = y(c.cams10) + 4;
+        while (labelYs.some((o) => Math.abs(o - ly) < 13)) ly += 13;
+        labelYs.push(ly);
+        svgText(svg, x10 + 9, ly, `${c.label}${narrow ? '' : ` · ${c.cams10}`}`, { class: c.ours ? 't-strong' : 't-ink', 'font-size': narrow ? 10.5 : 11.5 });
+        const hit = svgEl('line', { x1: x4, y1: y(c.cams4), x2: x10, y2: y(c.cams10), stroke: 'transparent', 'stroke-width': 14, tabindex: 0,
+          'aria-label': `${c.label}: ${c.cams4} GFLOPs with 4 cameras, ${c.cams10} with 10; ${c.params}M parameters` }, svg);
+        const show = (e?: PointerEvent) => {
+          const r = plot.getBoundingClientRect(), s = r.width / width;
+          const px = e ? e.clientX - r.left : x10 * s, py = e ? e.clientY - r.top : y(c.cams10) * s;
+          tip.show(px, py, c.label, [
+            { value: `${c.cams4}`, label: 'GFLOPs, 4 cameras' },
+            { value: `${c.cams10}`, label: 'GFLOPs, 10 cameras' },
+            { value: `${c.params}M`, label: 'parameters' },
+          ]);
+        };
+        hit.addEventListener('pointermove', (e) => show(e as PointerEvent)); hit.addEventListener('focus', () => show());
+        hit.addEventListener('pointerleave', () => tip.hide()); hit.addEventListener('blur', () => tip.hide());
+      }
+    });
+  });
+</script>
