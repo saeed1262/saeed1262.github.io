@@ -22,6 +22,6 @@ export const site = {
     repo: 'saeed1262/saeed1262.github.io',
     repoId: 'R_kgDOHk0xHg',
     category: 'Announcements',
-    categoryId: '',
+    categoryId: 'DIC_kwDOHk0xHs4DLbfU',
   },
 } as const;
