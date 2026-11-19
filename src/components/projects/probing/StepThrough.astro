@@ -1,0 +1,81 @@
+---
+// Step through one sample's guess of the finished motion: the jump of the paper's Figure 8 at the start, 20% and 40%
+// of denoising, and finished. Bodies are drawn every second frame from take-off to landing, with the centre-of-mass
+// path (red where the labels count the body as airborne); scripts/make_page_steps.py in the paper's repository.
+import { Image } from 'astro:assets';
+import j0 from '@/assets/projects/probing-physics/jump_0.png';
+import j20 from '@/assets/projects/probing-physics/jump_20.png';
+import j40 from '@/assets/projects/probing-physics/jump_40.png';
+import jFinal from '@/assets/projects/probing-physics/jump_final.png';
+import { jumpStages } from '@/data/projects/probing-physics';
+
+const frames = [j0, j20, j40, jFinal];
+const alts = [
+  'The guess at the start: an average crouch that stays in place, with no jump yet.',
+  'The guess at 20% of the way: take-off, an arc and a landing are already in place.',
+  'The guess at 40% of the way: almost the same jump.',
+  'The finished motion: take-off, the arc of the centre of mass, and the landing back on the floor.',
+];
+---
+<figure class="viz pp-steps">
+  <div class="viz__head">
+    <p class="viz__title">Step through it yourself</p>
+    <p class="viz__sub">One recorded sample of the 50-step MDM, “a person jumps forward”: the model's guess at four points of generation. Each picture shows the same half-second, every second frame from take-off to landing.</p>
+  </div>
+  <div class="viz-controls">
+    <div class="viz-seg" role="group" aria-label="Point in generation">
+      {jumpStages.map((s, i) => <button type="button" data-i={i} aria-pressed={i === 1 ? 'true' : 'false'}>{s.label}</button>)}
+    </div>
+  </div>
+  <div class="pp-steps__stage" style={`aspect-ratio: ${j0.width} / ${j0.height}`}>
+    {frames.map((f, i) => (
+      <Image src={f} alt={alts[i]} widths={[480, 960]} sizes="(max-width: 640px) 100vw, 640px" class:list={['pp-steps__img', { 'is-on': i === 1 }]} data-zoom-ready="1" />
+    ))}
+  </div>
+  <div class="pp-steps__read">
+    <p class="viz-readout" data-g>9.5 m/s²<small data-which>how fast the body falls in the guess at 20% of the way</small></p>
+    <p class="pp-steps__ref">Real gravity: <strong>9.81 m/s²</strong></p>
+  </div>
+  <figcaption class="viz__caption">
+    From the data behind Figure 8 of the paper. The line is the centre of mass, red where the labels count the body as
+    airborne; the fall rate is a parabola fitted to it there. At the start the crouch counts as airborne but barely falls
+    (0.02 m/s²), which is why it reads as no jump. Use the buttons, or the arrow keys once one of them has focus.
+  </figcaption>
+</figure>
+
+<style>
+  .pp-steps__stage { position: relative; max-height: 26rem; margin: 0 auto; background: #fff; border-radius: 10px; border: 1px solid var(--border); }
+  .pp-steps__stage :global(.pp-steps__img) { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; margin: 0; padding: 0.6rem; border-radius: 10px; opacity: 0; transition: opacity 0.35s ease; }
+  .pp-steps__stage :global(.pp-steps__img.is-on) { opacity: 1; }
+  .pp-steps__read { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 0.5rem 1.5rem; margin-top: 0.9rem; }
+  .pp-steps__read .viz-readout { color: var(--c-zeggs); }
+  .pp-steps__ref { font-size: 0.86rem; color: var(--ink-2); }
+  @media (prefers-reduced-motion: reduce) { .pp-steps__stage :global(.pp-steps__img) { transition: none; } }
+</style>
+
+<script>
+  import { onEachPage } from '@/scripts/viz';
+  import { jumpStages } from '@/data/projects/probing-physics';
+
+  onEachPage('.pp-steps', (root) => {
+    const btns = [...root.querySelectorAll<HTMLButtonElement>('[data-i]')];
+    const imgs = [...root.querySelectorAll<HTMLElement>('.pp-steps__img')];
+    const g = root.querySelector<HTMLElement>('[data-g]')!;
+    const show = (i: number) => {
+      const s = jumpStages[i];
+      btns.forEach((b, k) => b.setAttribute('aria-pressed', String(k === i)));
+      imgs.forEach((im, k) => im.classList.toggle('is-on', k === i));
+      g.replaceChildren(s.fallRate === null ? 'no jump yet' : `${s.fallRate.toFixed(1)} m/s²`);
+      const small = document.createElement('small');
+      small.textContent = s.fallRate === null ? 'the guess at the start is an average crouch' : `how fast the body falls in ${s.name}`;
+      g.appendChild(small);
+    };
+    btns.forEach((b, i) => {
+      b.addEventListener('click', () => show(i));
+      b.addEventListener('keydown', (e) => {
+        const j = e.key === 'ArrowRight' ? Math.min(btns.length - 1, i + 1) : e.key === 'ArrowLeft' ? Math.max(0, i - 1) : i;
+        if (j !== i) { e.preventDefault(); show(j); btns[j].focus(); }
+      });
+    });
+  });
+</script>

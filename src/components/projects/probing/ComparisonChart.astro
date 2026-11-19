@@ -1,0 +1,147 @@
+---
+// The standard comparison (Table 2: best layer minus the label computed from the estimate) against the fair one
+// (Figure 5b: what adding the layer to a tuned readout of the estimate gains), on one axis, at 20% of denoising.
+---
+<figure class="viz pp-cmp">
+  <div class="viz__head">
+    <p class="viz__title">How much more do the layers know?</p>
+    <p class="viz__sub" data-sub></p>
+  </div>
+  <div class="viz-controls">
+    <div class="viz-seg" role="group" aria-label="Which comparison">
+      <button type="button" data-mode="standard" aria-pressed="true">The usual comparison</button>
+      <button type="button" data-mode="fair" aria-pressed="false">A fair comparison</button>
+    </div>
+  </div>
+  <div class="viz-legend" data-legend></div>
+  <div class="viz__plot" data-plot></div>
+  <figcaption class="viz__caption" data-caption></figcaption>
+  <details>
+    <summary>Show as a table</summary>
+    <div class="table-wrap"><table data-table></table></div>
+  </details>
+</figure>
+
+<script>
+  import { onEachPage, responsive, svgEl, svgText, linear, makeTooltip, fmtSigned } from '@/scripts/viz';
+  import { standardRows, fairRows, type CompareRow } from '@/data/projects/probing-physics';
+
+  const MODES = {
+    standard: {
+      rows: standardRows,
+      sub: 'Best layer (linear probe) minus the same label computed from the model’s own guess, at 20% of the way; R² or AUC',
+      caption: 'From Table 2 of the paper (mean over three seeds). Taken at face value, the layers look ahead on almost every target.',
+      legend: [['var(--c-real)', 'the layer looks ahead'], ['var(--c-clean)', 'the guess looks ahead']],
+    },
+    fair: {
+      rows: fairRows,
+      sub: 'What adding the layer to a tuned readout of the guess gains, at 20% of the way; R² or AUC, with 95% intervals',
+      caption: 'From Figure 5b of the paper: seeds pooled, every readout tuned on held-out prompts, intervals resampling prompts. Only the fall rate of jumps clearly gains; floats-or-falls and the fall rate use the jump-heavy prompts.',
+      legend: [['var(--c-real)', 'the layer adds (interval above zero)'], ['var(--c-other)', 'no gain']],
+    },
+  } as const;
+  type Mode = keyof typeof MODES;
+
+  onEachPage('.pp-cmp', (root) => {
+    const plot = root.querySelector<HTMLElement>('[data-plot]')!;
+    const table = root.querySelector<HTMLTableElement>('[data-table]')!;
+    const tip = makeTooltip(plot);
+    let mode: Mode = 'standard';
+
+    const color = (r: CompareRow) => {
+      if (mode === 'standard') return r.value >= 0 ? 'var(--c-real)' : 'var(--c-clean)';
+      return (r.lo ?? 0) > 0 ? 'var(--c-real)' : 'var(--c-other)';
+    };
+
+    const fillText = () => {
+      const m = MODES[mode];
+      root.querySelector('[data-sub]')!.textContent = m.sub;
+      root.querySelector('[data-caption]')!.textContent = m.caption;
+      const lg = root.querySelector('[data-legend]')!;
+      lg.replaceChildren(...m.legend.map(([c, t]) => {
+        const s = document.createElement('span'); const i = document.createElement('i');
+        i.className = 'dot'; i.style.background = c; s.append(i, t); return s;
+      }));
+      table.replaceChildren();
+      const head = table.createTHead().insertRow();
+      for (const h of ['Target', 'Model', mode === 'standard' ? 'Layer minus guess' : 'Gain', '95% interval']) {
+        const th = document.createElement('th'); th.textContent = h; head.appendChild(th);
+      }
+      const body = table.createTBody();
+      for (const r of m.rows) {
+        const tr = body.insertRow();
+        const ci = r.lo === undefined ? '' : `${fmtSigned(r.lo, 3)} to ${fmtSigned(r.hi!, 3)}`;
+        for (const v of [r.target, r.model, fmtSigned(r.value, 3), ci]) tr.insertCell().textContent = v;
+      }
+    };
+
+    const draw = (width: number) => {
+      plot.replaceChildren(tip.el);
+      tip.hide();
+      const rows = MODES[mode].rows;
+      const narrow = width < 560;
+      const labelW = narrow ? 0 : Math.min(250, width * 0.38);
+      const rowH = narrow ? 40 : 24, groupGap = narrow ? 8 : 12, top = 6, axisH = 44;
+      const groups = [...new Set(rows.map((r) => r.target))];
+      const ys: number[] = [];
+      let y = top;
+      for (const g of groups) {
+        y += narrow ? 18 : 0;
+        rows.filter((q) => q.target === g).forEach(() => { ys.push(y + rowH / 2); y += rowH; });
+        y += groupGap;
+      }
+      const bottom = y - groupGap + 4, H = bottom + axisH;
+      const x = linear(-0.02, 0.14, labelW + 10, width - 52);
+      const svg = svgEl('svg', { viewBox: `0 0 ${width} ${H}`, role: 'img', 'aria-label': mode === 'standard'
+        ? 'Under the usual comparison the layers look ahead of the guess on most targets, by up to 0.14.'
+        : 'Under a fair comparison the layers add nothing for balance, flight and floating; only the fall rate of jumps gains, by about 0.08 on MDM.' }, plot);
+      for (const t of [0, 0.04, 0.08, 0.12]) {
+        svgEl('line', { x1: x(t), x2: x(t), y1: top, y2: bottom, class: t === 0 ? 'axis' : 'grid' }, svg);
+        svgText(svg, x(t), bottom + 16, t === 0 ? '0' : `+${t.toFixed(2)}`, { 'text-anchor': 'middle' });
+      }
+      svgText(svg, x(0.14), bottom + 34, mode === 'standard' ? 'layer ahead →' : 'layer adds →', { 'text-anchor': 'end' });
+      let k = 0;
+      for (const g of groups) {
+        const grp = rows.filter((q) => q.target === g);
+        const y0 = ys[k];
+        if (narrow) svgText(svg, x(-0.02), y0 - rowH / 2 - 4, g, { class: 't-strong' });
+        else svgText(svg, 0, y0 + 4, g, { class: 't-strong' });
+        for (const r of grp) {
+          const cy = ys[k++];
+          const c = color(r);
+          if (!narrow) svgText(svg, labelW - 2, cy + 4, r.model, { 'text-anchor': 'end' });
+          else svgText(svg, x(-0.02), cy - 9, r.model, { 'font-size': 10.5 });   // above its bar, clear of long bars
+          if (mode === 'standard') {
+            svgEl('rect', { x: Math.min(x(0), x(r.value)), y: cy - 6, width: Math.abs(x(r.value) - x(0)), height: 12, rx: 3, style: `fill: ${c}` }, svg);
+          } else {
+            svgEl('line', { x1: x(r.lo!), x2: x(r.hi!), y1: cy, y2: cy, 'stroke-width': 2.2, 'stroke-linecap': 'round', style: `stroke: ${c}` }, svg);
+            svgEl('circle', { cx: x(r.value), cy, r: 4.6, style: `fill: ${c}; stroke: var(--viz-surface)`, 'stroke-width': 1.5 }, svg);
+          }
+          svgText(svg, width - 2, cy + 4, fmtSigned(r.value, 3), { 'text-anchor': 'end', class: (mode === 'fair' && (r.lo ?? 0) > 0) ? 't-strong' : '' });
+          const hit = svgEl('rect', { x: 0, y: cy - rowH / 2, width, height: rowH, fill: 'transparent', tabindex: 0,
+            'aria-label': `${r.target}, ${r.model}: ${fmtSigned(r.value, 3)}` }, svg);
+          const show = () => {
+            const s = plot.getBoundingClientRect().width / width;
+            const rowsTip = [{ value: fmtSigned(r.value, 3), label: mode === 'standard' ? 'layer minus guess' : 'gain from the layer', color: c }];
+            if (r.lo !== undefined) rowsTip.push({ value: `${fmtSigned(r.lo, 3)} to ${fmtSigned(r.hi!, 3)}`, label: '95% interval', color: '' });
+            tip.show(x(r.value) * s, cy * s, `${r.target} · ${r.model}`, rowsTip);
+          };
+          hit.addEventListener('pointerenter', show);
+          hit.addEventListener('focus', show);
+          hit.addEventListener('pointerleave', () => tip.hide());
+          hit.addEventListener('blur', () => tip.hide());
+        }
+      }
+    };
+
+    let redraw = () => {};
+    responsive(plot, (w) => { redraw = () => draw(w); draw(w); });
+    root.querySelectorAll<HTMLButtonElement>('[data-mode]').forEach((b) => b.addEventListener('click', () => {
+      mode = b.dataset.mode as Mode;
+      root.querySelectorAll('[data-mode]').forEach((o) => o.setAttribute('aria-pressed', String(o === b)));
+      fillText();
+      redraw();
+    }));
+    fillText();
+  });
+</script>

@@ -1,0 +1,67 @@
+---
+// A looping clip rendered from the paper's recorded motions (scripts/make_page_videos.py in the paper's repository).
+// Panel labels are page text over the video, so they stay sharp; on phones they move into the caption.
+interface Tag { text: string; sub?: string; left: string; top: string }
+interface Props {
+  src: string;
+  poster: string;
+  label: string; // what the clip shows, for screen readers
+  title?: string;
+  sub?: string;
+  tags?: Tag[];
+}
+const { src, poster, label, title, sub, tags = [] } = Astro.props;
+---
+<figure class="viz pp-clip">
+  {title && (
+    <div class="viz__head">
+      <p class="viz__title">{title}</p>
+      {sub && <p class="viz__sub">{sub}</p>}
+    </div>
+  )}
+  <div class="pp-clip__stage">
+    <video src={src} poster={poster} muted loop playsinline autoplay preload="metadata" aria-label={label}></video>
+    {tags.map((t) => (
+      <span class="pp-clip__tag" style={`left:${t.left};top:${t.top}`}>{t.text}{t.sub && <small>{t.sub}</small>}</span>
+    ))}
+    <button type="button" class="pp-clip__toggle" aria-label="Pause the clip" data-toggle></button>
+  </div>
+  <figcaption class="viz__caption"><slot /></figcaption>
+</figure>
+
+<style>
+  /* The bodies are drawn on white in both themes, like the paper's figures. */
+  .pp-clip__stage { position: relative; background: #fff; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+  .pp-clip__stage video { display: block; width: 100%; height: auto; }
+  .pp-clip__tag { position: absolute; margin: 0.55rem 0.7rem; font-size: 0.8rem; font-weight: 650; line-height: 1.3; color: #172033; pointer-events: none; }
+  .pp-clip__tag small { display: block; font-weight: 400; font-size: 0.74rem; color: #5b6680; }
+  .pp-clip__toggle {
+    position: absolute; right: 0.6rem; bottom: 0.6rem; width: 2rem; height: 2rem; border-radius: 50%; border: 0; cursor: pointer;
+    display: grid; place-items: center; color: #fff; background: rgba(23, 32, 51, 0.7); opacity: 0.75; transition: opacity 0.2s;
+  }
+  .pp-clip__toggle:hover, .pp-clip__toggle:focus-visible { opacity: 1; }
+  .pp-clip__toggle :global(svg) { width: 0.8rem; height: 0.8rem; }
+  @media (max-width: 640px) { .pp-clip__tag { display: none; } }
+</style>
+
+<script>
+  import { onEachPage } from '@/scripts/viz';
+
+  const PAUSE = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
+  const PLAY = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 5l12 7-12 7z"/></svg>';
+
+  // Moving content gets a pause button; visitors who ask for reduced motion start paused.
+  onEachPage('.pp-clip', (root) => {
+    const video = root.querySelector('video')!;
+    const btn = root.querySelector<HTMLButtonElement>('[data-toggle]')!;
+    const sync = () => {
+      btn.innerHTML = video.paused ? PLAY : PAUSE;
+      btn.setAttribute('aria-label', video.paused ? 'Play the clip' : 'Pause the clip');
+    };
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { video.removeAttribute('autoplay'); video.pause(); }
+    video.addEventListener('play', sync);
+    video.addEventListener('pause', sync);
+    btn.addEventListener('click', () => (video.paused ? video.play() : video.pause()));
+    sync();
+  });
+</script>

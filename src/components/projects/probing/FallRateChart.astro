@@ -1,0 +1,111 @@
+---
+// Figure 8b-d of the paper: how well the final fall rate of jumps is predicted from the guess alone and from the guess
+// plus layer 5, at each recorded step. The shaded gap is what the layer knows that the guess does not yet show.
+---
+<figure class="viz pp-fall">
+  <div class="viz__head">
+    <p class="viz__title">The one thing the layers know first: how fast a jump falls</p>
+    <p class="viz__sub">R² for the finished jump's fall rate, on held-out jump prompts; tuned readouts, seeds pooled</p>
+  </div>
+  <div class="viz-controls">
+    <div class="viz-seg" role="group" aria-label="Model" data-models></div>
+  </div>
+  <div class="viz-legend">
+    <span><i style="background: var(--c-clean)"></i>the guess alone</span>
+    <span><i style="background: var(--c-real)"></i>the guess plus layer 5</span>
+    <span><i class="dot" style="background: color-mix(in srgb, var(--c-real) 22%, transparent)"></i>what the layer adds</span>
+  </div>
+  <div class="viz__plot" data-plot></div>
+  <figcaption class="viz__caption">
+    From Figure 8 of the paper. The gain is largest a fifth of the way through and fades as the guess catches up; by
+    60% it is under 0.02. Hover or tab to a step for its numbers and interval.
+  </figcaption>
+  <details>
+    <summary>Show as a table</summary>
+    <div class="table-wrap"><table data-table></table></div>
+  </details>
+</figure>
+
+<script>
+  import { onEachPage, responsive, svgEl, svgText, linear, makeTooltip, fmt, fmtSigned } from '@/scripts/viz';
+  import { fallRate } from '@/data/projects/probing-physics';
+
+  onEachPage('.pp-fall', (root) => {
+    const plot = root.querySelector<HTMLElement>('[data-plot]')!;
+    const table = root.querySelector<HTMLTableElement>('[data-table]')!;
+    const seg = root.querySelector<HTMLElement>('[data-models]')!;
+    const tip = makeTooltip(plot);
+    let m = 0;
+    const S = fallRate.steps;
+
+    fallRate.models.forEach((mod, i) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.textContent = mod.name; b.setAttribute('aria-pressed', String(i === 0));
+      b.addEventListener('click', () => { m = i; seg.querySelectorAll('button').forEach((o, k) => o.setAttribute('aria-pressed', String(k === i))); fillTable(); redraw(); });
+      seg.appendChild(b);
+    });
+
+    const fillTable = () => {
+      const mod = fallRate.models[m];
+      table.replaceChildren();
+      const head = table.createTHead().insertRow();
+      for (const h of ['Point in generation', 'Guess alone', 'Guess + layer 5', 'Gain', '95% interval']) { const th = document.createElement('th'); th.textContent = h; head.appendChild(th); }
+      const body = table.createTBody();
+      S.forEach((s, i) => {
+        const tr = body.insertRow();
+        for (const v of [`${s}%`, fmt(mod.estimate[i], 3), fmt(mod.both[i], 3), fmtSigned(mod.gain[i], 3), `${fmtSigned(mod.gainLo[i], 3)} to ${fmtSigned(mod.gainHi[i], 3)}`]) tr.insertCell().textContent = v;
+      });
+    };
+
+    const draw = (width: number) => {
+      plot.replaceChildren(tip.el);
+      tip.hide();
+      const mod = fallRate.models[m];
+      const H = Math.round(Math.min(300, Math.max(220, width * 0.5)));
+      const left = 36, right = 64, top = 12, bottom = H - 46;
+      const x = linear(20, 80, left, width - right);
+      const y = linear(0.2, 0.8, bottom, top);
+      const svg = svgEl('svg', { viewBox: `0 0 ${width} ${H}`, role: 'img', 'aria-label': `${mod.name}: adding layer 5 raises R² from ${fmt(mod.estimate[0])} to ${fmt(mod.both[0])} at 20%; the gap closes by 60 to 80%.` }, plot);
+      for (const t of [0.2, 0.4, 0.6, 0.8]) {
+        svgEl('line', { x1: left, x2: width - right, y1: y(t), y2: y(t), class: t === 0.2 ? 'axis' : 'grid' }, svg);
+        svgText(svg, left - 6, y(t) + 4, t.toFixed(1), { 'text-anchor': 'end' });
+      }
+      S.forEach((s) => svgText(svg, x(s), bottom + 18, `${s}%`, { 'text-anchor': 'middle' }));
+      svgText(svg, (left + width - right) / 2, bottom + 36, 'how far through generation', { 'text-anchor': 'middle' });
+      // the gap between the two readouts
+      const top_ = S.map((s, i) => `${x(s)},${y(mod.both[i])}`).join(' ');
+      const bot = S.map((s, i) => `${x(s)},${y(mod.estimate[i])}`).reverse().join(' ');
+      svgEl('polygon', { points: `${top_} ${bot}`, style: 'fill: color-mix(in srgb, var(--c-real) 22%, transparent)' }, svg);
+      const line = (vals: number[], c: string) => {
+        svgEl('polyline', { points: S.map((s, i) => `${x(s)},${y(vals[i])}`).join(' '), fill: 'none', 'stroke-width': 2.4, 'stroke-linejoin': 'round', style: `stroke: ${c}` }, svg);
+        S.forEach((s, i) => svgEl('circle', { cx: x(s), cy: y(vals[i]), r: 3.8, style: `fill: ${c}; stroke: var(--viz-surface)`, 'stroke-width': 1.5 }, svg));
+      };
+      line(mod.estimate, 'var(--c-clean)');
+      line(mod.both, 'var(--c-real)');
+      S.forEach((s, i) => {
+        const mid = (mod.both[i] + mod.estimate[i]) / 2;
+        if (i === 0) svgText(svg, x(s) + 8, y(mid) + 4, fmtSigned(mod.gain[i], 3), { class: 't-strong' });
+        const hit = svgEl('rect', { x: x(s) - 24, y: top, width: 48, height: bottom - top, fill: 'transparent', tabindex: 0,
+          'aria-label': `${s}%: guess ${fmt(mod.estimate[i], 3)}, guess plus layer ${fmt(mod.both[i], 3)}, gain ${fmtSigned(mod.gain[i], 3)}` }, svg);
+        const show = () => {
+          const sc = plot.getBoundingClientRect().width / width;
+          tip.show(x(s) * sc, y(mod.both[i]) * sc, `${s}% of the way · ${mod.name}`, [
+            { value: fmt(mod.both[i], 3), label: 'guess + layer 5', color: 'var(--c-real)' },
+            { value: fmt(mod.estimate[i], 3), label: 'guess alone', color: 'var(--c-clean)' },
+            { value: `${fmtSigned(mod.gain[i], 3)} [${fmtSigned(mod.gainLo[i], 3)}, ${fmtSigned(mod.gainHi[i], 3)}]`, label: 'gain' },
+          ]);
+        };
+        hit.addEventListener('pointerenter', show);
+        hit.addEventListener('focus', show);
+        hit.addEventListener('pointerleave', () => tip.hide());
+        hit.addEventListener('blur', () => tip.hide());
+      });
+      svgText(svg, width - right + 6, y(mod.both[S.length - 1]) - 4, 'guess + layer', { 'font-size': 10.5 });
+      svgText(svg, width - right + 6, y(mod.estimate[S.length - 1]) + 12, 'guess', { 'font-size': 10.5 });
+    };
+
+    let redraw = () => {};
+    responsive(plot, (w) => { redraw = () => draw(w); draw(w); });
+    fillTable();
+  });
+</script>
