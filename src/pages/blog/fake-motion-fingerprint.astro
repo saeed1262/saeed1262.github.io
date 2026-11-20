@@ -11,6 +11,7 @@ import CrossoverChart from '@/components/blog/CrossoverChart.astro';
 import BodyNetwork from '@/components/blog/BodyNetwork.astro';
 import ZeroEggsDiagram from '@/components/blog/ZeroEggsDiagram.astro';
 import { posts } from '@/data/posts';
+import { formatDateFull } from '@/utils/format';
 import '@/styles/viz.css';
 
 const post = posts.find((p) => p.slug === 'fake-motion-fingerprint')!;
@@ -90,7 +91,17 @@ for take in held_out_takes:
 
 auc = roc_auc_score(y, prob)`;
 ---
-<PostLayout title={post.title} date={new Date(post.date)} description={post.description} ogImage={post.ogImage} comments>
+<PostLayout
+  title={post.title}
+  date={new Date(post.date)}
+  description={post.description}
+  ogImage={post.ogImage}
+  comments
+  ribbon={[
+    { label: 'Published', value: formatDateFull(post.date) },
+    { label: 'Tags', tags: post.tags },
+  ]}
+>
   <p>
     Generated motion has got good. Watch a modern speech-to-gesture or text-to-motion model and, at a glance,
     it is often hard to say exactly what is off. AI-generated images, on the other hand, have a well-known

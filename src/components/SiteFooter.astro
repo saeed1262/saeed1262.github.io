@@ -7,7 +7,10 @@ const links = [
 ];
 ---
 <footer class="footer container tile-band" data-pagefind-ignore="all">
-  <p>© {site.name}</p>
+  <div>
+    <p>© {site.name}</p>
+    <p class="footer__phase" data-phase-label></p>
+  </div>
   <nav class="footer__links">
     {links.map(([label, href]) => <a href={href} target="_blank" rel="noopener">{label}</a>)}
   </nav>
@@ -15,5 +18,19 @@ const links = [
     .footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: var(--space-sm); padding-block: var(--space-lg); color: var(--text-muted); border-top: 1px solid var(--border); }
     .footer__links { display: flex; flex-wrap: wrap; gap: var(--space-sm) var(--space-md); }
     .footer__links a:hover { color: var(--text); }
+    .footer__phase { font-size: var(--step--1); margin-top: 0.2rem; }
+    .footer__phase:empty { display: none; }
   </style>
 </footer>
+
+<script>
+  // Name the current Isfahan palette, which follows the sun (set in BaseLayout's head).
+  const NAMES: Record<string, string> = { dawn: 'Dawn', workday: 'Workday', evening: 'Evening', night: 'Night' };
+  function label() {
+    const el = document.querySelector<HTMLElement>('[data-phase-label]');
+    const phase = document.documentElement.getAttribute('data-phase') ?? '';
+    if (el && NAMES[phase]) el.textContent = `${NAMES[phase]} palette · follows the sun where you are`;
+  }
+  document.addEventListener('astro:page-load', label);
+  new MutationObserver(label).observe(document.documentElement, { attributes: true, attributeFilter: ['data-phase'] });
+</script>

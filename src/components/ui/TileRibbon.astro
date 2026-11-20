@@ -1,0 +1,115 @@
+---
+// Page metadata on a tile ribbon, like Isfahan's property ribbon in Obsidian:
+// small-caps labels over values, separated by eight-point rosettes, on a
+// lattice band with notched ends. Wraps onto more lines on narrow screens.
+export interface RibbonItem {
+  label: string;
+  value?: string;
+  /** Several values, each optionally a link, shown comma-separated (e.g. authors). */
+  parts?: { text: string; href?: string }[];
+  /** Shown as small chips. */
+  tags?: string[];
+}
+interface Props { items: RibbonItem[] }
+const { items } = Astro.props;
+const ext = (href: string) => (href.startsWith('http') ? { target: '_blank', rel: 'noopener' } : {});
+---
+<div class="ribbon">
+  <div class="ribbon__clip">
+    <dl class="ribbon__row">
+      {items.map((it) => (
+        <div class="ribbon__item">
+          <dt>{it.label}</dt>
+          <dd>
+            {it.tags ? (
+              <ul class="ribbon__tags">{it.tags.map((t) => <li>{t}</li>)}</ul>
+            ) : it.parts ? (
+              it.parts.map((p, i) => (
+                <>{p.href ? <a href={p.href} {...ext(p.href)}>{p.text}</a> : p.text}{i < it.parts!.length - 1 && ', '}</>
+              ))
+            ) : it.value}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  </div>
+</div>
+
+<style>
+  .ribbon {
+    --notch: 1.1rem;
+    position: relative;
+    isolation: isolate;
+    margin-top: var(--space-md);
+    padding: 0.55rem calc(var(--notch) + 0.9rem);
+  }
+  /* The band: a colour wash and the lattice, with notched ends. */
+  .ribbon::before,
+  .ribbon::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    clip-path: polygon(0 0, 100% 0, calc(100% - var(--notch)) 50%, 100% 100%, 0 100%, var(--notch) 50%);
+  }
+  .ribbon::before { background: var(--wash), color-mix(in srgb, var(--bg-deep) 70%, transparent); }
+  .ribbon::after {
+    background: var(--tile);
+    opacity: calc(var(--tile-o) * 0.9);
+    -webkit-mask: var(--girih) 0 0 / 48px 48px;
+    mask: var(--girih) 0 0 / 48px 48px;
+  }
+  /* Each item carries a rosette in the gap on its left; the row is pulled
+     left by one gap and clipped, so a line never starts with a rosette. */
+  .ribbon__clip {
+    --gap: 1.6rem;
+    overflow: hidden;
+    padding: 0.55rem 0.2rem;
+    border-block: 1px solid color-mix(in srgb, var(--accent-from) 40%, transparent);
+  }
+  .ribbon__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    row-gap: 0.45rem;
+    margin: 0 0 0 calc(-1 * var(--gap));
+  }
+  .ribbon__item { position: relative; min-width: 0; padding-left: var(--gap); }
+  /* An eight-point rosette between items. */
+  .ribbon__item::before {
+    content: "";
+    position: absolute;
+    left: calc(var(--gap) / 2 - 0.35rem);
+    top: 50%;
+    width: 0.7rem;
+    height: 0.7rem;
+    margin-top: -0.35rem;
+    background: var(--accent-from);
+    -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'><path d='M6.00 0.00 L7.19 3.14 L10.24 1.76 L8.86 4.81 L12.00 6.00 L8.86 7.19 L10.24 10.24 L7.19 8.86 L6.00 12.00 L4.81 8.86 L1.76 10.24 L3.14 7.19 L0.00 6.00 L3.14 4.81 L1.76 1.76 L4.81 3.14Z'/></svg>") center / contain no-repeat;
+    mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'><path d='M6.00 0.00 L7.19 3.14 L10.24 1.76 L8.86 4.81 L12.00 6.00 L8.86 7.19 L10.24 10.24 L7.19 8.86 L6.00 12.00 L4.81 8.86 L1.76 10.24 L3.14 7.19 L0.00 6.00 L3.14 4.81 L1.76 1.76 L4.81 3.14Z'/></svg>") center / contain no-repeat;
+  }
+  .ribbon dt {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gold-text);
+  }
+  .ribbon dd { margin: 0.1rem 0 0; font-size: 0.92rem; color: var(--text); line-height: 1.35; }
+  .ribbon dd a { color: var(--text); text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--accent-from) 50%, transparent); text-underline-offset: 0.2em; }
+  .ribbon dd a:hover { color: var(--accent-from); }
+  .ribbon__tags { display: flex; flex-wrap: wrap; gap: 0.3rem; list-style: none; padding: 0 !important; margin: 0.1rem 0 0 !important; }
+  .ribbon__tags li {
+    margin: 0 !important;
+    font-size: 0.78rem;
+    color: var(--accent-from);
+    background: color-mix(in srgb, var(--accent-from) 13%, transparent);
+    border-radius: 999px;
+    padding: 0.1rem 0.55rem;
+  }
+  @media (max-width: 640px) {
+    .ribbon { --notch: 0.7rem; padding-inline: calc(var(--notch) + 0.6rem); }
+    .ribbon__clip { --gap: 1.4rem; }
+  }
+  @media print { .ribbon::before, .ribbon::after { display: none; } }
+</style>

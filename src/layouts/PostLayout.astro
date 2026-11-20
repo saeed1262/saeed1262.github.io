@@ -2,6 +2,7 @@
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import { formatDateFull as formatDate } from '@/utils/format';
 import Comments from '@/components/Comments.astro';
+import TileRibbon, { type RibbonItem } from '@/components/ui/TileRibbon.astro';
 // A long-form article page: blog posts, and project pages that need more than Markdown.
 interface Props {
   title: string;
@@ -10,16 +11,18 @@ interface Props {
   ogImage?: string;
   back?: { href: string; label: string };
   comments?: boolean; // Giscus comments under the article
+  ribbon?: RibbonItem[]; // metadata on a tile ribbon under the lead (replaces the date line)
 }
-const { title, description, date, ogImage, back = { href: '/blog/', label: 'Blog' }, comments = false } = Astro.props;
+const { title, description, date, ogImage, back = { href: '/blog/', label: 'Blog' }, comments = false, ribbon } = Astro.props;
 ---
 <BaseLayout title={title} description={description} ogImage={ogImage}>
   <article class="post container">
     <a href={back.href} class="post__back">← {back.label}</a>
     <h1>{title}</h1>
     {description && <p class="post__lead">{description}</p>}
+    {ribbon && <TileRibbon items={ribbon} />}
     <slot name="header" />
-    {date && <p class="post__date"><time datetime={date.toISOString().slice(0, 10)}>{formatDate(date)}</time></p>}
+    {date && !ribbon && <p class="post__date"><time datetime={date.toISOString().slice(0, 10)}>{formatDate(date)}</time></p>}
     <div class="post__body prose-page"><slot /></div>
     {comments && <Comments />}
   </article>

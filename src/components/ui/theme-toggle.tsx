@@ -5,24 +5,35 @@ import { cn } from "@/lib/utils"
 
 interface ThemeToggleProps { className?: string; class?: string }
 
+declare global {
+  interface Window { __isfahan?: { apply: () => void; hold: (dark: boolean) => void } }
+}
+
+const PHASE_NAME: Record<string, string> = { dawn: "Dawn", workday: "Workday", evening: "Evening", night: "Night" }
+
 export function ThemeToggle({ className, class: classProp }: ThemeToggleProps) {
   const classes = className ?? classProp
   const [isDark, setIsDark] = useState(true)
+  const [phase, setPhase] = useState("")
   useEffect(() => {
-    // The head script already picked the theme (saved choice, else system);
-    // mirror it, and keep mirroring if the system theme changes later.
+    // The head script picks the phase from the sun; mirror it as it changes.
     const root = document.documentElement
-    setIsDark(root.classList.contains("dark"))
-    const obs = new MutationObserver(() => setIsDark(root.classList.contains("dark")))
-    obs.observe(root, { attributes: true, attributeFilter: ["class"] })
+    const sync = () => {
+      setIsDark(root.classList.contains("dark"))
+      setPhase(root.getAttribute("data-phase") ?? "")
+    }
+    sync()
+    const obs = new MutationObserver(sync)
+    obs.observe(root, { attributes: true, attributeFilter: ["class", "data-phase"] })
     return () => obs.disconnect()
   }, [])
   const toggle = () => {
     const next = !isDark
-    setIsDark(next)
-    document.documentElement.classList.toggle("dark", next)
-    try { localStorage.setItem("theme", next ? "dark" : "light") } catch (e) {}
+    // Hold light or dark until the next phase change; then the sun takes over again.
+    if (window.__isfahan) window.__isfahan.hold(next)
+    else document.documentElement.classList.toggle("dark", next)
   }
+  const label = `${PHASE_NAME[phase] ?? (isDark ? "Dark" : "Light")} palette, following the sun. Switch to ${isDark ? "light" : "dark"} until the next phase.`
   return (
     <div
       className={cn(
@@ -33,7 +44,8 @@ export function ThemeToggle({ className, class: classProp }: ThemeToggleProps) {
       onClick={toggle}
       role="button"
       tabIndex={0}
-      aria-label="Toggle color theme"
+      aria-label={label}
+      title={label}
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle() } }}
     >
       <div className="flex justify-between items-center w-full">

@@ -51,10 +51,18 @@ const codeGain = `def gain_from_layer(guess, layer, target, prompts):
                          may_fall_back_to=alone)              # free to ignore the layer
     return r2(both) - r2(alone)                # what the layer knows that the guess does not show`;
 ---
-<PostLayout title={project.data.title} description={project.data.description} ogImage="/images/projects/probing-physics.jpg" back={{ href: '/#projects', label: 'Projects' }}>
+<PostLayout
+  title={project.data.title}
+  description={project.data.description}
+  ogImage="/images/projects/probing-physics.jpg"
+  back={{ href: '/#projects', label: 'Projects' }}
+  ribbon={[
+    { label: 'Author', value: 'Saeed Ghorbani' },
+    { label: 'Published', value: 'arXiv preprint, 2026' },
+    { label: 'Tags', tags: project.data.tags },
+  ]}
+>
   <div slot="header" class="pp-header">
-    <p class="pp-header__venue">arXiv preprint, 2026</p>
-    <ul class="pp-header__tags">{project.data.tags.map((t) => <li>{t}</li>)}</ul>
     <p class="pp-header__cta">
       <a class="pp-header__primary" href={paperUrl} target="_blank" rel="noopener">Read the paper →</a>
       <a href={pdfUrl} target="_blank" rel="noopener">PDF</a>
@@ -544,9 +552,6 @@ const codeGain = `def gain_from_layer(guess, layer, target, prompts):
     .toc a::before { content: "◇"; color: var(--gold); margin-right: 0.5rem; font-size: 0.8em; }
     .refs { font-size: var(--step--1); color: var(--text-muted); }
     .refs li { margin-bottom: 0.5rem; }
-    .pp-header__venue { color: var(--text-muted); font-size: var(--step--1); margin-top: var(--space-sm); }
-    .pp-header__tags { display: flex; flex-wrap: wrap; gap: 0.4rem; list-style: none; padding: 0; margin: var(--space-sm) 0 0; }
-    .pp-header__tags li { font-size: var(--step--1); color: var(--accent-from); border: 1px solid var(--border); border-radius: 999px; padding: 0.15rem 0.6rem; }
     /* Same as the other project pages: one solid accent pill, then plain underlined links. */
     .pp-header__cta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-sm) var(--space-md); margin-top: var(--space-md); }
     .pp-header__cta a { color: var(--text); font-weight: 500; text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--accent-from) 45%, transparent); text-underline-offset: 0.25em; }

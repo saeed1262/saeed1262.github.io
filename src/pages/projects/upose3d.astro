@@ -38,18 +38,19 @@ const code3D = `def estimate_3d(cameras, image_kps, compiler_kps):
         return loss
     return lbfgs(nll, X)                              # no 3D labels involved`;
 ---
-<PostLayout title={project.data.title} description={project.data.description} ogImage="/images/projects/upose3d.jpg" back={{ href: '/#projects', label: 'Projects' }}>
+<PostLayout
+  title={project.data.title}
+  description={project.data.description}
+  ogImage="/images/projects/upose3d.jpg"
+  back={{ href: '/#projects', label: 'Projects' }}
+  ribbon={[
+    { label: 'Authors', parts: authors.map((a) => ({ text: a.name, href: a.url })) },
+    { label: 'Venue', value: 'ECCV 2024' },
+    { label: 'Affiliations', value: 'Queen’s University · Ubisoft La Forge' },
+    { label: 'Tags', tags: project.data.tags },
+  ]}
+>
   <div slot="header" class="up-header">
-    <p class="up-header__authors">
-      {authors.map((a, i) => (
-        <>
-          {a.url ? <a href={a.url} target="_blank" rel="noopener">{a.name}</a> : <span class={a.name === 'Saeed Ghorbani' ? 'up-header__me' : ''}>{a.name}</span>}
-          {i < authors.length - 1 && ', '}
-        </>
-      ))}
-    </p>
-    <p class="up-header__venue">European Conference on Computer Vision (ECCV) 2024 · Queen’s University and Ubisoft La Forge</p>
-    <ul class="up-header__tags">{project.data.tags.map((t) => <li>{t}</li>)}</ul>
     <p class="up-header__cta">
       <a class="up-header__primary" href={paperUrl} target="_blank" rel="noopener">Read the paper →</a>
       <a href={officialUrl} target="_blank" rel="noopener">Official project page</a>
@@ -320,12 +321,6 @@ const code3D = `def estimate_3d(cameras, image_kps, compiler_kps):
     .toc a::before { content: "◇"; color: var(--gold); margin-right: 0.5rem; font-size: 0.8em; }
     .refs { font-size: var(--step--1); color: var(--text-muted); }
     .refs li { margin-bottom: 0.5rem; }
-    .up-header__authors { margin-top: var(--space-sm); color: var(--text); }
-    .up-header__authors a { color: var(--text); text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--accent-from) 45%, transparent); text-underline-offset: 0.2em; }
-    .up-header__me { font-weight: 600; }
-    .up-header__venue { color: var(--text-muted); font-size: var(--step--1); margin-top: 0.2rem; }
-    .up-header__tags { display: flex; flex-wrap: wrap; gap: 0.4rem; list-style: none; padding: 0; margin: var(--space-sm) 0 0; }
-    .up-header__tags li { font-size: var(--step--1); color: var(--accent-from); border: 1px solid var(--border); border-radius: 999px; padding: 0.15rem 0.6rem; }
     /* Same as the other project pages: one solid accent pill, then plain underlined links. */
     .up-header__cta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-sm) var(--space-md); margin-top: var(--space-md); }
     .up-header__cta a { color: var(--text); font-weight: 500; text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--accent-from) 45%, transparent); text-underline-offset: 0.25em; }
