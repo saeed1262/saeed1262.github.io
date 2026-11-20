@@ -16,6 +16,14 @@ describe('inlineMarkdownToHtml', () => {
   it('ignores non-http url schemes', () => {
     expect(inlineMarkdownToHtml('[x](javascript:alert(1))')).toBe('[x](javascript:alert(1))');
   });
+  it('links site-relative paths in the same tab', () => {
+    expect(inlineMarkdownToHtml('see the [project page](/projects/x/)')).toBe(
+      'see the <a href="/projects/x/">project page</a>',
+    );
+  });
+  it('ignores protocol-relative urls', () => {
+    expect(inlineMarkdownToHtml('[x](//evil.example)')).toBe('[x](//evil.example)');
+  });
   it('converts bold markdown to a strong tag', () => {
     expect(inlineMarkdownToHtml('see **MoVi** dataset')).toBe('see <strong>MoVi</strong> dataset');
   });
