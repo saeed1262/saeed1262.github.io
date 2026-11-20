@@ -1,5 +1,6 @@
 ---
 title: "Aether Weaver"
+date: "2025-07-29"
 description: "Multimodal storytelling that keeps text, pictures and sound consistent: a scene graph that remembers the story's world, a controller for its plot, and a mapper that turns moods into words, sounds and visual cues."
 image: "aether-weaver.png"
 url: "https://arxiv.org/abs/2507.21893"

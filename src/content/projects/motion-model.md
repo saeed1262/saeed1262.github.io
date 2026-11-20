@@ -1,5 +1,6 @@
 ---
 title: "Probabilistic Motion Model"
+date: "2020-10-01"
 description: "Probabilistic character motion synthesis using a hierarchical deep latent variable model. A framework that generates realistic and diverse character animations from weak control signals while preserving the stochastic nature of human movement."
 image: "motion.jpeg"
 url: "https://arxiv.org/pdf/2010.09950.pdf"

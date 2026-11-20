@@ -99,7 +99,8 @@ function toBibtex(p: CollectionEntry<'publications'>): string {
       transition: all .2s var(--ease-out);
     }
     .pubs__pill:hover { color: var(--text); border-color: color-mix(in srgb, var(--accent-from) 45%, var(--border)); }
-    .pubs__pill.is-active { color: var(--badge-text); background: var(--accent-gradient); border-color: transparent; }
+    /* Same solid accent as the "View CV" button. */
+    .pubs__pill.is-active { color: var(--badge-text); background: var(--accent-from); border-color: transparent; }
 
     .pubs__group { display: grid; gap: 0.6rem; margin-bottom: var(--space-md); }
     .pubs__year {
@@ -127,7 +128,7 @@ function toBibtex(p: CollectionEntry<'publications'>): string {
 
     .pub__abbr {
       display: inline-block;
-      background: var(--accent-gradient);
+      background: var(--accent-from);
       color: var(--badge-text);
       font-weight: 600;
       font-size: 0.68rem;

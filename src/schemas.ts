@@ -25,6 +25,9 @@ export const projectSchema = z.object({
   image: z.string().optional(),
   url: z.url().optional(),
   tags: z.array(z.string()).default([]),
+  // When the work came out, as YYYY, YYYY-MM or YYYY-MM-DD; the Projects
+  // section lists newest first. ISO strings of any precision sort correctly.
+  date: z.string().regex(/^\d{4}(-\d{2}(-\d{2})?)?$/),
   // true when the project has its own page at src/pages/projects/<id>.astro
   // (e.g. for interactive figures); the generic Markdown page is then skipped.
   customPage: z.boolean().default(false),
