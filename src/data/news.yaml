@@ -1,3 +1,7 @@
+- id: news-2026-probing-physics
+  date: "2026-11-18"
+  text: "New paper on arXiv: [\"Probing Physics in Motion Diffusion Models Against Their Own Estimate\"](https://arxiv.org/abs/2611.24423). Do motion diffusion models know more physics than they show? The [project page](/projects/probing-physics/) walks through it with interactive figures and clips."
+
 - id: news-2026-roper
   date: "2026-05-01"
   text: "I joined [Roper Technologies](https://www.ropertech.com) as a Senior Machine Learning Engineer, working on agentic AI."
