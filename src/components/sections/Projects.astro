@@ -6,7 +6,8 @@ import Reveal from '@/components/ui/Reveal.astro';
 import Card from '@/components/ui/Card.astro';
 import SectionHeading from '@/components/ui/SectionHeading.astro';
 
-const projects = await getCollection('projects');
+// Newest first, by each project's date.
+const projects = (await getCollection('projects')).sort((a, b) => b.data.date.localeCompare(a.data.date));
 const projectImages = import.meta.glob<{ default: ImageMetadata }>('/src/assets/projects/*', { eager: true });
 
 function imageFor(file?: string) {

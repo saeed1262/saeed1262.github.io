@@ -1,5 +1,6 @@
 ---
 title: "MoVi Dataset"
+date: "2021"
 description: "A large multi-purpose human motion and video dataset with synchronized pose, body meshes, and video recordings. It contains 90 actors performing 20+ everyday and sports movements, captured with optical motion capture, multi-view video, and IMU sensors."
 image: "movi.png"
 url: "https://www.biomotionlab.ca/movi/"
