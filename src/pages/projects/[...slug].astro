@@ -4,6 +4,8 @@ import { Image } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import Button from '@/components/ui/Button.astro';
+import TileRibbon, { type RibbonItem } from '@/components/ui/TileRibbon.astro';
+import { formatDate } from '@/utils/format';
 
 export async function getStaticPaths() {
   const projects = await getCollection('projects');
@@ -20,15 +22,19 @@ function imageFor(file?: string) {
   return projectImages[`/src/assets/projects/${file}`]?.default;
 }
 const hero = imageFor(project.data.image);
+// A bare year stays a year; a month or day shows as "Mar 2023".
+const { date, tags } = project.data;
+const ribbon: RibbonItem[] = [
+  { label: 'Published', value: date.length === 4 ? date : formatDate(`${date.slice(0, 7)}-01`) },
+  ...(tags.length > 0 ? [{ label: 'Tags', tags }] : []),
+];
 ---
 <BaseLayout title={project.data.title} description={project.data.description}>
   <article class="project container">
     <a href="/#projects" class="project__back">← Projects</a>
     <h1>{project.data.title}</h1>
     <p class="project__desc">{project.data.description}</p>
-    {project.data.tags.length > 0 && (
-      <ul class="project__tags">{project.data.tags.map((t) => <li>{t}</li>)}</ul>
-    )}
+    <TileRibbon items={ribbon} />
     {hero && <Image src={hero} alt={project.data.title} width={960} loading="eager" class="project__hero" />}
     {project.data.url && (
       <p class="project__cta"><Button href={project.data.url} variant="solid">Visit resource →</Button></p>
@@ -40,8 +46,6 @@ const hero = imageFor(project.data.image);
     .project__back { color: var(--accent-from); font-size: var(--step--1); }
     .project h1 { font-size: var(--step-4); margin-top: var(--space-sm); }
     .project__desc { color: var(--text-muted); margin-top: var(--space-sm); }
-    .project__tags { display: flex; flex-wrap: wrap; gap: 0.4rem; list-style: none; padding: 0; margin: var(--space-sm) 0; }
-    .project__tags li { font-size: var(--step--1); color: var(--accent-from); border: 1px solid var(--border); border-radius: 999px; padding: 0.15rem 0.6rem; }
     .project__hero { border-radius: 12px; margin-block: var(--space-md); width: 100%; height: auto; }
     .project__cta { margin-block: var(--space-md); }
     .project__body { margin-top: var(--space-lg); }

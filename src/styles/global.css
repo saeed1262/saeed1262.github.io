@@ -73,6 +73,46 @@ body { overflow-x: clip; }
   mask-composite: intersect;
 }
 
+/* Page band: the Isfahan tile band across the top of every page, as behind
+   a note's title in Obsidian. A colour wash with the lattice on top, solid
+   behind the header and fading out below the page title and at the sides. */
+.page-band {
+  position: absolute;
+  z-index: -1;
+  inset: 0 0 auto 0;
+  height: 25rem;
+  pointer-events: none;
+}
+.page-band::before,
+.page-band::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  -webkit-mask:
+    linear-gradient(#000 30%, transparent),
+    linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+  -webkit-mask-composite: source-in;
+  mask:
+    linear-gradient(#000 30%, transparent),
+    linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+  mask-composite: intersect;
+}
+.page-band::before { background: var(--wash); }
+.page-band::after {
+  background: var(--tile);
+  opacity: var(--tile-o);
+  -webkit-mask:
+    var(--girih) center 0 / 56px 56px,
+    linear-gradient(#000 30%, transparent),
+    linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+  -webkit-mask-composite: source-in;
+  mask:
+    var(--girih) center 0 / 56px 56px,
+    linear-gradient(#000 30%, transparent),
+    linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+  mask-composite: intersect;
+}
+
 /* Mihrab: an arch with a small rosette crowning a card. */
 .mihrab { position: relative; margin-top: 2.6rem; overflow: visible; }
 .mihrab::before {
@@ -111,6 +151,22 @@ body { overflow-x: clip; }
   color: var(--accent-from);
 }
 
+/* Prose lists get diamond bullets, like the tables of contents. Only
+   direct children: lists inside figures and the .toc style themselves. */
+.prose-page > ul:not(.toc) { list-style: none; }
+.prose-page > ul:not(.toc) > li { position: relative; }
+.prose-page > ul:not(.toc) > li::before {
+  content: "";
+  position: absolute;
+  left: -1.05rem;
+  top: 0.62em;
+  width: 0.36rem;
+  height: 0.36rem;
+  border: 1.5px solid var(--gold);
+  border-radius: 1px;
+  rotate: 45deg;
+}
+
 /* Scroll fade-in (see scripts/motion.ts): only elements that start below
    the viewport get .is-pending, so nothing on screen is ever hidden. */
 [data-reveal] { transition: opacity 0.7s var(--ease-out), transform 0.7s var(--ease-out); }
@@ -120,7 +176,7 @@ body { overflow-x: clip; }
    Light ink-friendly colours, no site chrome, and nothing left hidden. */
 @media print {
   @page { margin: 16mm; }
-  html, html.dark {
+  html, html.dark, html[data-phase], html.dark[data-phase] {
     --bg: #ffffff; --bg-deep: #ffffff; --surface: #ffffff;
     --text: #111111; --text-muted: #4a4a4a; --border: #d0d0d0;
     --accent-from: #1f4e8c; --accent-to: #12999a;
@@ -129,7 +185,7 @@ body { overflow-x: clip; }
   }
   body { background: #ffffff; font-size: 10.5pt; overflow: visible; }
   .nav, #scroll-progress, .footer, .no-print { display: none !important; }
-  .tile-band::before, .tile-band::after { display: none; }
+  .tile-band::before, .tile-band::after, .page-band { display: none; }
   [data-reveal] { opacity: 1 !important; transform: none !important; transition: none !important; }
   a { color: inherit; text-decoration: none; }
 }

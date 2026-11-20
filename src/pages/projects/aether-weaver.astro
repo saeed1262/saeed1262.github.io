@@ -68,9 +68,18 @@ const codeModulate = `def combine(user_tones, stage):
         tones = [(t, lower(level) if t in POSITIVE else level) for t, level in tones]
     return tones + stage.cues                   # the stage always adds its own cues`;
 ---
-<PostLayout title={project.data.title} description={project.data.description} ogImage="/images/projects/aether-weaver.jpg" back={{ href: '/#projects', label: 'Projects' }}>
+<PostLayout
+  title={project.data.title}
+  description={project.data.description}
+  ogImage="/images/projects/aether-weaver.jpg"
+  back={{ href: '/#projects', label: 'Projects' }}
+  ribbon={[
+    { label: 'Author', value: 'Saeed Ghorbani' },
+    { label: 'Published', value: 'arXiv, July 2025' },
+    { label: 'Tags', tags: project.data.tags },
+  ]}
+>
   <div slot="header" class="aw-header">
-    <ul class="aw-header__tags">{project.data.tags.map((t) => <li>{t}</li>)}</ul>
     <p class="aw-header__cta">
       <a class="aw-header__primary" href={paperUrl} target="_blank" rel="noopener">Read the paper →</a>
       <a href="#citation">Cite</a>
@@ -435,8 +444,6 @@ const codeModulate = `def combine(user_tones, stage):
     .aw-ground__row { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 0.75rem; }
     .aw-ground :global(.aw-ground__img) { width: 100%; height: auto; border-radius: 14px; border: 1px solid var(--border); margin: 0 !important; }
     .aw-ground__arrow { font-size: 1.6rem; color: var(--text-muted); }
-    .aw-header__tags { display: flex; flex-wrap: wrap; gap: 0.4rem; list-style: none; padding: 0; margin: var(--space-sm) 0 0; }
-    .aw-header__tags li { font-size: var(--step--1); color: var(--accent-from); border: 1px solid var(--border); border-radius: 999px; padding: 0.15rem 0.6rem; }
     /* Same as the personal project pages: one solid accent pill, then plain underlined links. */
     .aw-header__cta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-sm) var(--space-md); margin-top: var(--space-md); }
     .aw-header__cta a { color: var(--text); font-weight: 500; text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--accent-from) 45%, transparent); text-underline-offset: 0.25em; }

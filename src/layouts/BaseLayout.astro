@@ -56,25 +56,68 @@ const jsonLd = {
   <head>
     <script is:inline>
       (function () {
-        // A saved choice from the toggle wins; otherwise follow the system.
-        var mq = window.matchMedia('(prefers-color-scheme: dark)');
-        function stored() {
-          try { return localStorage.getItem('theme'); } catch (e) { return null; }
+        // Isfahan phases, set by the sun where the visitor is: Dawn (the three
+        // hours after sunrise), Workday (on to sunset), Evening (the two hours
+        // after sunset), Night (on to sunrise). The theme toggle holds light or
+        // dark until the next phase change, as the status bar does in Obsidian.
+        var root = document.documentElement;
+        var DARK = { evening: true, night: true };
+
+        // Sunrise and sunset in local clock hours. The time zone gives solar noon
+        // to within about half an hour and, from its daylight-saving months, the
+        // hemisphere; latitude is taken as 40 degrees. No location is asked for.
+        function sun(now) {
+          var y = now.getFullYear();
+          var jan = new Date(y, 0, 1).getTimezoneOffset(), jul = new Date(y, 6, 1).getTimezoneOffset();
+          var south = jan < jul;
+          var dst = jan !== jul && now.getTimezoneOffset() === Math.min(jan, jul);
+          var day = Math.floor((now - new Date(y, 0, 0)) / 864e5);
+          var decl = 0.4091 * Math.sin((2 * Math.PI * (284 + day)) / 365);
+          var lat = ((south ? -40 : 40) * Math.PI) / 180;
+          var half = (Math.acos(Math.max(-1, Math.min(1, -Math.tan(lat) * Math.tan(decl)))) * 12) / Math.PI;
+          var noon = 12 + (dst ? 1 : 0);
+          return [noon - half, noon + half];
         }
-        function applyTheme() {
-          var t = stored();
-          var dark = t ? t === 'dark' : mq.matches;
-          document.documentElement.classList.toggle('dark', dark);
+        // The phase now, and the clock hour (from today's midnight) when it ends.
+        function phaseAt(now) {
+          var s = sun(now), rise = s[0], set = s[1];
+          var h = now.getHours() + now.getMinutes() / 60;
+          if (h >= rise && h < rise + 3) return ['dawn', rise + 3];
+          if (h >= rise + 3 && h < set) return ['workday', set];
+          if (h >= set && h < set + 2) return ['evening', set + 2];
+          return ['night', h >= set + 2 ? rise + 24 : rise];
         }
-        applyTheme();
-        if (!window.__themeMqBound) {
-          window.__themeMqBound = true;
-          mq.addEventListener('change', function () { if (!stored()) applyTheme(); });
+        function held() {
+          try {
+            var v = JSON.parse(localStorage.getItem('isfahan-hold') || 'null');
+            return v && v.until > Date.now() ? v : null;
+          } catch (e) { return null; }
         }
+        function apply() {
+          var phase = phaseAt(new Date())[0], h = held();
+          if (h && h.dark && !DARK[phase]) phase = 'evening';
+          if (h && !h.dark && DARK[phase]) phase = 'workday';
+          root.setAttribute('data-phase', phase);
+          root.classList.toggle('dark', !!DARK[phase]);
+        }
+        window.__isfahan = {
+          apply: apply,
+          // Hold light or dark until the current phase ends.
+          hold: function (dark) {
+            var now = new Date(), midnight = new Date(now);
+            midnight.setHours(0, 0, 0, 0);
+            var until = midnight.getTime() + phaseAt(now)[1] * 3600e3;
+            try { localStorage.setItem('isfahan-hold', JSON.stringify({ dark: dark, until: until })); } catch (e) {}
+            apply();
+          },
+        };
+        try { localStorage.removeItem('theme'); } catch (e) {} // the old toggle's lasting choice
+        apply();
+        if (!window.__isfahanTimer) window.__isfahanTimer = setInterval(apply, 60000);
         // Re-apply after view-transition swaps (the swapped page's <html> starts as dark).
         if (!window.__themeSwapBound) {
           window.__themeSwapBound = true;
-          document.addEventListener('astro:after-swap', applyTheme);
+          document.addEventListener('astro:after-swap', apply);
         }
       })();
     </script>
@@ -98,6 +141,7 @@ const jsonLd = {
   </head>
   <body>
     <div id="scroll-progress" transition:persist aria-hidden="true"></div>
+    <div class="page-band" aria-hidden="true"></div>
     <SiteHeader />
     <slot />
     <SiteFooter />
