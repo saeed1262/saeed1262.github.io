@@ -18,6 +18,7 @@ import '@/styles/viz.css';
 const project = (await getEntry('projects', 'probing-physics'))!;
 const paperUrl = project.data.url ?? 'https://arxiv.org/abs/2611.24423';
 const pdfUrl = 'https://arxiv.org/pdf/2611.24423';
+const codeUrl = 'https://github.com/saeed1262/motion-physics-probing';
 const themes = { light: 'github-light', dark: 'github-dark' } as const;
 const video = (name: string) => `/videos/projects/probing-physics/${name}`;
 
@@ -66,6 +67,7 @@ const codeGain = `def gain_from_layer(guess, layer, target, prompts):
     <p class="pp-header__cta">
       <a class="pp-header__primary" href={paperUrl} target="_blank" rel="noopener">Read the paper →</a>
       <a href={pdfUrl} target="_blank" rel="noopener">PDF</a>
+<a href={codeUrl} target="_blank" rel="noopener">Code</a>
       <a href="#citation">Cite</a>
     </p>
   </div>
