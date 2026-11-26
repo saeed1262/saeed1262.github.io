@@ -84,3 +84,8 @@ export function nextState(state: PlayerState, action: PlayerAction, duration: nu
     case 'pause': return { ...state, playing: false };
   }
 }
+
+/** The speech plays only while the clip plays with sound on, the player is on screen and the tab is visible. */
+export function audioShouldPlay(s: { playing: boolean; sound: boolean; onScreen: boolean; pageHidden: boolean }): boolean {
+  return s.playing && s.sound && s.onScreen && !s.pageHidden;
+}

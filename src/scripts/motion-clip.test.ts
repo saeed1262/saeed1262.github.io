@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { decodeClip, floorRuns, frameAt, jointPosition, nextState, type ClipHeader } from './motion-clip';
+import { audioShouldPlay, decodeClip, floorRuns, frameAt, jointPosition, nextState, type ClipHeader } from './motion-clip';
 
 // Two tracks, three frames, two joints (Hips, LeftFoot). Values are millimetres in the binary.
 const header: ClipHeader = {
@@ -80,5 +80,24 @@ describe('floorRuns', () => {
     expect(runs[0].points[0][0]).toBeCloseTo(1);
     expect(runs[0].points[0][1]).toBeCloseTo(-0.01);
     expect(floorRuns(clip, 1)).toEqual([]);
+  });
+});
+
+describe('audioShouldPlay', () => {
+  const on = { playing: true, sound: true, onScreen: true, pageHidden: false };
+
+  it('plays when the clip plays with sound on, on screen, in a visible tab', () => {
+    expect(audioShouldPlay(on)).toBe(true);
+  });
+
+  it('resumes after the tab becomes visible again', () => {
+    expect(audioShouldPlay({ ...on, pageHidden: true })).toBe(false);
+    expect(audioShouldPlay({ ...on, pageHidden: false })).toBe(true);
+  });
+
+  it('stays silent when paused, muted or off screen', () => {
+    expect(audioShouldPlay({ ...on, playing: false })).toBe(false);
+    expect(audioShouldPlay({ ...on, sound: false })).toBe(false);
+    expect(audioShouldPlay({ ...on, onScreen: false })).toBe(false);
   });
 });

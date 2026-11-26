@@ -105,7 +105,7 @@ zeggs-generate -o data/outputs/v1/options.json \\
   <figure class="viz zg-talk">
     <div class="viz__head">
       <p class="viz__title">The paper’s video</p>
-      <p class="viz__sub">Styles from examples, blending, and the user study, rendered on the La Forge character</p>
+      <p class="viz__sub">The demo video released with the paper and code</p>
     </div>
     <div class="zg-talk__frame">
       <iframe src="https://www.youtube-nocookie.com/embed/YFg7QKWkjwQ" title="ZeroEGGS video" loading="lazy"
@@ -335,8 +335,9 @@ zeggs-generate -o data/outputs/v1/options.json \\
   <p>
     ZEGGS output is moved onto the Geno skeleton automatically. The two skeletons have the same joints but different
     bone lengths and rest poses, so <code>zeggs-retarget</code> applies one constant rotation offset per joint and
-    scales the root. The offsets were fitted on takes Daniel Holden retargeted in
-    Maya<a href="#ref-retarget" class="cite">[7]</a>; on held-out takes it matches them to within 0.04° per joint.
+    scales the root. The offsets were fitted on takes retargeted in Maya, from Daniel Holden’s
+    zeroeggs-retarget<a href="#ref-retarget" class="cite">[7]</a>; on held-out takes it matches them to within 0.04°
+    per joint.
   </p>
   <Code code={codeView} lang="bash" themes={themes} defaultColor={false} />
 

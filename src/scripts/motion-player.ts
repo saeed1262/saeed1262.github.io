@@ -2,7 +2,7 @@
 // sync, a scrubber, an optional track switcher (style blending) and foot trails. three.js is loaded only when a player
 // comes near the viewport, and everything is disposed before a client-side navigation.
 import { onEachPage } from '@/scripts/viz';
-import { decodeClip, floorRuns, frameAt, nextState, type Clip, type ClipHeader, type FloorRun, type PlayerState } from '@/scripts/motion-clip';
+import { audioShouldPlay, decodeClip, floorRuns, frameAt, nextState, type Clip, type ClipHeader, type FloorRun, type PlayerState } from '@/scripts/motion-clip';
 
 type Three = typeof import('@/scripts/three-lite');
 
@@ -129,12 +129,11 @@ class Player {
     ro.observe(root.querySelector('[data-stage]')!);
     const io = new IntersectionObserver((e) => {
       this.visible = e.some((x) => x.isIntersecting);
-      if (!this.visible) this.audio?.pause();
-      else if (this.state.playing && this.sound) this.playAudio();
+      this.syncAudio();
       this.loop();
     });
     io.observe(root);
-    const onHide = () => { if (document.hidden) this.audio?.pause(); };
+    const onHide = () => this.syncAudio(); // pause while the tab is hidden, resume when it is back
     document.addEventListener('visibilitychange', onHide);
     const onSwap = () => this.dispose();
     document.addEventListener('astro:before-swap', onSwap, { once: true });
@@ -349,6 +348,14 @@ class Player {
     this.setPlayButton();
   };
 
+  /** Start or stop the speech to match the player (see audioShouldPlay). */
+  private syncAudio() {
+    if (!this.audio) return;
+    const want = audioShouldPlay({ playing: this.state.playing, sound: this.sound, onScreen: this.visible, pageHidden: document.hidden });
+    if (want && this.audio.paused) this.playAudio();
+    else if (!want && !this.audio.paused) this.audio.pause();
+  }
+
   private playAudio() {
     if (!this.audio) return;
     this.audio.currentTime = this.state.time;
@@ -374,8 +381,7 @@ class Player {
 
   private toggle() {
     this.state = nextState(this.state, { type: this.state.playing ? 'pause' : 'play' }, this.duration);
-    if (this.state.playing && this.sound) this.playAudio();
-    else this.audio?.pause();
+    this.syncAudio();
     this.loop();
   }
 
@@ -399,10 +405,8 @@ class Player {
       on(sound, 'click', () => {
         this.sound = !this.sound;
         this.setSoundButton();
-        if (this.sound) {
-          if (!this.state.playing) this.state = nextState(this.state, { type: 'play' }, this.duration);
-          this.playAudio();
-        } else this.audio?.pause();
+        if (this.sound && !this.state.playing) this.state = nextState(this.state, { type: 'play' }, this.duration);
+        this.syncAudio();
         this.loop();
       });
     }
