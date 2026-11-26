@@ -1,7 +1,8 @@
 ---
 // Style embeddings of 8 s windows of every ZEGGS take in two dimensions (scripts/zeggs/make_page_data.py): as in the
-// paper's Figure 8a, PCA fitted on eight styles, with the other styles placed in the same directions. Nineteen styles
-// are too many to tell apart by colour, so all points are grey and one chosen style is drawn in the accent colour.
+// paper's Figure 8a, PCA fitted on eight styles, with the other styles placed in the same directions. Every style has
+// its own colour (the paper's eight get the strongest ones). Nineteen colours can't all be told apart at a glance, so
+// the chips double as the legend and highlight one style, and hovering a point names it.
 import { measured } from '@/data/projects/zeggs';
 const sm = measured.styleMap;
 // The paper's eight styles first, then the rest.
@@ -9,7 +10,14 @@ const styles = [...sm.fitStyles, ...[...new Set(sm.points.map((p) => p.style))].
 const takes = [...new Set(sm.points.map((p) => p.take))];
 const rows = sm.points.map((p) => [p.x, p.y, styles.indexOf(p.style), takes.indexOf(p.take), p.start]);
 const swayClaim = sm.pc1SwayR >= 0.5;
-const initial = styles.includes('Oration') ? 'Oration' : styles[0];
+// Tableau 20 colours: strong ones for the paper's eight styles, then the rest.
+const COLORS: Record<string, string> = {
+  Neutral: '#4e79a7', Happy: '#f28e2b', Angry: '#e15759', Relaxed: '#59a14f', Tired: '#9d7660', Sad: '#b07aa1',
+  Oration: '#b6992d', Still: '#79706e', Agreement: '#8cd17d', Disagreement: '#ff9d9a', Distracted: '#a0cbe8',
+  Flirty: '#d37295', Laughing: '#ffbe7d', Old: '#499894', Pensive: '#86bcb6', Sarcastic: '#d4a6c8', Scared: '#f1ce63',
+  Sneaky: '#bab0ac', Threatening: '#d7b5a6',
+};
+const colors = styles.map((s) => COLORS[s] ?? '#888888');
 const means = styles.map((s) => {
   const ps = sm.points.filter((p) => p.style === s);
   return { style: s, n: ps.length, x: ps.reduce((a, p) => a + p.x, 0) / ps.length, y: ps.reduce((a, p) => a + p.y, 0) / ps.length };
@@ -22,17 +30,17 @@ const means = styles.map((s) => {
   data-rows={JSON.stringify(rows)}
   data-xlabel={swayClaim ? 'First direction: more body sway →' : 'First direction →'}
   data-ylabel="Second direction →"
-  data-initial={initial}
+  data-colors={JSON.stringify(colors)}
 >
   <div class="viz__head">
     <p class="viz__title">The style space, mapped</p>
-    <p class="viz__sub">Every point is 8 seconds of one take, placed by its style embedding; choose a style to highlight it</p>
+    <p class="viz__sub">Every point is 8 seconds of one take, placed by its style embedding; choose a style to highlight it, again to show all</p>
   </div>
   <div class="zm__chips" role="group" aria-label="Highlight a style">
     {styles.map((s, i) => (
       <>
         {i === sm.fitStyles.length && <span class="zm__break" aria-hidden="true"></span>}
-        <button type="button" class="zm__chip" data-style={s} aria-pressed={s === initial ? 'true' : 'false'}>{s}</button>
+        <button type="button" class="zm__chip" data-style={s} aria-pressed="false"><i style={`background: ${colors[i]}`}></i>{s}</button>
       </>
     ))}
   </div>
@@ -49,7 +57,7 @@ const means = styles.map((s) => {
     <div class="table-wrap">
       <table>
         <thead><tr><th>Style</th><th>Windows</th><th>Mean, first direction</th><th>Mean, second direction</th></tr></thead>
-        <tbody>{means.map((m) => <tr><td>{m.style}</td><td>{m.n}</td><td>{m.x.toFixed(2)}</td><td>{m.y.toFixed(2)}</td></tr>)}</tbody>
+        <tbody>{means.map((m, i) => <tr><td><i class="zm__swatch" style={`background: ${colors[i]}`}></i>{m.style}</td><td>{m.n}</td><td>{m.x.toFixed(2)}</td><td>{m.y.toFixed(2)}</td></tr>)}</tbody>
       </table>
     </div>
   </details>
@@ -61,10 +69,13 @@ const means = styles.map((s) => {
     font: inherit; font-size: 0.78rem; padding: 0.18rem 0.6rem; border-radius: 999px; cursor: pointer;
     border: 1px solid var(--border); background: var(--bg-deep); color: var(--ink-2);
   }
+  .zm__chip { display: inline-flex; align-items: center; gap: 0.35rem; }
+  .zm__chip i, .zm__swatch { display: inline-block; width: 0.6rem; height: 0.6rem; border-radius: 50%; flex: none; }
+  .zm__swatch { margin-right: 0.4rem; vertical-align: 0.05em; }
   .zm__chip:hover { border-color: var(--accent-from); color: var(--ink); }
   /* The paper's eight styles on the first row, the others after a break. */
   .zm__break { flex-basis: 100%; height: 0.15rem; }
-  .zm__chip[aria-pressed="true"] { background: var(--accent-from); border-color: var(--accent-from); color: var(--badge-text); }
+  .zm__chip[aria-pressed="true"] { border-color: var(--ink); color: var(--ink); font-weight: 600; }
 </style>
 
 <script>
@@ -77,8 +88,9 @@ const means = styles.map((s) => {
     const styles = JSON.parse(root.dataset.styles!) as string[];
     const takes = JSON.parse(root.dataset.takes!) as string[];
     const rows = JSON.parse(root.dataset.rows!) as Row[];
+    const colors = JSON.parse(root.dataset.colors!) as string[];
     const tip = makeTooltip(plot);
-    let selected = styles.indexOf(root.dataset.initial!);
+    let selected = -1; // -1: every style at full colour
     const xs = rows.map((r) => r[0]), ys = rows.map((r) => r[1]);
     const pad = (a: number[]) => { const lo = Math.min(...a), hi = Math.max(...a), m = (hi - lo) * 0.06; return [lo - m, hi + m]; };
     const [x0, x1] = pad(xs), [y0, y1] = pad(ys);
@@ -86,17 +98,18 @@ const means = styles.map((s) => {
 
     function paint() {
       circles.forEach((c, i) => {
-        const on = rows[i][2] === selected;
-        c.setAttribute('r', on ? '4' : '2.6');
-        c.style.fill = on ? 'var(--accent-from)' : 'var(--c-other)';
-        c.style.opacity = on ? '0.95' : '0.28';
-        if (on) c.parentNode!.appendChild(c); // draw the chosen style on top
+        const on = selected < 0 || rows[i][2] === selected;
+        c.setAttribute('r', selected >= 0 && on ? '4.5' : '3.2');
+        c.style.fill = colors[rows[i][2]];
+        c.style.opacity = on ? '0.9' : '0.12';
+        if (selected >= 0 && on) c.parentNode!.appendChild(c); // draw the chosen style on top
       });
       root.querySelectorAll<HTMLButtonElement>('[data-style]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.style === styles[selected])));
     }
 
     root.querySelectorAll<HTMLButtonElement>('[data-style]').forEach((b) => b.addEventListener('click', () => {
-      selected = styles.indexOf(b.dataset.style!);
+      const i = styles.indexOf(b.dataset.style!);
+      selected = selected === i ? -1 : i; // a second click shows every style again
       paint();
     }));
 
@@ -106,14 +119,15 @@ const means = styles.map((s) => {
       const H = Math.round(Math.min(420, width * 0.72));
       const left = 14, right = width - 6, top = 6, bottom = H - 24;
       const x = linear(x0, x1, left, right), y = linear(y0, y1, bottom, top);
-      const svg = svgEl('svg', { viewBox: `0 0 ${width} ${H}`, role: 'img', 'aria-label': `Scatter plot of ${rows.length} style embeddings; the chosen style is highlighted.` }, plot);
+      const svg = svgEl('svg', { viewBox: `0 0 ${width} ${H}`, role: 'img', 'aria-label': `Scatter plot of ${rows.length} style embeddings, coloured by style.` }, plot);
       svgEl('line', { x1: x(0), x2: x(0), y1: top, y2: bottom, class: 'grid' }, svg);
       svgEl('line', { x1: left, x2: right, y1: y(0), y2: y(0), class: 'grid' }, svg);
       svgEl('line', { x1: left, x2: right, y1: bottom, y2: bottom, class: 'axis' }, svg);
       svgText(svg, right, bottom + 17, root.dataset.xlabel!, { 'text-anchor': 'end' });
       svgText(svg, left + 4, top + 12, root.dataset.ylabel!, {});
       const g = svgEl('g', {}, svg);
-      circles = rows.map((r) => svgEl('circle', { cx: x(r[0]), cy: y(r[1]) }, g));
+      // A thin surface ring keeps overlapping points apart.
+      circles = rows.map((r) => svgEl('circle', { cx: x(r[0]), cy: y(r[1]), style: 'stroke: var(--viz-surface)', 'stroke-width': 0.6 }, g));
       paint();
       svg.addEventListener('pointermove', (e) => {
         const box = svg.getBoundingClientRect();
@@ -123,7 +137,7 @@ const means = styles.map((s) => {
         rows.forEach((r, i) => { const d = (x(r[0]) - px) ** 2 + (y(r[1]) - py) ** 2; if (d < bd) { bd = d; best = i; } });
         if (best < 0) return tip.hide();
         const r = rows[best];
-        tip.show(x(r[0]) * sc, y(r[1]) * sc, styles[r[2]], [{ value: takes[r[3]], label: `from ${r[4]} s` }]);
+        tip.show(x(r[0]) * sc, y(r[1]) * sc, '', [{ value: styles[r[2]], label: `${takes[r[3]]}, from ${r[4]} s`, color: colors[r[2]] }]);
       });
       svg.addEventListener('pointerleave', () => tip.hide());
     });

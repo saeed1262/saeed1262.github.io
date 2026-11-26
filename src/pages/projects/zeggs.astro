@@ -8,7 +8,6 @@ import VideoPlayer from '@/components/projects/zeggs/VideoPlayer.astro';
 import DatasetChart from '@/components/projects/zeggs/DatasetChart.astro';
 import StudyChart from '@/components/projects/zeggs/StudyChart.astro';
 import ContactTimeline from '@/components/projects/zeggs/ContactTimeline.astro';
-import IkToy from '@/components/projects/zeggs/IkToy.astro';
 import SkatingChart from '@/components/projects/zeggs/SkatingChart.astro';
 import HeadingChart from '@/components/projects/zeggs/HeadingChart.astro';
 import Clip from '@/components/projects/probing/Clip.astro';
@@ -259,7 +258,6 @@ const blendNames = clips.blendWeights.map((w) => (w === 0 ? 'Old' : w === 100 ? 
     Finally the hip and knee of each leg are re-solved with two-bone IK so the ankle lands on its pin, keeping the
     knee bending the way it did. If a pin is out of reach, the hips drop a little instead.
   </p>
-  <IkToy />
   <p>
     On the three runs I measured, the fix brings the score from {Math.min(...before).toFixed(1)}–{Math.max(...before).toFixed(1)}
     cm/s down to {Math.min(...after).toFixed(1)}–{Math.max(...after).toFixed(1)} cm/s, inside the range of most real
