@@ -1,0 +1,447 @@
+---
+import { Code } from 'astro:components';
+import { getEntry } from 'astro:content';
+import PostLayout from '@/layouts/PostLayout.astro';
+import Architecture from '@/components/projects/zeggs/Architecture.astro';
+import StyleMap from '@/components/projects/zeggs/StyleMap.astro';
+import MotionPlayer from '@/components/projects/zeggs/MotionPlayer.astro';
+import DatasetChart from '@/components/projects/zeggs/DatasetChart.astro';
+import StudyChart from '@/components/projects/zeggs/StudyChart.astro';
+import ContactTimeline from '@/components/projects/zeggs/ContactTimeline.astro';
+import IkToy from '@/components/projects/zeggs/IkToy.astro';
+import SkatingChart from '@/components/projects/zeggs/SkatingChart.astro';
+import HeadingChart from '@/components/projects/zeggs/HeadingChart.astro';
+import Clip from '@/components/projects/probing/Clip.astro';
+import { arxivUrl, authors, bibtex, codeUrl, measured, paperUrl } from '@/data/projects/zeggs';
+import '@/styles/viz.css';
+
+const project = (await getEntry('projects', 'zeggs'))!;
+const themes = { light: 'github-light', dark: 'github-dark' } as const;
+const video = (name: string) => `/videos/projects/zeggs/${name}`;
+const takeNo = (name: string) => Number(name.split('_')[0]);
+const { clips, skating, styleMap, feetDrift } = measured;
+const before = skating.runs.map((r) => r.before.speed);
+const after = skating.runs.map((r) => r.after.speed);
+const worst = skating.runs[2];
+const blendNames = ['Old', '75% Old, 25% Oration', 'Halfway', '25% Old, 75% Oration', 'Oration'];
+
+const codeBlend = `from zeggs.generate import generate_gesture
+
+generate_gesture(
+    audio_file="speech.wav",
+    styles=[("old.bvh", [600, 1080]), ("oration.bvh", [600, 1080])],  # two 8 s examples
+    blend_type="add", blend_ratio=[0.5, 0.5],                        # halfway between them
+    network_path="data/outputs/v1/saved_models",
+    data_path="data/processed_v1",
+    results_path="results",
+    temperature=1.0, seed=1234,                                       # another seed, another take
+    fix_feet=True, fix_heading=True,                                  # new in 2026
+)`;
+
+const codeFeet = `# while generating
+zeggs-generate -o data/outputs/v1/options.json \\
+    -s style.bvh -a speech.wav --fix_feet --fix_heading
+
+# or on any BVH on the ZEGGS skeleton, with a score before and after
+zeggs-fix-feet input.bvh output.bvh --heading`;
+
+const codeView = `pip install -e ".[viewer]"
+python tools/genoview/genoview.py raw.bvh fixed.bvh \\
+    --labels raw fix_feet --record compare.mp4
+zeggs-retarget take.bvh    # the Geno version of a clip, for other tools`;
+
+const codeQuick = `git clone https://github.com/ubisoft/ubisoft-laforge-ZeroEGGS.git
+cd ubisoft-laforge-ZeroEGGS
+python -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"
+zeggs-generate -o data/outputs/v1/options.json \\
+    -s <style.bvh> -a <speech.wav> --fix_feet`;
+---
+<PostLayout
+  title={project.data.title}
+  description={project.data.description}
+  ogImage="/images/projects/zeggs.jpg"
+  back={{ href: '/#projects', label: 'Projects' }}
+  ribbon={[
+    { label: 'Authors', parts: authors.map((a) => ({ text: a.name })) },
+    { label: 'Venue', value: 'Computer Graphics Forum, 2023' },
+    { label: 'Affiliations', value: 'Ubisoft La Forge · York University' },
+    { label: 'Tags', tags: project.data.tags },
+  ]}
+>
+  <div slot="header" class="zg-header">
+    <p class="zg-header__cta">
+      <a class="zg-header__primary" href={paperUrl} target="_blank" rel="noopener">Read the paper →</a>
+      <a href={arxivUrl} target="_blank" rel="noopener">arXiv</a>
+      <a href={codeUrl} target="_blank" rel="noopener">Code and dataset</a>
+      <a href="#citation">Cite</a>
+    </p>
+  </div>
+
+  <p>
+    People move when they talk, and how they move says as much about who they are and how they feel as the words do.
+    For game characters and virtual agents that is a lot of animation. Triggering recorded clips from tags doesn’t
+    scale to open worlds full of dialogue, and canned clips don’t follow the rhythm of the speech.
+  </p>
+  <p>
+    Learning gestures from speech is hard for two reasons. Speech is a weak signal: the same sentence fits many
+    different, equally good gestures, and a model that predicts the average ends up with small, lifeless movement. And
+    style is hard to pin down: “tired”, “sarcastic” or “like an old man” are easy to recognise and hard to describe
+    with a few numbers or a fixed list of labels.
+  </p>
+  <p>
+    ZeroEGGS<a href="#ref-zeggs" class="cite">[1]</a> doesn’t name styles at all. You give it a few seconds of motion
+    in the style you want and it gestures to new speech in that style, including styles it never saw in training.
+    Because it is probabilistic, the same speech and example give a different take every time. We built it at Ubisoft
+    La Forge with York University, and published it in Computer Graphics Forum in 2023 with the ZEGGS dataset.
+  </p>
+  <p>
+    The first half of this page walks through the paper. The second half is about the code: in November 2026 I came
+    back to the repository, brought it up to date, and fixed the two problems the output still had: feet that slide
+    and characters that slowly turn away. Every motion on this page was generated with the released models and the
+    updated code.
+  </p>
+
+  <figure class="viz zg-talk">
+    <div class="viz__head">
+      <p class="viz__title">The paper’s video</p>
+      <p class="viz__sub">Styles from examples, blending, and the user study, rendered on the La Forge character</p>
+    </div>
+    <div class="zg-talk__frame">
+      <iframe src="https://www.youtube-nocookie.com/embed/YFg7QKWkjwQ" title="ZeroEGGS video" loading="lazy"
+              allow="encrypted-media; picture-in-picture" allowfullscreen></iframe>
+    </div>
+  </figure>
+
+  <ul class="toc">
+    <li><a href="#how">How It Works</a></li>
+    <li><a href="#style-space">The Style Space</a></li>
+    <li><a href="#blending">Blending and Variation</a></li>
+    <li><a href="#dataset">The Dataset</a></li>
+    <li><a href="#results">What People Thought</a></li>
+    <li><a href="#feet">2026: Clean Feet</a></li>
+    <li><a href="#heading">2026: Facing the Camera</a></li>
+    <li><a href="#genoview">2026: Watching It on a Character</a></li>
+    <li><a href="#modernised">2026: Up to Date</a></li>
+    <li><a href="#limits">Limitations</a></li>
+    <li><a href="#citation">Citation</a></li>
+  </ul>
+
+  <h2 id="how">How It Works</h2>
+  <p>
+    ZeroEGGS has three parts, trained together. A speech encoder turns the audio into 64 numbers per frame. A style
+    encoder sums up an example clip as a single 64-number style. A gesture generator then writes the motion one frame
+    at a time, from that frame’s speech, the style and the pose it has just produced.
+  </p>
+  <Architecture />
+  <p>
+    The style encoder is what makes zero-shot style possible. It never sees a style name. During training, the example
+    is simply another stretch of the same take as the motion being learnt, between about 4 and 8.5 seconds long. To
+    reconstruct that motion well, the encoder has to capture whatever makes the take look the way it does: the
+    posture, how high the hands go, how much the body sways. That works just as well for a clip in a style it has
+    never seen. The encoder is variational<a href="#ref-vae" class="cite">[2]</a>: it outputs a Gaussian rather than
+    a single point and the style is sampled from it, which keeps the style space smooth enough to blend in and gives
+    variety for free. Its design follows the prosody encoder of Daft-Exprt<a href="#ref-daft" class="cite">[3]</a>,
+    which does the same job for the tone of a voice.
+  </p>
+  <p>
+    The generator only hears the sound, as a spectrogram, never the words. That makes it work for other voices and
+    languages, which we checked with a deep male voice, French, German and gibberish. It also means it makes rhythmic
+    “beat” gestures rather than gestures that depict what is said.
+  </p>
+
+  <h2 id="style-space">The Style Space</h2>
+  <p>
+    Every example becomes a point in the same 64-dimensional space, so the space itself can be explored. I ran the
+    released style encoder on every 8-second window of every take in the dataset and projected the results onto their
+    two main directions.
+  </p>
+  <StyleMap />
+  <p>
+    Windows of the same style sit near each other, and the main directions mean something you can see. In the paper
+    the first followed how much the body sways and the second how high the hands are. On this map the first clearly
+    follows sway (a correlation of {styleMap.pc1SwayR.toFixed(2)} with hip speed); the second’s link to hand height is
+    {styleMap.pc2HandR >= 0.5 ? 'also clear' : 'weaker'} ({styleMap.pc2HandR.toFixed(2)}). In the paper we used the
+    directions as controls: moving a Neutral style one standard deviation along the first made the
+    character sway more or less, and moving it along the second raised or lowered its hands.
+  </p>
+
+  <h2 id="blending">Blending and Variation</h2>
+  <p>
+    Points in the style space can be mixed. Below, one line of speech (take {takeNo(clips.speechTake)}, a Neutral
+    monologue) is generated with a style that moves from an Old example to an Oration example in five steps, the same
+    pair as Figure 7 of the paper. Drag the slider while it plays: posture and hand height change gradually. Turn the
+    sound on to hear the speech.
+  </p>
+  <MotionPlayer
+    src="/data/zeggs/blend"
+    title="From Old to Oration"
+    sub="One line of speech, five style mixes; the slider keeps the time"
+    poster="/videos/projects/zeggs/styles.jpg"
+    label="A character gestures to speech; a slider blends its style from Old, hunched with low hands, to Oration, upright with raised hands."
+    switcher={{ label: 'Style mix', ids: ['w0', 'w25', 'w50', 'w75', 'w100'], names: blendNames }}
+  >
+    Each step is generated separately with the style embeddings mixed in that proportion (<code>blend_type="add"</code>),
+    the same speech and the same seed. The examples are 8 s from take {takeNo(clips.blendTakes[0])} (Old) and take
+    {takeNo(clips.blendTakes[1])} (Oration). Fingers are left out of this player; they are in the videos further down.
+  </MotionPlayer>
+  <p>
+    Because the style is sampled, asking again gives another take: the same speech and example, three random seeds.
+  </p>
+  <MotionPlayer
+    src="/data/zeggs/variation"
+    title="Same speech, same style, three takes"
+    sub="A Happy example, seeds 1, 2 and 3"
+    label="Three characters gesture to the same speech in the same Happy style, each differently."
+  >
+    The three takes share the rhythm of the speech but not the exact gestures, which is what a person does too when
+    they say the same line twice.
+  </MotionPlayer>
+  <p>
+    Mixing can also happen over time, moving from one style to another within a clip (<code>blend_type="stitch"</code>).
+    In code, all of this is one function:
+  </p>
+  <Code code={codeBlend} lang="python" themes={themes} defaultColor={false} />
+
+  <h2 id="dataset">The Dataset</h2>
+  <p>
+    To train it we recorded the ZEGGS dataset: 67 monologues by one actor speaking English, in 19 styles chosen to
+    cover different postures and different hand and head movement. It is released with the code: motion as BVH with
+    a 75-joint skeleton including fingers, and the speech as WAV, both raw and cleaned and aligned.
+  </p>
+  <DatasetChart />
+
+  <h2 id="results">What People Thought</h2>
+  <p>
+    We ran three user studies with 131 participants in total, rating naturalness, how well the motion fits the speech,
+    and how well it shows a given style (watched without sound). On each page, people rated four clips side by side:
+    the real motion capture, motion capture from a different line (the same style for the first two studies, a
+    different style for the third), ZeroEGGS, and MoGlow<a href="#ref-moglow" class="cite">[4]</a>, a strong
+    style-controllable baseline that takes style as hand height, speed and radius.
+  </p>
+  <StudyChart />
+  <p>
+    ZeroEGGS beat MoGlow on all three measures on our data, and on fit to speech and style on the Trinity
+    data<a href="#ref-trinity" class="cite">[5]</a>, which it was not trained on. On our data it also fitted the speech
+    better than real motion from a different line, and its naturalness was not significantly different from it. It is also smaller and faster: a
+    25-million-parameter model that makes a frame in about 4 ms. Real motion capture was still rated best on every
+    measure, by a clear margin.
+  </p>
+
+  <h2 id="feet">2026: Clean Feet</h2>
+  <p>
+    The paper ends its limitations with a sentence I kept coming back to: ZeroEGGS “generates small amounts of foot
+    sliding”, a common problem for animation that is not physically based, “that can be addressed with IK-based
+    post-processing.” In November 2026 I wrote that post-processing. It is one flag, <code>--fix_feet</code>.
+  </p>
+  <p>
+    The feet slide because nothing ties a planted foot to the floor. The generator predicts joint rotations and the
+    root’s velocity; a small error in the root’s velocity moves the whole body, feet included, and a small error in a
+    leg moves the foot relative to the body. To find a clear case I generated all {clips.feetPairs} pairings of the
+    Happy takes as examples with the Angry takes as speech. The highest foot-skating score came from take
+    {takeNo(clips.feetPair.style)} as the example on take {takeNo(clips.feetPair.speech)}’s speech, at
+    {worst.before.speed.toFixed(1)} cm/s. Some of that is real stepping, because Happy is a lively style: the Happy
+    mocap takes score {skating.mocap.happyMin} to {skating.mocap.happyMax} cm/s themselves. But the planted feet
+    really do slide. Here are the 10 seconds with the most of it, before and after.
+  </p>
+  <MotionPlayer
+    src="/data/zeggs/feet"
+    title="Raw and fixed, side by side"
+    sub="Under the player, the planted ankles seen from above"
+    poster="/videos/projects/zeggs/feet.jpg"
+    label="Two characters gesture to the same angry speech: the orange one is raw and slides its feet, the teal one is fixed."
+    trails
+  >
+    Orange is the raw output and teal is the same motion after <code>--fix_heading</code> and
+    <code>--fix_feet</code>. The floor views trace each ankle while it counts as planted, as the clip plays: a foot
+    that stays put makes a dot, a foot that slides makes a line. During a contact a raw ankle drifts {feetDrift.raw.median}
+    cm (median, up to {feetDrift.raw.max}); a fixed one {feetDrift.fixed.median} cm (up to {feetDrift.fixed.max}),
+    mostly while it moves between two pins. Both characters start at the same place.
+  </MotionPlayer>
+  <p>The fix runs in four steps, all on the finished motion.</p>
+  <h3>1. Find the planted feet</h3>
+  <p>
+    A foot is planted when its ankle is both low and slow. Short gaps are filled and very short contacts dropped, so
+    one stumble in the measurement doesn’t break a step in two.
+  </p>
+  <ContactTimeline />
+  <h3>2. Stop the whole body gliding</h3>
+  <p>
+    Sometimes the whole character glides, planted feet and all. Then both planted feet drift the same way as the
+    hips. So the first step moves the root back by the planted feet’s average drift, smoothed over time. It runs twice,
+    because some contacts only become detectable once the drift is gone. After this the foot lock has much less to do.
+  </p>
+  <h3>3. Pin each contact</h3>
+  <p>
+    Each contact gets one position and one orientation, the average over the contact. If the raw foot wanders more
+    than 10 cm during a contact, it is split into two pins, and the foot moves between them smoothly. The lock
+    eases in and out over a quarter of a second, so the foot doesn’t snap into place.
+  </p>
+  <h3>4. Re-solve the legs</h3>
+  <p>
+    Finally the hip and knee of each leg are re-solved with two-bone IK so the ankle lands on its pin, keeping the
+    knee bending the way it did. If a pin is out of reach, the hips drop a little instead.
+  </p>
+  <IkToy />
+  <p>
+    On the three runs I measured, the fix brings the score from {Math.min(...before).toFixed(1)}–{Math.max(...before).toFixed(1)}
+    cm/s down to {Math.min(...after).toFixed(1)}–{Math.max(...after).toFixed(1)} cm/s, inside the range of most real
+    takes. The score measures every foot near the floor, so real steps count as sliding too; that is why real motion
+    capture scores above zero, and lively takes well above.
+  </p>
+  <SkatingChart />
+  <Code code={codeFeet} lang="bash" themes={themes} defaultColor={false} />
+
+  <h2 id="heading">2026: Facing the Camera</h2>
+  <p>
+    The generator integrates its own turning speed, frame by frame. In the paper we conditioned it on a fixed facing
+    direction to stop it drifting, and for most clips that is enough. But small biases still add up, and on a long or
+    unusual pairing the character can end up facing sideways, or turned away from the camera altogether. In the worst
+    run above it turns {worst.before.turn}° away.
+  </p>
+  <HeadingChart />
+  <p>
+    <code>--fix_heading</code> keeps turns faster than about four seconds and limits the slow trend to 20° from the
+    starting direction, about what the real actor wanders. It turns the body around the point between the feet, and
+    runs before the foot fix, so the two don’t fight.
+  </p>
+
+  <h2 id="genoview">2026: Watching It on a Character</h2>
+  <p>
+    A stick figure hides problems that a skinned character shows at once, like a foot that sinks into the floor or
+    slides under a shadow. So the repository now has a viewer, adapted from Daniel Holden’s
+    GenoViewPython<a href="#ref-genoview" class="cite">[6]</a>. It plays one or more clips side by side on the Geno
+    character, with shadows and ambient occlusion, the speech in sync, a timeline, foot-slide markers and onion
+    skinning, and it can record straight to MP4 or GIF.
+  </p>
+  <Clip
+    src={video('feet.mp4')}
+    poster={video('feet.jpg')}
+    label="Two Geno characters, raw in orange and fixed in teal, play the same angry clip on a checkered floor."
+    title="Recorded with GenoView"
+    sub="The feet clip from above, raw and fixed"
+  >
+    Recorded offscreen with the viewer’s <code>--record</code> option, with the same colours as the rest of this page.
+  </Clip>
+  <Clip
+    src={video('styles.mp4')}
+    poster={video('styles.jpg')}
+    label="Three Geno characters gesture to the same speech in three styles: Old, halfway, and Oration."
+    title="Three styles, one line of speech"
+    sub="Old, halfway, and Oration, with fingers"
+  >
+    The blending example from above on the full skeleton, fingers included.
+  </Clip>
+  <p>
+    ZEGGS output is moved onto the Geno skeleton automatically. The two skeletons have the same joints but different
+    bone lengths and rest poses, so <code>zeggs-retarget</code> applies one constant rotation offset per joint and
+    scales the root. The offsets were fitted on takes Daniel Holden retargeted in
+    Maya<a href="#ref-retarget" class="cite">[7]</a>; on held-out takes it matches them to within 0.04° per joint.
+  </p>
+  <Code code={codeView} lang="bash" themes={themes} defaultColor={false} />
+
+  <h2 id="modernised">2026: Up to Date</h2>
+  <p>
+    The original code was written for the Python and PyTorch of 2022 and needed system packages to run. It now:
+  </p>
+  <ul>
+    <li>runs on Python 3.10 or newer (tested on 3.12) and PyTorch 2.4 or newer;</li>
+    <li>uses CUDA, Apple Silicon (MPS) or the CPU, whichever is there, with no system packages;</li>
+    <li>installs as a package with command-line tools: <code>zeggs-generate</code>, <code>zeggs-train</code>,
+      <code>zeggs-preprocess</code>, <code>zeggs-fix-feet</code> and <code>zeggs-retarget</code>;</li>
+    <li>loads checkpoints safely, as plain weights rather than pickled code;</li>
+    <li>has tests, including one that checks generation against outputs recorded from the original code.</li>
+  </ul>
+  <Code code={codeQuick} lang="bash" themes={themes} defaultColor={false} />
+
+  <h2 id="limits">Limitations</h2>
+  <ul>
+    <li><strong>Behind real motion.</strong> In the user studies real motion capture was still clearly better on every
+      measure.</li>
+    <li><strong>Subtle style details.</strong> Small, local motions that define a style are often smoothed away; in
+      Agreement, for example, head nods are rare in the output although the data is full of them.</li>
+    <li><strong>Beats, not meaning.</strong> The model hears the sound, not the words, so it makes rhythmic gestures
+      rather than ones that depict what is said.</li>
+    <li><strong>Standing speakers.</strong> The data has little walking around, and the model is less suited to
+      speakers who move across the room.</li>
+    <li><strong>The fixes are post-processing.</strong> <code>--fix_feet</code> and <code>--fix_heading</code> clean
+      the output; they don’t teach the model physics. The heading fix is a cap on the slow trend, not a cure, and the
+      skating score counts real steps too.</li>
+  </ul>
+
+  <h2 id="citation">Citation</h2>
+  <p class="cite-text">
+    Saeed Ghorbani, Ylva Ferstl, Daniel Holden, Nikolaus F. Troje, Marc-André Carbonneau.
+    <a href={paperUrl}>ZeroEGGS: Zero-shot Example-based Gesture Generation from Speech</a>. Computer Graphics Forum
+    42(1), 206–216, 2023.
+  </p>
+  <div class="bib">
+    <div class="bib__bar">
+      <span>BibTeX</span>
+      <button type="button" class="bib__copy" data-copy-bib data-bib={bibtex}>Copy</button>
+    </div>
+    <Code code={bibtex} lang="bibtex" themes={themes} defaultColor={false} />
+  </div>
+
+  <h2 id="references">References</h2>
+  <ol class="refs">
+    <li id="ref-zeggs">S. Ghorbani, Y. Ferstl, D. Holden, N. F. Troje, M.-A. Carbonneau.
+      <a href={paperUrl}>ZeroEGGS: Zero-shot Example-based Gesture Generation from Speech</a>. Computer Graphics Forum
+      42(1), 2023.</li>
+    <li id="ref-vae">D. P. Kingma, M. Welling. <a href="https://arxiv.org/abs/1312.6114">Auto-Encoding Variational
+      Bayes</a>. arXiv:1312.6114, 2013.</li>
+    <li id="ref-daft">J. Zaïdi, H. Seuté, B. van Niekerk, M.-A. Carbonneau.
+      <a href="https://arxiv.org/abs/2108.02271">Daft-Exprt: Robust Prosody Transfer Across Speakers for Expressive
+      Speech Synthesis</a>. arXiv:2108.02271, 2021.</li>
+    <li id="ref-moglow">S. Alexanderson, G. E. Henter, T. Kucherenko, J. Beskow.
+      <a href="https://doi.org/10.1111/cgf.13946">Style-Controllable Speech-Driven Gesture Synthesis Using Normalising
+      Flows</a>. Computer Graphics Forum 39(2), 2020.</li>
+    <li id="ref-trinity">Y. Ferstl, R. McDonnell.
+      <a href="https://doi.org/10.1145/3267851.3267898">Investigating the Use of Recurrent Motion Modelling for Speech
+      Gesture Generation</a>. IVA 2018.</li>
+    <li id="ref-genoview">D. Holden. <a href="https://github.com/orangeduck/GenoViewPython">GenoViewPython</a>.
+      GitHub (MIT licence).</li>
+    <li id="ref-retarget">D. Holden. <a href="https://github.com/orangeduck/zeroeggs-retarget">zeroeggs-retarget</a>.
+      GitHub.</li>
+  </ol>
+
+  <style>
+    .cite { font-size: 0.72em; vertical-align: super; margin-left: 0.1em; text-decoration: none !important; }
+    .toc { list-style: none; padding: 0 !important; margin: var(--space-sm) 0 var(--space-md); display: grid; gap: 0.25rem; }
+    .toc li { margin: 0; }
+    .toc a { text-decoration: none !important; }
+    .toc a::before { content: "◇"; color: var(--gold); margin-right: 0.5rem; font-size: 0.8em; }
+    .refs { font-size: var(--step--1); color: var(--text-muted); }
+    .refs li { margin-bottom: 0.5rem; }
+    .zg-header__cta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-sm) var(--space-md); margin-top: var(--space-md); }
+    .zg-header__cta a { color: var(--text); font-weight: 500; text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--accent-from) 45%, transparent); text-underline-offset: 0.25em; }
+    .zg-header__cta a:hover { color: var(--accent-from); }
+    .zg-header__cta .zg-header__primary { text-decoration: none; padding: 0.6rem 1.25rem; border-radius: 999px; background: var(--accent-from); color: var(--badge-text); }
+    .zg-header__cta .zg-header__primary:hover { color: var(--badge-text); background: color-mix(in srgb, var(--accent-from) 85%, var(--text)); }
+    .zg-talk__frame { position: relative; aspect-ratio: 16 / 9; border-radius: 10px; overflow: hidden; background: #0e1524; }
+    .zg-talk__frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+    .cite-text { padding: 0.8rem 1rem; border-left: 3px solid var(--gold); background: var(--bg-deep); border-radius: 0 10px 10px 0; }
+    .bib__bar { display: flex; justify-content: space-between; align-items: center; margin-top: var(--space-sm); font-size: var(--step--1); color: var(--text-muted); }
+    .bib__copy { font: inherit; font-size: 0.8rem; cursor: pointer; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 0.2rem 0.85rem; }
+    .bib__copy:hover { border-color: var(--accent-from); }
+  </style>
+</PostLayout>
+
+<script>
+  import { onEachPage } from '@/scripts/viz';
+
+  // Copy the paper's BibTeX entry; if the clipboard is blocked, select it instead.
+  onEachPage('[data-copy-bib]', (btn) => {
+    btn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(btn.dataset.bib ?? '');
+        btn.textContent = 'Copied';
+      } catch {
+        const pre = btn.closest('.bib')?.querySelector('pre');
+        if (pre) window.getSelection()?.selectAllChildren(pre);
+        btn.textContent = 'Selected: press Ctrl/⌘+C';
+      }
+      setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+    });
+  });
+</script>

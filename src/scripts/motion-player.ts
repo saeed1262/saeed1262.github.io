@@ -4,7 +4,7 @@
 import { onEachPage } from '@/scripts/viz';
 import { decodeClip, floorRuns, frameAt, nextState, type Clip, type ClipHeader, type FloorRun, type PlayerState } from '@/scripts/motion-clip';
 
-type Three = typeof import('three');
+type Three = typeof import('@/scripts/three-lite');
 
 interface Switcher { label: string; ids: string[]; names: string[] }
 
@@ -52,7 +52,7 @@ async function start(el: HTMLElement) {
   if (!webglAvailable()) return fallback(el);
   const src = el.dataset.src!;
   const [THREE, header, buffer] = await Promise.all([
-    import('three'),
+    import('@/scripts/three-lite'),
     fetch(`${src}.json`).then((r) => r.json() as Promise<ClipHeader>),
     fetch(`${src}.bin`).then((r) => r.arrayBuffer()),
   ]);
