@@ -20,7 +20,17 @@ from make_page_data import DATA, FPS, OUT_JSON, REPO, SITE, cut
 WORK = Path(__file__).resolve().parent / "work"
 OUT = SITE / "public/videos/projects/zeggs"
 RAW = WORK / "videos"
-CHARCOAL, ORANGE, TEAL = "#3d3d3d", "#ffa100", "#00a087"
+ORANGE, TEAL = "#ffa100", "#00a087"  # raw and fixed, as in the page's charts
+# Style colours from the page's style map (StyleMap.astro): Old teal, Oration gold, Happy orange. A blend of Old and
+# Oration is drawn in the colour between them, so the colour shows the mix.
+OLD, ORATION, HAPPY = "#499894", "#b6992d", "#f28e2b"
+HAPPY_SHADES = ["#c96a1c", HAPPY, "#f7ad62"]  # three takes of the same Happy example
+
+
+def mix(a, b, t):
+    """The colour a fraction t of the way from hex a to hex b."""
+    ca, cb = (tuple(int(c[i:i + 2], 16) for i in (1, 3, 5)) for c in (a, b))
+    return "#" + "".join(f"{round(x + (y - x) * t):02x}" for x, y in zip(ca, cb))
 
 
 def window(src, start_s, name):
@@ -61,11 +71,13 @@ def main():
 
     # Opening clip: three styles on one line of speech (silent, loops).
     styles = [window(WORK / f"blend_w{w}.bvh", clips["speechStart"], f"styles_w{w}") for w in (0, 50, 100)]
-    encode(record(styles, ["Old", "Halfway", "Oration"], [CHARCOAL] * 3, RAW / "styles.mp4", 4.6), "styles")
+    encode(record(styles, ["Old", "Halfway", "Oration"], [OLD, mix(OLD, ORATION, 0.5), ORATION], RAW / "styles.mp4", 4.6),
+           "styles")
 
     # Blending: one character per tile, the same camera, tiled 2 x 2 (Old, 1/3, 2/3, Oration).
     names = {0: "Old", 33: "1/3 Oration", 67: "2/3 Oration", 100: "Oration"}
-    tiles = [record([window(WORK / f"blend_w{w}.bvh", clips["speechStart"], f"blend_w{w}")], [names[w]], [CHARCOAL],
+    tiles = [record([window(WORK / f"blend_w{w}.bvh", clips["speechStart"], f"blend_w{w}")], [names[w]],
+                    [mix(OLD, ORATION, w / 100)],
                     RAW / f"blend_w{w}.mp4", 2.7, size=(960, 540)) for w in clips["blendWeights"]]
     ffmpeg(*sum((["-i", t] for t in tiles), []), "-filter_complex",
            "[0:v][1:v][2:v][3:v]xstack=inputs=4:layout=0_0|w0_0|0_h0|w0_h0[v]", "-map", "[v]",
@@ -74,7 +86,7 @@ def main():
 
     # Variation: three takes of the same speech and style.
     takes = [window(WORK / f"variation_s{s}.bvh", clips["speechStart"], f"variation_s{s}") for s in (1, 2, 3)]
-    encode(record(takes, ["Take 1", "Take 2", "Take 3"], [CHARCOAL] * 3, RAW / "variation.mp4", 4.6), "variation",
+    encode(record(takes, ["Take 1", "Take 2", "Take 3"], HAPPY_SHADES, RAW / "variation.mp4", 4.6), "variation",
            audio=speech)
 
     # Feet: raw and fixed, with GenoView's foot-slide markers.
