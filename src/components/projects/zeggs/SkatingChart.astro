@@ -1,0 +1,101 @@
+---
+// Foot skating before and after --fix_feet for three generated runs, against the range of the real mocap takes.
+// Measured by scripts/zeggs/make_page_data.py with zeggs.postprocess.foot_skating.
+import { measured } from '@/data/projects/zeggs';
+const s = measured.skating;
+---
+<figure class="viz zk" data-skating={JSON.stringify(s)}>
+  <div class="viz__head">
+    <p class="viz__title">How much the feet slide, before and after</p>
+    <p class="viz__sub">Mean horizontal speed of feet near the floor (cm/s); lower is better</p>
+  </div>
+  <div class="viz-legend" aria-hidden="true">
+    <span><i class="dot" style="background: var(--c-frank)"></i>Raw</span>
+    <span><i class="dot" style="background: var(--c-clean)"></i>With --fix_feet</span>
+    <span><i class="dot zk__band"></i>Middle half of the 67 real takes</span>
+  </div>
+  <div class="viz__plot" data-plot></div>
+  <figcaption class="viz__caption">
+    Measured on the released models with the repository’s own score. The score counts every foot near the floor, so
+    real steps count too: half of the 67 real takes score between {s.mocap.p25.toFixed(1)} and
+    {s.mocap.p75.toFixed(1)} cm/s (median {s.mocap.median.toFixed(1)}, the line in the band), but lively ones score far
+    more: the Happy takes {s.mocap.happyMin} to {s.mocap.happyMax} cm/s, including {s.mocap.example} for the example
+    used in the third run. The third run also uses <code>--fix_heading</code>.
+  </figcaption>
+  <details>
+    <summary>Show as a table</summary>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Run</th><th>Length</th><th>Raw</th><th>Fixed</th><th>Low-foot frames moving, raw → fixed</th><th>Largest turn, raw → fixed</th></tr></thead>
+        <tbody>
+          {s.runs.map((r) => (
+            <tr>
+              <td>{r.label}</td><td>{r.seconds} s</td><td>{r.before.speed.toFixed(1)} cm/s</td><td>{r.after.speed.toFixed(1)} cm/s</td>
+              <td>{r.before.moving.toFixed(0)}% → {r.after.moving.toFixed(0)}%</td><td>{r.before.turn}° → {r.after.turn}°</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </details>
+</figure>
+
+<style>
+  .zk__band { background: color-mix(in srgb, var(--ink-2) 22%, transparent); border-radius: 2px !important; }
+</style>
+
+<script>
+  import { onEachPage, responsive, svgEl, svgText, linear, makeTooltip } from '@/scripts/viz';
+
+  interface Side { speed: number; moving: number; turn: number }
+  interface Skating { runs: { label: string; seconds: number; before: Side; after: Side }[]; mocap: { p25: number; median: number; p75: number } }
+
+  onEachPage('.zk', (root) => {
+    const plot = root.querySelector<HTMLElement>('[data-plot]')!;
+    const s = JSON.parse(root.dataset.skating!) as Skating;
+    const tip = makeTooltip(plot);
+    responsive(plot, (width) => {
+      plot.replaceChildren(tip.el);
+      tip.hide();
+      const rowH = 64, top = 4, axisH = 22;
+      const H = top + s.runs.length * rowH + axisH;
+      const max = Math.ceil(Math.max(...s.runs.map((r) => r.before.speed), s.mocap.p75) / 2) * 2 + 1;
+      const x = linear(0, max, 12, width - 16);
+      const svg = svgEl('svg', { viewBox: `0 0 ${width} ${H}`, role: 'img', 'aria-label': 'Dot plot of foot skating per run, raw and after --fix_feet, against the mocap range.' }, plot);
+      const bottom = top + s.runs.length * rowH;
+      svgEl('rect', { x: x(s.mocap.p25), y: top, width: x(s.mocap.p75) - x(s.mocap.p25), height: bottom - top, style: 'fill: color-mix(in srgb, var(--ink-2) 14%, transparent)' }, svg);
+      svgEl('line', { x1: x(s.mocap.median), x2: x(s.mocap.median), y1: top, y2: bottom, style: 'stroke: var(--ink-2)', 'stroke-dasharray': '3 3', opacity: 0.7 }, svg);
+      const step = max > 12 ? 4 : 2;
+      for (let v = 0; v <= max; v += step) {
+        svgEl('line', { x1: x(v), x2: x(v), y1: top, y2: bottom, class: v === 0 ? 'axis' : 'grid' }, svg);
+        svgText(svg, x(v), bottom + 15, String(v), { 'text-anchor': 'middle' });
+      }
+      svgText(svg, width - 2, bottom + 15, 'cm/s', { 'text-anchor': 'end' });
+      s.runs.forEach((r, i) => {
+        const y = top + i * rowH;
+        const cy = y + 46;
+        svgText(svg, 12, y + 15, r.label, { class: 't-ink' });
+        const a = x(r.before.speed), b = x(r.after.speed);
+        if (Math.abs(a - b) > 14) {
+          svgEl('line', { x1: a - 7, x2: b + 9, y1: cy, y2: cy, style: 'stroke: var(--ink-2)', 'stroke-width': 1.5 }, svg);
+          svgEl('path', { d: `M${b + 9},${cy} l7,-4 v8 z`, style: 'fill: var(--ink-2)' }, svg);
+        }
+        for (const [side, px, color, name] of [[r.before, a, 'var(--c-frank)', 'Raw'], [r.after, b, 'var(--c-clean)', 'With --fix_feet']] as const) {
+          svgEl('circle', { cx: px, cy, r: 6, style: `fill: ${color}; stroke: var(--viz-surface)`, 'stroke-width': 2 }, svg);
+          const label = svgText(svg, px, cy - 10, side.speed.toFixed(1), { 'text-anchor': 'middle', 'font-size': 11, class: 't-ink' });
+          if (name === 'Raw' && Math.abs(a - b) < 30) label.setAttribute('x', String(px + 14));
+          const hit = svgEl('circle', { cx: px, cy, r: 12, fill: 'transparent', tabindex: 0, 'aria-label': `${r.label}, ${name}: ${side.speed.toFixed(1)} cm/s, ${side.moving.toFixed(0)}% of low-foot frames moving` }, svg);
+          const show = () => {
+            const sc = plot.getBoundingClientRect().width / width;
+            tip.show(px * sc, cy * sc, r.label, [
+              { value: `${side.speed.toFixed(1)} cm/s`, label: name, color },
+              { value: `${side.moving.toFixed(0)}%`, label: 'of low-foot frames moving' },
+            ]);
+          };
+          hit.addEventListener('pointerenter', show); hit.addEventListener('focus', show);
+          hit.addEventListener('pointerleave', () => tip.hide()); hit.addEventListener('blur', () => tip.hide());
+        }
+      });
+    });
+  });
+</script>
