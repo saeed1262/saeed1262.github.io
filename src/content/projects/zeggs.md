@@ -1,9 +1,10 @@
 ---
 title: "ZeroEGGS"
 date: "2023-03-13"
-description: "Zero-shot example-based gesture generation from speech with style control. A neural network framework that generates full-body co-speech gestures, including finger-level detail, with style controlled by a short example motion clip even for styles unseen during training."
+description: "Full-body gestures from speech, in the style of a few seconds of example motion, even a style it never saw in training. The paper, and what is new in the code in 2026: clean feet, a steady heading and a character viewer."
 image: "zeggs.png"
 url: "https://github.com/ubisoft/ubisoft-laforge-ZeroEGGS"
+customPage: true
 tags:
   - "gesture generation"
   - "speech"

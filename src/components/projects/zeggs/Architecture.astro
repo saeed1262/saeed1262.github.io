@@ -1,0 +1,121 @@
+---
+// The three parts of ZeroEGGS as buttons; the selected part's panel lists what it takes in, how it is built and
+// what it puts out. Sizes are from Sections 3 and 4 of the paper.
+const parts = [
+  {
+    id: 'speech',
+    name: 'Speech encoder',
+    short: 'speech → 64 numbers per frame',
+    input: 'Speech audio as 80 mel-frequency bands (log amplitude) plus the energy, from 50 ms windows every 12.5 ms, resampled to 60 frames per second.',
+    build: 'Two 1D convolutions (64 channels, kernels of 3 and 31, about one second of speech in view), ELU and dropout, then a linear layer applied to every frame.',
+    output: 'A 64-number speech embedding for every frame. It sees only the sound, not the words.',
+  },
+  {
+    id: 'style',
+    name: 'Style encoder',
+    short: 'example clip → one 64-number style',
+    input: 'A short example clip in the wanted style: for every frame, each joint’s position, rotation and their velocities, and the root’s velocity.',
+    build: 'Two 1D convolutions (512 channels) with layer normalisation, positional encoding, and a feed-forward transformer block (4-head self-attention). Averaging over time gives the mean and spread of a 64-dimensional Gaussian.',
+    output: 'One 64-number style embedding sampled from that Gaussian. Sampling is what lets the same input give different takes; the temperature scales the spread.',
+  },
+  {
+    id: 'generator',
+    name: 'Gesture generator',
+    short: 'speech + style → a pose every frame',
+    input: 'The speech embedding for this frame, the style embedding, the previous pose, and a fixed facing direction to keep the character from turning away.',
+    build: 'Two recurrent layers (GRU) of 1024 units. A separate network (three linear layers with ELU) sets their starting state from the first pose, the facing direction and the style.',
+    output: 'The next pose: positions, rotations and velocities of 75 joints, fingers included, and the root’s velocity, which moves the character. 60 frames per second, about 4 ms per frame.',
+  },
+];
+---
+<figure class="viz za" data-arch>
+  <div class="viz__head">
+    <p class="viz__title">How ZeroEGGS works</p>
+    <p class="viz__sub">Choose a part to see what goes in, how it is built and what comes out</p>
+  </div>
+  <div class="za__flow">
+    <div class="za__in za__in--speech">Speech audio</div>
+    <div class="za__in za__in--style">Example clip<small>any style, even one never seen in training</small></div>
+    <span class="za__arrow za__a1" aria-hidden="true"></span>
+    <span class="za__arrow za__a2" aria-hidden="true"></span>
+    {parts.map((p, i) => (
+      <button type="button" class={`za__part za__part--${p.id}`} aria-pressed={i === 2 ? 'true' : 'false'} aria-controls={`za-${p.id}`} data-part={p.id}>
+        {p.name}<small>{p.short}</small>
+      </button>
+    ))}
+    <span class="za__arrow za__b1" aria-hidden="true"></span>
+    <span class="za__arrow za__b2" aria-hidden="true"></span>
+    <span class="za__arrow za__a3" aria-hidden="true"></span>
+    <div class="za__out">Full-body motion<small>75 joints with fingers, 60 fps</small></div>
+  </div>
+  {parts.map((p, i) => (
+    <dl class="za__panel" id={`za-${p.id}`} data-panel={p.id} hidden={i !== 2}>
+      <div><dt>In</dt><dd>{p.input}</dd></div>
+      <div><dt>Built from</dt><dd>{p.build}</dd></div>
+      <div><dt>Out</dt><dd>{p.output}</dd></div>
+    </dl>
+  ))}
+  <figcaption class="viz__caption">
+    The three parts are trained together, end to end, as a conditional variational autoencoder. The generator learns
+    from its own predictions rather than the recorded poses, so it learns to recover from its own mistakes.
+  </figcaption>
+</figure>
+
+<style>
+  .za__flow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "in1 in2"
+      "a1 a2"
+      "speech style"
+      "b1 b2"
+      "gen gen"
+      "a3 a3"
+      "out out";
+    gap: 0.35rem 0.8rem;
+    align-items: stretch;
+  }
+  .za__in, .za__out {
+    text-align: center; font-size: 0.86rem; color: var(--ink); padding: 0.5rem 0.6rem;
+    border: 1px dashed var(--border); border-radius: 10px;
+  }
+  .za__in small, .za__out small, .za__part small { display: block; font-size: 0.76rem; color: var(--ink-2); font-weight: 400; margin-top: 0.15rem; }
+  .za__in--speech { grid-area: in1; }
+  .za__in--style { grid-area: in2; }
+  .za__out { grid-area: out; }
+  .za__part {
+    font: inherit; font-size: 0.92rem; font-weight: 650; color: var(--ink); text-align: center; cursor: pointer;
+    padding: 0.65rem 0.7rem; border-radius: 12px; border: 1.5px solid var(--border); background: var(--bg-deep);
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .za__part:hover { border-color: var(--accent-from); }
+  .za__part[aria-pressed="true"] { border-color: var(--accent-from); background: color-mix(in srgb, var(--accent-from) 12%, var(--viz-surface)); }
+  .za__part--speech { grid-area: speech; }
+  .za__part--style { grid-area: style; }
+  .za__part--generator { grid-area: gen; }
+  .za__arrow { justify-self: center; width: 2px; height: 1.1rem; background: var(--axis); position: relative; }
+  .za__arrow::after { content: ""; position: absolute; left: -4px; bottom: -2px; border: 5px solid transparent; border-top-color: var(--axis); border-bottom: 0; }
+  .za__a1 { grid-area: a1; }
+  .za__a2 { grid-area: a2; }
+  .za__a3 { grid-area: a3; }
+  .za__b1 { grid-area: b1; }
+  .za__b2 { grid-area: b2; }
+  .za__panel[hidden] { display: none; }
+  .za__panel { display: grid; gap: 0.5rem; margin: 0.9rem 0 0; padding: 0.85rem 1rem; border-radius: 12px; background: var(--bg-deep); }
+  .za__panel div { display: grid; grid-template-columns: 6.5rem 1fr; gap: 0.6rem; }
+  .za__panel dt { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold-text); padding-top: 0.15rem; }
+  .za__panel dd { margin: 0; font-size: 0.88rem; line-height: 1.5; color: var(--ink); }
+  @media (max-width: 520px) { .za__panel div { grid-template-columns: 1fr; gap: 0.1rem; } }
+</style>
+
+<script>
+  import { onEachPage } from '@/scripts/viz';
+  onEachPage('[data-arch]', (fig) => {
+    const buttons = fig.querySelectorAll<HTMLButtonElement>('[data-part]');
+    buttons.forEach((b) => b.addEventListener('click', () => {
+      buttons.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      fig.querySelectorAll<HTMLElement>('[data-panel]').forEach((p) => { p.hidden = p.dataset.panel !== b.dataset.part; });
+    }));
+  });
+</script>

@@ -1,0 +1,60 @@
+---
+// Minutes of motion capture per style in the ZEGGS dataset (paper Table 1), sorted. One series, one colour.
+import { datasetMinutes, datasetTotalMinutes } from '@/data/projects/zeggs';
+const rows = [...datasetMinutes].sort((a, b) => b.minutes - a.minutes);
+---
+<figure class="viz zd-bars" data-rows={JSON.stringify(rows)}>
+  <div class="viz__head">
+    <p class="viz__title">The ZEGGS dataset: minutes per style</p>
+    <p class="viz__sub">{datasetTotalMinutes.toFixed(0)} minutes of monologue by one actor, 19 styles, 60 fps, 75 joints including fingers</p>
+  </div>
+  <div class="viz__plot" data-plot></div>
+  <figcaption class="viz__caption">
+    From Table 1 of the paper. Each take has the speech recorded with it; the released data also has mirrored versions.
+  </figcaption>
+  <details>
+    <summary>Show as a table</summary>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Style</th><th>Minutes</th></tr></thead>
+        <tbody>{rows.map((r) => <tr><td>{r.style}</td><td>{r.minutes.toFixed(2)}</td></tr>)}</tbody>
+      </table>
+    </div>
+  </details>
+</figure>
+
+<script>
+  import { onEachPage, responsive, svgEl, svgText, linear, makeTooltip } from '@/scripts/viz';
+
+  onEachPage('.zd-bars', (root) => {
+    const plot = root.querySelector<HTMLElement>('[data-plot]')!;
+    const rows = JSON.parse(root.dataset.rows!) as { style: string; minutes: number }[];
+    const tip = makeTooltip(plot);
+    responsive(plot, (width) => {
+      plot.replaceChildren(tip.el);
+      tip.hide();
+      const labelW = 92, rowH = 19, axisH = 22;
+      const H = rows.length * rowH + axisH;
+      const x = linear(0, 12, labelW, width - 40);
+      const svg = svgEl('svg', { viewBox: `0 0 ${width} ${H}`, role: 'img', 'aria-label': 'Bar chart of minutes per style, from 11.8 minutes of Sad to 3.3 of Flirty.' }, plot);
+      for (const t of [0, 3, 6, 9, 12]) {
+        svgEl('line', { x1: x(t), x2: x(t), y1: 0, y2: rows.length * rowH, class: t === 0 ? 'axis' : 'grid' }, svg);
+        svgText(svg, x(t), rows.length * rowH + 15, String(t), { 'text-anchor': 'middle' });
+      }
+      svgText(svg, width - 2, rows.length * rowH + 15, 'min', { 'text-anchor': 'end' });
+      rows.forEach((r, i) => {
+        const y = i * rowH;
+        svgText(svg, labelW - 8, y + rowH / 2 + 4, r.style, { 'text-anchor': 'end', class: 't-ink' });
+        svgEl('rect', { x: x(0), y: y + 3, width: x(r.minutes) - x(0), height: rowH - 6, rx: 3, style: 'fill: var(--accent-from)' }, svg);
+        svgText(svg, x(r.minutes) + 5, y + rowH / 2 + 4, r.minutes.toFixed(1), { 'font-size': 11 });
+        const hit = svgEl('rect', { x: 0, y, width, height: rowH, fill: 'transparent', tabindex: 0, 'aria-label': `${r.style}: ${r.minutes.toFixed(2)} minutes` }, svg);
+        const show = () => {
+          const s = plot.getBoundingClientRect().width / width;
+          tip.show(x(r.minutes) * s, y * s, r.style, [{ value: `${r.minutes.toFixed(2)} min`, label: 'of motion capture' }]);
+        };
+        hit.addEventListener('pointerenter', show); hit.addEventListener('focus', show);
+        hit.addEventListener('pointerleave', () => tip.hide()); hit.addEventListener('blur', () => tip.hide());
+      });
+    });
+  });
+</script>

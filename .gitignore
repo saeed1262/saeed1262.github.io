@@ -22,3 +22,7 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# ZeroEGGS page data script cache
+scripts/zeggs/work/
+__pycache__/
