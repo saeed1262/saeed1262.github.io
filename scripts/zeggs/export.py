@@ -10,7 +10,7 @@ from pathlib import Path
 import numpy as np
 
 from zeggs.anim import quat
-from zeggs.postprocess import detect_contacts
+from zeggs.postprocess import detect_contacts, heading
 
 BODY_JOINTS = [
     "Hips", "Spine", "Spine1", "Spine2", "Spine3", "Neck", "Neck1", "Head", "HeadEnd",
@@ -69,6 +69,20 @@ def contact_runs(anim, fps_out=30, height_margin=3.0, speed_thresh=30.0):
         starts, ends = np.flatnonzero(d == 1), np.flatnonzero(d == -1)
         out[side] = [(int(s // step), int(-(-e // step))) for s, e in zip(starts, ends)]
     return out
+
+
+def face_camera(anim):
+    """Turn a clip about the vertical axis so the hips face the camera (+z) on average; a rigid turn about the first
+    frame's hips, so how the body moves, feet included, is unchanged."""
+    yaw = np.radians(heading(anim))
+    mean = np.arctan2(np.sin(yaw).mean(), np.cos(yaw).mean())
+    turn = quat.from_angle_axis(np.array([-mean]), np.array([0.0, 1.0, 0.0]))[0]
+    lrot = quat.from_euler(np.radians(anim["rotations"]), anim["order"])
+    lpos = anim["positions"].copy()
+    pivot = lpos[0, 0] * np.array([1.0, 0.0, 1.0])
+    lrot[:, 0] = quat.mul(turn, lrot[:, 0])
+    lpos[:, 0] = quat.mul_vec(turn, lpos[:, 0] - pivot) + pivot
+    return dict(anim, positions=lpos, rotations=np.degrees(quat.to_euler(lrot, order=anim["order"])))
 
 
 def write_clip(stem, tracks, fps, audio, contacts):

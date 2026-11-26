@@ -18,7 +18,8 @@ The clean ZEGGS takes (67 BVH and WAV files) are read from `ZEGGS_DATA`
 ```sh
 cd scripts/zeggs
 ../../zenv/bin/python -m pytest -p no:cacheprovider test_export.py
-ZEGGS_REPO=path/to/zeggs-repo ../../zenv/bin/python make_page_data.py
+ZEGGS_REPO=path/to/zeggs-repo ../../zenv/bin/python make_page_data.py   # chart data, feet floor-view clip
+ZEGGS_REPO=path/to/zeggs-repo ../../zenv/bin/python make_videos.py      # GenoView recordings and posters
 ```
 
 `export.py` holds the clip format: `<stem>.json` (fps, frames, joints, parents, tracks, audio, contacts) and

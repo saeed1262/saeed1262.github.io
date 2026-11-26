@@ -1,4 +1,5 @@
-// Motion clips for the ZeroEGGS page's player: decoding and timing, with no DOM or WebGL so they can be tested.
+// Motion clips for the ZeroEGGS page's video players: decoding, timing and the floor view's data, with no DOM so
+// they can be tested.
 // Format (scripts/zeggs/export.py): a JSON header and a little-endian Int16 binary of global joint positions in
 // millimetres, y up, laid out as tracks x frames x joints x 3.
 
@@ -64,28 +65,12 @@ export function floorRuns(clip: Clip, track: number): FloorRun[] {
   return out.sort((a, b) => a.start - b.start);
 }
 
-export interface PlayerState { time: number; playing: boolean; track: string }
-export type PlayerAction =
-  | { type: 'track'; id: string }
-  | { type: 'seek'; time: number }
-  | { type: 'tick'; dt: number }
-  | { type: 'play' }
-  | { type: 'pause' };
-
-const wrap = (t: number, duration: number) => ((t % duration) + duration) % duration;
-
-/** Player state after an action; `duration` is the clip length in seconds. Switching tracks keeps the time. */
-export function nextState(state: PlayerState, action: PlayerAction, duration: number): PlayerState {
-  switch (action.type) {
-    case 'track': return { ...state, track: action.id };
-    case 'seek': return { ...state, time: wrap(action.time, duration) };
-    case 'tick': return state.playing ? { ...state, time: wrap(state.time + action.dt, duration) } : state;
-    case 'play': return { ...state, playing: true };
-    case 'pause': return { ...state, playing: false };
-  }
+/** Column and row of tile `index` in a grid `cols` wide, filled row by row (the blend video is 2 x 2). */
+export function tileOffset(index: number, cols: number): { col: number; row: number } {
+  return { col: index % cols, row: Math.floor(index / cols) };
 }
 
-/** The speech plays only while the clip plays with sound on, the player is on screen and the tab is visible. */
-export function audioShouldPlay(s: { playing: boolean; sound: boolean; onScreen: boolean; pageHidden: boolean }): boolean {
-  return s.playing && s.sound && s.onScreen && !s.pageHidden;
+/** A player's video runs only while the reader wants it playing, it is on screen and the tab is visible. */
+export function videoShouldPlay(s: { wanted: boolean; onScreen: boolean; pageHidden: boolean }): boolean {
+  return s.wanted && s.onScreen && !s.pageHidden;
 }

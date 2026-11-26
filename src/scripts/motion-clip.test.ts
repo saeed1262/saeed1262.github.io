@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { audioShouldPlay, decodeClip, floorRuns, frameAt, jointPosition, nextState, type ClipHeader } from './motion-clip';
+import { decodeClip, floorRuns, frameAt, jointPosition, tileOffset, videoShouldPlay, type ClipHeader } from './motion-clip';
 
 // Two tracks, three frames, two joints (Hips, LeftFoot). Values are millimetres in the binary.
 const header: ClipHeader = {
@@ -47,29 +47,6 @@ describe('frameAt', () => {
   });
 });
 
-describe('nextState', () => {
-  const start = { time: 4.2, playing: true, track: 'w0' };
-
-  it('switchTrack keeps time', () => {
-    const s = nextState(start, { type: 'track', id: 'w50' }, 10);
-    expect(s.track).toBe('w50');
-    expect(s.time).toBe(4.2);
-    expect(s.playing).toBe(true);
-  });
-
-  it('loops time on tick', () => {
-    expect(nextState({ ...start, time: 9.9 }, { type: 'tick', dt: 0.2 }, 10).time).toBeCloseTo(0.1);
-  });
-
-  it('does not advance while paused', () => {
-    expect(nextState({ ...start, playing: false }, { type: 'tick', dt: 0.5 }, 10).time).toBe(4.2);
-  });
-
-  it('wraps seeks into the clip', () => {
-    expect(nextState(start, { type: 'seek', time: 12 }, 10).time).toBeCloseTo(2);
-  });
-});
-
 describe('floorRuns', () => {
   it('returns each contact run with the ankle on the floor, in time order', () => {
     const clip = decodeClip(header, buffer());
@@ -83,21 +60,29 @@ describe('floorRuns', () => {
   });
 });
 
-describe('audioShouldPlay', () => {
-  const on = { playing: true, sound: true, onScreen: true, pageHidden: false };
+describe('tileOffset', () => {
+  it('finds a tile in a grid, row by row', () => {
+    expect(tileOffset(0, 2)).toEqual({ col: 0, row: 0 });
+    expect(tileOffset(1, 2)).toEqual({ col: 1, row: 0 });
+    expect(tileOffset(2, 2)).toEqual({ col: 0, row: 1 });
+    expect(tileOffset(3, 2)).toEqual({ col: 1, row: 1 });
+  });
+});
 
-  it('plays when the clip plays with sound on, on screen, in a visible tab', () => {
-    expect(audioShouldPlay(on)).toBe(true);
+describe('videoShouldPlay', () => {
+  const on = { wanted: true, onScreen: true, pageHidden: false };
+
+  it('plays when wanted, on screen, in a visible tab', () => {
+    expect(videoShouldPlay(on)).toBe(true);
   });
 
-  it('resumes after the tab becomes visible again', () => {
-    expect(audioShouldPlay({ ...on, pageHidden: true })).toBe(false);
-    expect(audioShouldPlay({ ...on, pageHidden: false })).toBe(true);
+  it('resumes when the tab is visible again', () => {
+    expect(videoShouldPlay({ ...on, pageHidden: true })).toBe(false);
+    expect(videoShouldPlay({ ...on, pageHidden: false })).toBe(true);
   });
 
-  it('stays silent when paused, muted or off screen', () => {
-    expect(audioShouldPlay({ ...on, playing: false })).toBe(false);
-    expect(audioShouldPlay({ ...on, sound: false })).toBe(false);
-    expect(audioShouldPlay({ ...on, onScreen: false })).toBe(false);
+  it('stays paused when paused by the reader or off screen', () => {
+    expect(videoShouldPlay({ ...on, wanted: false })).toBe(false);
+    expect(videoShouldPlay({ ...on, onScreen: false })).toBe(false);
   });
 });

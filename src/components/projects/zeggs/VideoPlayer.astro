@@ -1,0 +1,97 @@
+---
+// A figure that plays a GenoView recording (src/scripts/video-player.ts): play/pause, a scrubber and sound (the
+// speech is in the video). A tiled video gets a slider that shows one tile at a time, all in sync; a feet clip can
+// add a floor view of the planted ankles that follows the video.
+interface Props {
+  src: string;
+  poster: string;
+  label: string; // what the video shows, for screen readers
+  title: string;
+  sub?: string;
+  tiles?: { cols: number; rows: number; label: string; names: string[] };
+  floor?: string; // motion clip stem for the floor view, e.g. /data/zeggs/feet
+}
+const { src, poster, label, title, sub, tiles, floor } = Astro.props;
+---
+<figure
+  class="viz vp"
+  data-video-player
+  data-cols={tiles?.cols}
+  data-names={tiles ? JSON.stringify(tiles.names) : undefined}
+  data-floor={floor}
+>
+  <div class="viz__head">
+    <p class="viz__title">{title}</p>
+    {sub && <p class="viz__sub">{sub}</p>}
+  </div>
+  <div class="vp__stage" style={tiles ? `--cols: ${tiles.cols}; --rows: ${tiles.rows}` : undefined}>
+    <video src={src} poster={poster} muted loop playsinline preload="metadata" aria-label={label}></video>
+  </div>
+  <div class="vp__controls">
+    <button type="button" class="vp__play" data-play aria-label="Play" data-state="paused"></button>
+    <input type="range" class="vp__scrub" data-scrub min="0" max="1000" value="0" aria-label="Position in the clip" />
+    <span class="vp__time" data-time aria-hidden="true">0.0 s</span>
+    <button type="button" class="vp__sound" data-sound aria-pressed="false">Sound off</button>
+  </div>
+  {tiles && (
+    <div class="vp__tiles">
+      <label>
+        <span>{tiles.label}</span>
+        <input type="range" data-tile min="0" max={tiles.names.length - 1} step="1" value="0" />
+      </label>
+      <output data-tile-name>{tiles.names[0]}</output>
+    </div>
+  )}
+  {floor && (
+    <div class="vp__floor" data-floor-view hidden>
+      <p class="vp__floor-head">Seen from above: each line is one planted ankle, as long as it slid</p>
+      <div class="vp__floor-panels" data-floor-panels></div>
+    </div>
+  )}
+  <figcaption class="viz__caption"><slot /></figcaption>
+</figure>
+
+<style>
+  /* GenoView's floor is light, so the stage is light in every palette. */
+  .vp__stage { position: relative; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 10px; border: 1px solid var(--border); background: #f3f4f5; }
+  /* A tiled video is drawn --cols x --rows times the stage, shifted so one tile fills it. */
+  .vp__stage video {
+    position: absolute; display: block;
+    width: calc(var(--cols, 1) * 100%); height: calc(var(--rows, 1) * 100%);
+    left: calc(var(--col, 0) * -100%); top: calc(var(--row, 0) * -100%);
+  }
+  .vp__controls { display: flex; align-items: center; gap: 0.75rem; margin-top: 0.6rem; }
+  .vp__play {
+    flex: none; width: 2.2rem; height: 2.2rem; border-radius: 50%; border: 0; cursor: pointer;
+    background: var(--accent-from); color: var(--badge-text); display: grid; place-items: center;
+  }
+  .vp__play::before { content: ""; width: 0; height: 0; margin-left: 3px; border-style: solid; border-width: 0.42rem 0 0.42rem 0.7rem; border-color: transparent transparent transparent currentColor; }
+  .vp__play[data-state="playing"]::before { margin-left: 0; width: 0.62rem; height: 0.78rem; border: 0; background: linear-gradient(90deg, currentColor 0 35%, transparent 35% 65%, currentColor 65%); }
+  .vp__scrub { flex: 1; min-width: 0; accent-color: var(--accent-from); }
+  .vp__time { flex: none; width: 3.4rem; font-variant-numeric: tabular-nums; font-size: var(--step--1); color: var(--text-muted); }
+  .vp__sound {
+    flex: none; font: inherit; font-size: var(--step--1); padding: 0.3rem 0.75rem; border-radius: 999px; cursor: pointer;
+    border: 1px solid var(--border); background: var(--surface); color: var(--text);
+  }
+  .vp__sound[aria-pressed="true"] { background: var(--accent-from); border-color: var(--accent-from); color: var(--badge-text); }
+  .vp__tiles { display: flex; align-items: center; gap: 0.9rem; margin-top: 0.6rem; flex-wrap: wrap; }
+  .vp__tiles label { display: flex; align-items: center; gap: 0.6rem; flex: 1; min-width: 14rem; font-size: var(--step--1); color: var(--text-muted); }
+  .vp__tiles input { flex: 1; accent-color: var(--accent-from); }
+  .vp__tiles output { font-size: var(--step--1); font-weight: 600; color: var(--text); min-width: 7rem; }
+  .vp__floor { margin-top: 0.8rem; }
+  .vp__floor[hidden] { display: none; }
+  .vp__floor-head { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.35rem; }
+  .vp__floor-panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: 0.6rem; }
+  .vp__floor-panels :global(.vp__floor-panel) { background: #f3f4f5; border: 1px solid var(--border); border-radius: 10px; padding: 0.4rem 0.5rem 0.5rem; }
+  .vp__floor-panels :global(.vp__floor-panel p) { font-size: 0.78rem; font-weight: 600; color: #172033; margin-bottom: 0.2rem; }
+  .vp__floor-panels :global(svg) { display: block; width: 100%; height: auto; max-height: 15rem; }
+  .vp__floor-panels :global(.vp__floor-grid) { stroke: #d5d9df; stroke-width: 1; vector-effect: non-scaling-stroke; }
+  .vp__floor-panels :global(.vp__floor-line) { stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; opacity: 0.85; }
+  .vp__floor-panels :global(.vp__floor-scale) { stroke: #5b6680; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+  .vp__floor-panels :global(.vp__floor-scale-text) { font-size: 0.022px; fill: #5b6680; text-anchor: middle; }
+  @media print { .vp__controls, .vp__tiles { display: none; } }
+</style>
+
+<script>
+  import '@/scripts/video-player';
+</script>

@@ -1,5 +1,12 @@
 # ZeroEGGS project page: design
 
+> **Revised 2026-11-25 after review.** The in-browser capsule player was replaced by players for GenoView recordings
+> of the Geno character (play, scrub, sound; the style blend as a 2 x 2 tiled video with a slider; the feet clip with
+> a floor view), and three.js was removed. Clips are turned to face the camera. The style map's PCA is fitted on the
+> paper's eight styles, as in Figure 8a. The code snippets, the separate GenoView section and the "2026:" heading
+> prefixes were removed, and the page opens with a looping clip and styles code blocks like the Probing Physics page.
+> The sections below describe the original design; where they differ, this note wins.
+
 Date: 2026-11-25. Branch: `zeggs-page`.
 
 ## Intent

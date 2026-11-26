@@ -14,7 +14,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from export import BODY_JOINTS, body_positions, contact_runs, write_clip
+from export import BODY_JOINTS, body_positions, contact_runs, face_camera, write_clip
 
 BODY_JOINTS_INDEX = [BODY_JOINTS.index("LeftFoot"), BODY_JOINTS.index("RightFoot")]
 from zeggs.anim import bvh
@@ -35,6 +35,9 @@ SKIP = 5 * FPS             # never start a window in a take's first 5 s
 STYLE_FRAMES = [600, 1080]  # style examples: 8 s from 10 s into the take
 COLORS = {"raw": "#ffa100", "fixed": "#00a087", "neutral": "#3d3d3d"}  # GenoView's orange, teal, charcoal
 NAMES = {"Speech": "Oration"}  # the dataset's file names call Oration "Speech"
+# The styles in the paper's Figure 8a; the style map's PCA is fitted on these, and the others are projected into it.
+PAPER_STYLES = ["Neutral", "Happy", "Angry", "Relaxed", "Tired", "Sad", "Oration", "Still"]
+BLEND_WEIGHTS = (0, 33, 67, 100)  # % Oration; a 2 x 2 grid of video tiles
 
 
 def take(name):
@@ -112,7 +115,11 @@ def skating(anim):
 
 
 def style_map():
-    """PCA of the v1 style encoder's mean embedding over non-overlapping 8 s windows of every take."""
+    """PCA of the v1 style encoder's mean embedding over non-overlapping 8 s windows of every take.
+
+    As in the paper's Figure 8a, the PCA is fitted on the windows of eight styles; the other styles are projected into
+    the same two directions. Signs are arbitrary, so the first direction points towards more sway and the second
+    towards higher hands."""
     device = get_device(True)
     paths = model("v1")
     encoder = load_module(paths["network_path"] / "style_encoder.pt", device)
@@ -137,19 +144,21 @@ def style_map():
             hands = pos[:, [12, 17], 1].mean(1) - hips[:, 1]  # RightHand, LeftHand height above the hips
             meta.append(dict(style=style, take=name, start=s // FPS, sway=sway, hand=hands.mean()))
     X = np.array(rows)
-    X = X - X.mean(0)
-    _, svals, vt = np.linalg.svd(X, full_matrices=False)
-    pcs = X @ vt[:2].T
+    fit = np.array([m["style"] in PAPER_STYLES for m in meta])
+    centre = X[fit].mean(0)
+    _, svals, vt = np.linalg.svd(X[fit] - centre, full_matrices=False)
+    pcs = (X - centre) @ vt[:2].T
     sway = np.array([m["sway"] for m in meta])
     hand = np.array([m["hand"] for m in meta])
-    r1, r2 = np.corrcoef(pcs[:, 0], sway)[0, 1], np.corrcoef(pcs[:, 1], hand)[0, 1]
+    r1, r2 = np.corrcoef(pcs[fit, 0], sway[fit])[0, 1], np.corrcoef(pcs[fit, 1], hand[fit])[0, 1]
     pcs[:, 0] *= np.sign(r1)  # the sign of a principal component is arbitrary: point it along the measure
     pcs[:, 1] *= np.sign(r2)
     explained = (svals ** 2 / (svals ** 2).sum())[:2]
-    points = [dict(x=round(float(x), 3), y=round(float(y), 3), style=m["style"], take=m["take"], start=m["start"])
-              for (x, y), m in zip(pcs, meta)]
-    return dict(points=points, pc1SwayR=round(abs(float(r1)), 2), pc2HandR=round(abs(float(r2)), 2),
-                explained=[round(float(e), 3) for e in explained])
+    points = [dict(x=round(float(x), 3), y=round(float(y), 3), style=m["style"], take=m["take"], start=m["start"],
+                   fit=bool(f)) for (x, y), m, f in zip(pcs, meta, fit)]
+    means = {s: [round(float(pcs[[m["style"] == s for m in meta], k].mean()), 2) for k in (0, 1)] for s in PAPER_STYLES}
+    return dict(points=points, fitStyles=PAPER_STYLES, pc1SwayR=round(abs(float(r1)), 2),
+                pc2HandR=round(abs(float(r2)), 2), explained=[round(float(e), 3) for e in explained], means=means)
 
 
 def main():
@@ -165,31 +174,19 @@ def main():
     best = max(((t, *loudest_window(DATA / f"{t}_x_1_0.wav")) for t in takes("Neutral")), key=lambda r: r[2])
     speech_take, speech_start, _ = best
     speech_wav = DATA / f"{speech_take}_x_1_0.wav"
-    audio_excerpt(speech_wav, speech_start / FPS, 10, OUT_CLIPS / "speech.m4a")
 
     def example(style, i=0):
         return (str(take(takes(style)[i])), STYLE_FRAMES)
 
     common = dict(first_pose=str(take(speech_take)), seed=1234)
 
-    # Blending Old and Oration, five weights.
-    blend = []
-    for w in (0, 25, 50, 75, 100):
-        path = generate(work, f"blend_w{w}", speech_wav, [example("Old"), example("Speech")],
-                        blend_type="add", blend_ratio=[1 - w / 100, w / 100], **common)
-        pos = recentred(body_positions(cut(bvh.load(path), speech_start)))
-        label = "Old" if w == 0 else "Oration" if w == 100 else f"{100 - w}% Old, {w}% Oration"
-        blend.append(dict(id=f"w{w}", label=label, color=COLORS["neutral"], positions=pos))
-    write_clip(OUT_CLIPS / "blend", blend, fps=30, audio="speech.m4a", contacts=None)
-
-    # Variation: one style, three seeds.
-    variation = []
-    for i, seed in enumerate((1, 2, 3)):
-        path = generate(work, f"variation_s{seed}", speech_wav, [example("Happy")],
-                        **dict(common, seed=seed))
-        pos = recentred(body_positions(cut(bvh.load(path), speech_start)))
-        variation.append(dict(id=f"s{seed}", label=f"Take {i + 1}", color=COLORS["neutral"], positions=pos))
-    write_clip(OUT_CLIPS / "variation", variation, fps=30, audio="speech.m4a", contacts=None)
+    # Blending Old and Oration, and three takes of one style. The page shows them as GenoView recordings
+    # (make_videos.py); here they are only generated (and cached).
+    for w in BLEND_WEIGHTS:
+        generate(work, f"blend_w{w}", speech_wav, [example("Old"), example("Speech")],
+                 blend_type="add", blend_ratio=[1 - w / 100, w / 100], **common)
+    for seed in (1, 2, 3):
+        generate(work, f"variation_s{seed}", speech_wav, [example("Happy")], **dict(common, seed=seed))
 
     # Feet: the Happy-example / Angry-speech pair with the most raw foot skating.
     pairs = []
@@ -209,12 +206,12 @@ def main():
     s30, e30 = feet_start // 2, (feet_start + WINDOW) // 2
     feet_tracks, feet_contacts = [], {}
     for tid, label, anim in (("raw", "Raw", raw), ("fixed", "--fix_feet", fixed)):
+        # Turned to face the camera on average, as in the recorded video (a rigid turn: sliding is unchanged).
         feet_tracks.append(dict(id=tid, label=label, color=COLORS[tid],
-                                positions=recentred(body_positions(cut(anim, feet_start)))))
+                                positions=recentred(body_positions(face_camera(cut(anim, feet_start))))))
         feet_contacts[tid] = cut_runs(contact_runs(anim), s30, e30)
-    # Trails are drawn in each track's re-centred coordinates; contacts are frame indices only.
-    audio_excerpt(DATA / f"{angry}_x_1_0.wav", feet_start / FPS, 10, OUT_CLIPS / "feet.m4a")
-    write_clip(OUT_CLIPS / "feet", feet_tracks, fps=30, audio="feet.m4a", contacts=feet_contacts)
+    # The floor views draw each track in its own re-centred coordinates; contacts are frame indices only.
+    write_clip(OUT_CLIPS / "feet", feet_tracks, fps=30, audio=None, contacts=feet_contacts)
 
     # Contact timeline: raw left ankle over the feet window, as the first detection pass sees it.
     from zeggs.anim import quat
@@ -273,6 +270,7 @@ def main():
 
     measured["styleMap"] = style_map()
     measured["clips"] = dict(speechTake=speech_take, speechStart=speech_start / FPS, blendStyles=["Old", "Oration"],
+                             blendWeights=list(BLEND_WEIGHTS),
                              blendTakes=[takes("Old")[0], takes("Speech")[0]], variationStyle="Happy",
                              variationTake=takes("Happy")[0], styleFrames=STYLE_FRAMES,
                              feetPair=dict(style=happy, speech=angry), feetPairs=len(pairs),
@@ -286,8 +284,8 @@ def main():
         print(f"skating {r['label']} ({r['seconds']} s): {r['before']} -> {r['after']}")
     print(f"mocap skating: {measured['skating']['mocap']}")
     print(f"feet clip drift during contacts (cm): {measured['feetDrift']}")
-    print(f"style map: {len(sm['points'])} windows, |r| PC1~sway {sm['pc1SwayR']}, PC2~hand {sm['pc2HandR']}, "
-          f"explained {sm['explained']}")
+    print(f"style map: {len(sm['points'])} windows ({sum(p['fit'] for p in sm['points'])} fitted), |r| PC1~sway "
+          f"{sm['pc1SwayR']}, PC2~hand {sm['pc2HandR']}, explained {sm['explained']}, means {sm['means']}")
     print(f"heading: raw max {np.abs(h_raw - h_raw[0]).max():.0f} deg, fixed max {np.abs(h_fix - h_fix[0]).max():.0f}")
 
 
