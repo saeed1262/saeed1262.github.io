@@ -1,0 +1,125 @@
+---
+// Style embeddings of 8 s windows of every ZEGGS take, projected to two dimensions with PCA
+// (scripts/zeggs/make_page_data.py). Nineteen styles are too many to tell apart by colour, so all points are grey and
+// one chosen style is drawn in the accent colour.
+import { measured } from '@/data/projects/zeggs';
+const sm = measured.styleMap;
+const styles = [...new Set(sm.points.map((p) => p.style))].sort();
+const takes = [...new Set(sm.points.map((p) => p.take))];
+const rows = sm.points.map((p) => [p.x, p.y, styles.indexOf(p.style), takes.indexOf(p.take), p.start]);
+const swayClaim = sm.pc1SwayR >= 0.5;
+const handClaim = sm.pc2HandR >= 0.5;
+const initial = styles.includes('Oration') ? 'Oration' : styles[0];
+const means = styles.map((s) => {
+  const ps = sm.points.filter((p) => p.style === s);
+  return { style: s, n: ps.length, x: ps.reduce((a, p) => a + p.x, 0) / ps.length, y: ps.reduce((a, p) => a + p.y, 0) / ps.length };
+});
+---
+<figure
+  class="viz zm"
+  data-styles={JSON.stringify(styles)}
+  data-takes={JSON.stringify(takes)}
+  data-rows={JSON.stringify(rows)}
+  data-xlabel={swayClaim ? 'First direction: more body sway →' : 'First direction →'}
+  data-ylabel={handClaim ? 'Second direction: hands higher →' : 'Second direction →'}
+  data-initial={initial}
+>
+  <div class="viz__head">
+    <p class="viz__title">The style space, mapped</p>
+    <p class="viz__sub">Every point is 8 seconds of one take, placed by its style embedding; choose a style to highlight it</p>
+  </div>
+  <div class="zm__chips" role="group" aria-label="Highlight a style">
+    {styles.map((s) => <button type="button" class="zm__chip" data-style={s} aria-pressed={s === initial ? 'true' : 'false'}>{s}</button>)}
+  </div>
+  <div class="viz__plot" data-plot></div>
+  <figcaption class="viz__caption">
+    The mean of the released v1 style encoder for {sm.points.length} non-overlapping 8 s windows of all 67 takes,
+    projected on its first two principal components ({Math.round(sm.explained[0] * 100)}% and
+    {Math.round(sm.explained[1] * 100)}% of the variance).
+    {swayClaim && handClaim
+      ? ` As in the paper, the first direction follows body sway (correlation with hip speed ${sm.pc1SwayR.toFixed(2)}) and the second follows hand height (${sm.pc2HandR.toFixed(2)}).`
+      : ` The paper found the first direction follows body sway and the second hand height; on this map the correlations are ${sm.pc1SwayR.toFixed(2)} (hip speed) and ${sm.pc2HandR.toFixed(2)} (hand height).`}
+  </figcaption>
+  <details>
+    <summary>Show as a table</summary>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Style</th><th>Windows</th><th>Mean, first direction</th><th>Mean, second direction</th></tr></thead>
+        <tbody>{means.map((m) => <tr><td>{m.style}</td><td>{m.n}</td><td>{m.x.toFixed(2)}</td><td>{m.y.toFixed(2)}</td></tr>)}</tbody>
+      </table>
+    </div>
+  </details>
+</figure>
+
+<style>
+  .zm__chips { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 0.7rem; }
+  .zm__chip {
+    font: inherit; font-size: 0.78rem; padding: 0.18rem 0.6rem; border-radius: 999px; cursor: pointer;
+    border: 1px solid var(--border); background: var(--bg-deep); color: var(--ink-2);
+  }
+  .zm__chip:hover { border-color: var(--accent-from); color: var(--ink); }
+  .zm__chip[aria-pressed="true"] { background: var(--accent-from); border-color: var(--accent-from); color: var(--badge-text); }
+</style>
+
+<script>
+  import { onEachPage, responsive, svgEl, svgText, linear, makeTooltip } from '@/scripts/viz';
+
+  type Row = [number, number, number, number, number];
+
+  onEachPage('.zm', (root) => {
+    const plot = root.querySelector<HTMLElement>('[data-plot]')!;
+    const styles = JSON.parse(root.dataset.styles!) as string[];
+    const takes = JSON.parse(root.dataset.takes!) as string[];
+    const rows = JSON.parse(root.dataset.rows!) as Row[];
+    const tip = makeTooltip(plot);
+    let selected = styles.indexOf(root.dataset.initial!);
+    const xs = rows.map((r) => r[0]), ys = rows.map((r) => r[1]);
+    const pad = (a: number[]) => { const lo = Math.min(...a), hi = Math.max(...a), m = (hi - lo) * 0.06; return [lo - m, hi + m]; };
+    const [x0, x1] = pad(xs), [y0, y1] = pad(ys);
+    let circles: SVGCircleElement[] = [];
+
+    function paint() {
+      circles.forEach((c, i) => {
+        const on = rows[i][2] === selected;
+        c.setAttribute('r', on ? '4' : '2.6');
+        c.style.fill = on ? 'var(--accent-from)' : 'var(--c-other)';
+        c.style.opacity = on ? '0.95' : '0.28';
+        if (on) c.parentNode!.appendChild(c); // draw the chosen style on top
+      });
+      root.querySelectorAll<HTMLButtonElement>('[data-style]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.style === styles[selected])));
+    }
+
+    root.querySelectorAll<HTMLButtonElement>('[data-style]').forEach((b) => b.addEventListener('click', () => {
+      selected = styles.indexOf(b.dataset.style!);
+      paint();
+    }));
+
+    responsive(plot, (width) => {
+      plot.replaceChildren(tip.el);
+      tip.hide();
+      const H = Math.round(Math.min(420, width * 0.72));
+      const left = 14, right = width - 6, top = 6, bottom = H - 24;
+      const x = linear(x0, x1, left, right), y = linear(y0, y1, bottom, top);
+      const svg = svgEl('svg', { viewBox: `0 0 ${width} ${H}`, role: 'img', 'aria-label': `Scatter plot of ${rows.length} style embeddings; the chosen style is highlighted.` }, plot);
+      svgEl('line', { x1: x(0), x2: x(0), y1: top, y2: bottom, class: 'grid' }, svg);
+      svgEl('line', { x1: left, x2: right, y1: y(0), y2: y(0), class: 'grid' }, svg);
+      svgEl('line', { x1: left, x2: right, y1: bottom, y2: bottom, class: 'axis' }, svg);
+      svgText(svg, right, bottom + 17, root.dataset.xlabel!, { 'text-anchor': 'end' });
+      svgText(svg, left + 4, top + 12, root.dataset.ylabel!, {});
+      const g = svgEl('g', {}, svg);
+      circles = rows.map((r) => svgEl('circle', { cx: x(r[0]), cy: y(r[1]) }, g));
+      paint();
+      svg.addEventListener('pointermove', (e) => {
+        const box = svg.getBoundingClientRect();
+        const sc = box.width / width;
+        const px = (e.clientX - box.left) / sc, py = (e.clientY - box.top) / sc;
+        let best = -1, bd = 14 * 14;
+        rows.forEach((r, i) => { const d = (x(r[0]) - px) ** 2 + (y(r[1]) - py) ** 2; if (d < bd) { bd = d; best = i; } });
+        if (best < 0) return tip.hide();
+        const r = rows[best];
+        tip.show(x(r[0]) * sc, y(r[1]) * sc, styles[r[2]], [{ value: takes[r[3]], label: `from ${r[4]} s` }]);
+      });
+      svg.addEventListener('pointerleave', () => tip.hide());
+    });
+  });
+</script>

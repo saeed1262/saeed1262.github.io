@@ -1,0 +1,110 @@
+---
+// The paper's user study (Table 2): ZeroEGGS against MoGlow on three measures, on the ZEGGS data and on the Trinity
+// Speech-Gesture data (TSG), with ± one standard deviation. Two series: ZeroEGGS and MoGlow, always in that order.
+import { study, modelStats } from '@/data/projects/zeggs';
+---
+<figure class="viz zs" data-rows={JSON.stringify(study)}>
+  <div class="viz__head">
+    <p class="viz__title">What 131 people rated</p>
+    <p class="viz__sub">Mean rating out of 100, with ± one standard deviation; higher is better</p>
+  </div>
+  <div class="viz-legend" aria-hidden="true">
+    <span><i class="dot" style="background: var(--c-zeggs)"></i>ZeroEGGS</span>
+    <span><i class="dot" style="background: var(--c-real)"></i>MoGlow</span>
+  </div>
+  <div class="viz__plot" data-plot></div>
+  <div class="zs__tiles">
+    <p class="viz-readout">{modelStats.zeggs.params} M<small>parameters, against {modelStats.moglow.params} M for MoGlow</small></p>
+    <p class="viz-readout">{modelStats.zeggs.ms} ms<small>per frame, against {modelStats.moglow.ms} ms for MoGlow</small></p>
+  </div>
+  <figcaption class="viz__caption">
+    From Table 2 of the paper. Participants compared clips side by side (a MUSHRA-like test), so the scores are
+    relative to the other clips on the same page, not absolute. MoGlow trained on our data gave jittery motion, so
+    each study was also run on the Trinity Speech-Gesture data MoGlow was built with; there, ZeroEGGS was not trained
+    on it.
+  </figcaption>
+  <details>
+    <summary>Show as a table</summary>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Data</th><th>Measure</th><th>ZeroEGGS</th><th>MoGlow</th></tr></thead>
+        <tbody>
+          {study.map((r) => (
+            <tr>
+              <td>{r.dataset === 'ZEGGS' ? 'ZEGGS' : 'Trinity (TSG)'}</td><td>{r.measure}</td>
+              <td>{r.zeggs[0].toFixed(1)} ± {r.zeggs[1].toFixed(1)}</td><td>{r.moglow[0].toFixed(1)} ± {r.moglow[1].toFixed(1)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </details>
+</figure>
+
+<style>
+  .zs__tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem; padding-top: 0.9rem; border-top: 1px solid var(--border); }
+</style>
+
+<script>
+  import { onEachPage, responsive, svgEl, svgText, linear, makeTooltip } from '@/scripts/viz';
+  import type { StudyRow } from '@/data/projects/zeggs';
+
+  const SERIES = [
+    { key: 'zeggs', name: 'ZeroEGGS', color: 'var(--c-zeggs)' },
+    { key: 'moglow', name: 'MoGlow', color: 'var(--c-real)' },
+  ] as const;
+  const DATASETS = [
+    { key: 'ZEGGS', name: 'On the ZEGGS data' },
+    { key: 'TSG', name: 'On the Trinity data (TSG)' },
+  ] as const;
+
+  onEachPage('.zs', (root) => {
+    const plot = root.querySelector<HTMLElement>('[data-plot]')!;
+    const rows = JSON.parse(root.dataset.rows!) as StudyRow[];
+    const tip = makeTooltip(plot);
+    responsive(plot, (width) => {
+      plot.replaceChildren(tip.el);
+      tip.hide();
+      const stacked = width < 560;
+      const panelW = stacked ? width : (width - 24) / 2;
+      const panelH = 210;
+      const H = stacked ? panelH * 2 + 20 : panelH;
+      const svg = svgEl('svg', { viewBox: `0 0 ${width} ${H}`, role: 'img', 'aria-label': 'Bar charts of the user study. ZeroEGGS is rated well above MoGlow on all three measures on the ZEGGS data; on the Trinity data it is slightly above on naturalness and appropriateness and well above on style.' }, plot);
+      DATASETS.forEach((d, di) => {
+        const ox = stacked ? 0 : di * (panelW + 24);
+        const oy = stacked ? di * (panelH + 20) : 0;
+        const left = ox + 28, right = ox + panelW, top = oy + 26, bottom = oy + panelH - 24;
+        const y = linear(0, 100, bottom, top);
+        svgText(svg, ox, oy + 12, d.name, { class: 't-strong' });
+        for (const t of [0, 25, 50, 75, 100]) {
+          svgEl('line', { x1: left, x2: right, y1: y(t), y2: y(t), class: t === 0 ? 'axis' : 'grid' }, svg);
+          svgText(svg, left - 6, y(t) + 4, String(t), { 'text-anchor': 'end' });
+        }
+        const groups = rows.filter((r) => r.dataset === d.key);
+        const gw = (right - left) / groups.length;
+        const bw = Math.min(26, gw / 3.2);
+        groups.forEach((r, gi) => {
+          const cx = left + gw * (gi + 0.5);
+          svgText(svg, cx, bottom + 16, r.measure, { 'text-anchor': 'middle', class: 't-ink' });
+          SERIES.forEach((s, si) => {
+            const [mean, sd] = r[s.key];
+            const bx = cx + (si === 0 ? -bw - 1 : 1);
+            svgEl('rect', { x: bx, y: y(mean), width: bw, height: y(0) - y(mean), rx: 3, style: `fill: ${s.color}` }, svg);
+            const wx = bx + bw / 2;
+            svgEl('line', { x1: wx, x2: wx, y1: y(Math.min(100, mean + sd)), y2: y(Math.max(0, mean - sd)), style: 'stroke: var(--ink)', 'stroke-width': 1.2, opacity: 0.6 }, svg);
+            svgText(svg, wx, y(Math.min(100, mean + sd)) - 4, mean.toFixed(0), { 'text-anchor': 'middle', 'font-size': 10.5, class: 't-ink' });
+            const hit = svgEl('rect', { x: bx - 1, y: top, width: bw + 2, height: bottom - top, fill: 'transparent', tabindex: 0, 'aria-label': `${s.name}, ${r.measure}, ${d.name}: ${mean.toFixed(1)} ± ${sd.toFixed(1)}` }, svg);
+            const show = () => {
+              const sc = plot.getBoundingClientRect().width / width;
+              tip.show(wx * sc, y(mean) * sc, `${r.measure}, ${d.name.toLowerCase()}`, [
+                { value: `${mean.toFixed(1)} ± ${sd.toFixed(1)}`, label: s.name, color: s.color },
+              ]);
+            };
+            hit.addEventListener('pointerenter', show); hit.addEventListener('focus', show);
+            hit.addEventListener('pointerleave', () => tip.hide()); hit.addEventListener('blur', () => tip.hide());
+          });
+        });
+      });
+    });
+  });
+</script>
